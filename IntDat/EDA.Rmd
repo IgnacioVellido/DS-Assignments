@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE, results="hold")
 library(ggplot2)
 library(tidyverse)
 library(car)
+library(ISLR)
+library(dlookr)
+library(corrplot)
 ```
 
 ### 1. Exploratory Data Analysis
@@ -24,7 +27,6 @@ Descargate el  dataset hip con el siguiente commando
 hip <- read.table("http://astrostatistics.psu.edu/datasets/HIP_star.dat", header=T,fill=T)
 ```
 
-
 Una vez descargado comprueba la dimensión y los nombres de las columnas del dataset. ¿Qué dimensión tiene? ¿qué tipo de datos alberga? (e.g. 4 variables numéricas continuas)
 ```{r}
 cat("Dimensiones: ")
@@ -34,7 +36,6 @@ colnames(hip)
 hip %>% apply(2, class)
 ```
 2719 filas y 9 columnas todas numéricas
-
 
 
 Calcula las tendencias centrales de todos los datos del dataset (mean, media) Tip: puedes usar la función apply()
@@ -206,31 +207,68 @@ De los tres restantes, C parece ser el más eficaz puesto más del 50% de las me
 
 Instala la library(ISLR), vamos a trabajar con el dataset Carseats. Si vas a usar dplyr puedes inspeccionar el paquete “dlookr”
 ```{r}
-
+carseat <- Carseats
 ```
 
 Encuentra que variables tienen skewness
 ```{r}
-
+carseat %>% select(find_skewness(.))
 ```
 
 Genera dos listas, una de variables con skewness a la derecha y otra con skewness a la izquierda
 ```{r}
-
+y <- sapply(carseat, class)
+y <- y[y != "factor"] %>% names()
+split(y, describe(carseat)$skewness > 0)
 ```
 
 Averigua que variables no están distribuidas de forma normal, crea gráficos que lo prueben
 ```{r}
+nonNormals <- normality(carseat) %>% filter(p_value < 0.05)
+nonNormals$vars
+```
 
+```{r}
+ggplot(carseat, aes(x=Income)) + 
+  geom_histogram(aes(y=..density..), bins=30, color="blue", fill="white") +
+  geom_density(alpha=.2, fill="black")
+  theme_light()
+```
+
+```{r}
+ggplot(carseat, aes(x=Advertising)) + 
+  geom_histogram(aes(y=..density..), bins=10, color="red", fill="white") +
+  geom_density(alpha=.2, fill="black")
+  theme_light()
+```
+```{r}
+ggplot(carseat, aes(x=Population)) + 
+  geom_histogram(aes(y=..density..), bins=50, color="green3", fill="white") +
+  geom_density(alpha=.2, fill="black")
+  theme_light()
+```
+```{r}
+ggplot(carseat, aes(x=Age)) + 
+  geom_histogram(aes(y=..density..), bins=10, color="orange", fill="white") +
+  geom_density(alpha=.2, fill="black")
+  theme_light()
+```
+
+```{r}
+ggplot(carseat, aes(x=Education)) + 
+  geom_histogram(aes(y=..density..), bins=15, color="black", fill="white") +
+  geom_density(alpha=.2, fill="black")
+  theme_light()
 ```
 
 Encuentra que variables están correlaccionadas positiva y cuales negativamente. Crea el gráfico apropiado.
 ```{r}
+correlate(carseat)
 
+corrCarseat <- carseat[, sapply(carseat, is.numeric)]
+
+corrplot(cor(corrCarseat), method="color")
 ```
-
-
-
 
 
 ### Ejemplo 4, iris dataset
@@ -248,20 +286,25 @@ Cada una de ellas con cuatro atributos:
 - petal width
 - petal length
 
-```{r}
-
-```
-
-
 Inspecciona las primeras filas del dataset y calcula el summary() del mismo con cada atributo del dataset
 ```{r}
-
+head(iris)
+summary(iris)
 ```
 
-Crea un histograma de petal.width , teniendo en cuenta que el numero de bins es variable fija este a 9. Añádele color y nombres al eje x "Petal Width"y al gráfico dale el nombre de  "Histogram of Petal Width". Crea un histograma para cada variable
+Crea un histograma de petal.width , teniendo en cuenta que el numero de bins es variable fija este a 9. Añádele color y nombres al eje x "Petal Width"y al gráfico dale el nombre de  "Histogram of Petal Width". 
+```{r}
+ggplot(iris, aes(x=Petal.Width)) + 
+  geom_histogram(aes(y=..density..), bins=9, color="black", fill="grey") +
+  geom_density(alpha=.2, fill="black") +
+  labs(title="Histogram of Petal Width", x="Petal Width") +
+  theme_light()
+```
+Crea un histograma para cada variable
 ```{r}
 
 ```
+
 
 Crea los cuartiles del dataset
 ```{r}
