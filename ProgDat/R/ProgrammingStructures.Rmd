@@ -1,0 +1,155 @@
+---
+title: "ProgrammingStructures"
+author: "Ignacio Vellido"
+date: "10/28/2020"
+output:
+  html_document:
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+library(tidyverse)
+```
+
+---
+
+1- Create an increasing function that indicates whether the elements of a given array are strictly increasing. Ordering the vector is not allowed  / *Crea una función creciente que indique si los elementos de un vector dado son estrictamente crecientes. No se permite ordenar el vector.*
+
+```{r}
+x <- c(1:10, 1)
+y <- c(1:10)
+
+# Comparando elemento a elemento
+incr <- function(x) {
+   res <- T
+   for (i in 2:length(x)) {
+      if (x[i-1] >= x[i])
+         res <- F
+   }
+   res
+}
+
+incr(x)
+incr(y)
+```
+
+```{r}
+# Forma alternativa, haciendo copia y desplazando el vector a la derecha, y comprobando con la resta
+incr2 <- function(x) {
+   y <- x[-length(x)]
+   y <- append(y, 0, 0)
+   z <- rowSums(cbind(x,-y))
+   
+   ! F %in% eval(z > 0)
+}
+
+incr2(x)
+incr2(y)
+```
+
+```{r}
+# Lo mismo que antes pero usando diff
+incr3 <- function(x) {
+   z <- diff(x,1)
+   ! F %in% eval(z > 0)
+}
+
+incr3(x)
+incr3(y)
+```
+
+---
+
+2- Create a function "montecarlo" that calculates the estimation of the given integral: / *Crea una función "montecarlo" que calcule la estimación de la siguiente integral:*
+
+>$\int_{0}^{1} x^2 dx$<br/>
+
+The Monte Carlo algortithm in pseudo-code is as follows: / *El algoritmo en pseudo-código para el método de Monte Carlo es el siguiente:*
+   
+>hits=0<br/>
+ for i from 1 to N<br/>
+ &nbsp;&nbsp;&nbsp;&nbsp;Generate two random numbers r1 and r2 between 0 and 1<br/>
+ &nbsp;&nbsp;&nbsp;&nbsp;If r2<r1^2 then hits=hits+1<br/>
+ end for<br/>
+ return hits/N
+
+Check functions `runif()` and `rnorm()` / Investiga las funciones `runif()` y `rnorm()`.
+
+```{r}
+# N = grado de aprox.
+MC <- function(n=10) {
+   hits <- 0
+   
+   for (i in 1:n) {
+      r <- runif(2)
+      hits <- ifelse(r[1]**2 > r[2], hits+1, hits)
+   }
+   
+   hits / n
+}
+
+MC(25)
+```
+
+---
+
+3- Create a list of five numeric arrays and order them after its creation / *Crea una lista de 5 vectores numéricos y ordena todos los vectores de la lista.*
+
+```{r}
+x <- list(sample(1:100, 5), sample(1:100, 5), sample(1:100, 5), sample(1:100, 5), sample(1:100, 5))
+x
+```
+
+
+```{r}
+lapply(x, sort)
+```
+
+---
+
+4- Calculate the minimum value of each column of a matrix, but assume odd numbers are negative and even numbers are positive / *Calcula el valor mínimo de cada columna de una matriz, pero toma los valores impares como numeros negativos y los pares como positivos.*
+
+```{r}
+m <- matrix(0:19, nrow=5)
+m
+```
+
+
+```{r}
+# Convertir impares a negativos
+m <- ifelse(m %% 2 == 0, m, -m)
+m
+```
+
+
+```{r}
+# Calcular los mínimos
+cat("Min:", apply(m, 2, min))
+```
+
+---
+
+5- Given a matrix return a list of all values greater than 7 of each row / *Dada una matriz devuelva una lista con los valores mayores a 7 de cada fila.*
+
+```{r}
+m <- matrix(0:19, nrow=5)
+m
+```
+
+```{r}
+z <- apply(m, 2, ">", 7)   # Get index
+
+# Si queremos una lista con los elementos
+m[z] %>% as.list()
+```
+
+```{r}
+# Si queremos una lista de listas
+l <- list()
+for (i in 1:nrow(m)) {
+   x <- m[i,z[i,]] %>% as.array()
+   l[i] <- list(x)
+}
+l
+```

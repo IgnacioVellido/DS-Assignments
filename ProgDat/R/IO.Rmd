@@ -1,0 +1,96 @@
+---
+title: "IO"
+author: "Ignacio Vellido"
+date: "10/28/2020"
+output:
+  html_document:
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+library(tidyverse)
+```
+
+---
+
+Ask the user to introduce with the kwyboard a string s and a number n and show in the screen n times the string s (without spaces between words) / Pide al usuario que introduzca por teclado un string s y un número n y que muestre en pantalla n veces seguidas el string s (sin espacios entre palabra y palabra).
+s="hola, n=3
+holaholahola
+
+```{r}
+#s <- scan("", what=character())
+#n <- scan("")
+s <- "hola"
+n <- 3
+paste(rep(s, n), sep="", collapse="")
+```
+
+---
+
+Create three files called dos.txt, tres.txt and cinco.txt containing the table of 2, 3 and 5 respectively (the first 10 values of each, one number at a time) / Crea tres ficheros llamados dos.txt, tres.txt y cinco.txt que contenga la tabla del 2, la del 3 y la del 5 respectivamente (los primeros 10 valores de cada tabla, un número en cada línea de cada fichero).
+
+```{r}
+write.table(matrix(1:10 * 2), "dos.txt", row.names=F, col.names=F)
+print(read.table("./dos.txt"))
+```
+
+
+```{r}
+write.table(matrix(1:10 * 3), "tres.txt", row.names=F, col.names=F)
+print(read.table("./tres.txt"))
+```
+
+
+```{r}
+write.table(matrix(1:10 * 5), "cinco.txt", row.names=F, col.names=F)
+print(read.table("./cinco.txt"))
+```
+
+---
+
+Load the three files created in the last exercise and create a matrix with three columns, one for each file conent / Carga los tres ficheros creados en el punto anterior y construye una matriz que, en cada columna, tengo el contenido de cada fichero.
+
+```{r}
+dos <- read.table("dos.txt")
+tres <- read.table("tres.txt")
+cinco <- read.table("cinco.txt")
+m <- bind_cols(dos,tres,cinco)
+m
+```
+
+---
+
+Write the first five rows of the matrix created in the last exercise in a new file called prime.txt and the last five in another file called fin.txt. Both files must have the data separated by commas / Escribe las cinco primera filas de matriz del ejercicio anterior en un fichero nuevo llamado prime.txt y las cinco últimas en otro fichero llamado fin.txt. Ambos ficheros deben tener los datos separados por comas.
+
+```{r}
+write.table(m[1:5,1:3], "prime.txt", sep=",", row.names=F, col.names=F)
+print(read.table("./prime.txt"))
+```
+
+
+```{r}
+write.table(m[6:10,1:3], "fin.txt", sep=",", row.names=F, col.names=F)
+print(read.table("./fin.txt"))
+```
+
+---
+
+Given two numbers, f and c, introduced using the keyboard by the user, create a square of f rows and c collumns with character "x". See an example for f=4 and c=3 below: / Dados dos números introducidos por el usuario f y c, crea un cuadrado de f filas y c columnas con el caracter "x". Un ejemplo con f=4 y c=3 sería:
+
+xxx
+
+xxx
+
+xxx
+
+xxx
+
+```{r}
+#f <- scan("")
+#c <- scan("")
+f <- 4
+c <- 3
+
+matrix(rep("x", f*c), nrow = 4)
+```

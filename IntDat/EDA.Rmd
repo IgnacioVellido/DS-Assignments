@@ -1,0 +1,481 @@
+---
+title: "EDA"
+author: "Ignacio Vellido"
+date: "11/6/2020"
+output:
+  html_document:
+    df_print: paged
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+library(ggplot2)
+library(tidyverse)
+library(car)
+```
+
+### 1. Exploratory Data Analysis
+
+#### a.	Ejemplo 1, hip dataset
+
+Descargate el  dataset hip con el siguiente commando
+```{r}
+hip <- read.table("http://astrostatistics.psu.edu/datasets/HIP_star.dat", header=T,fill=T)
+```
+
+
+Una vez descargado comprueba la dimensión y los nombres de las columnas del dataset. ¿Qué dimensión tiene? ¿qué tipo de datos alberga? (e.g. 4 variables numéricas continuas)
+```{r}
+cat("Dimensiones: ")
+dim(hip)
+cat("Columnas: ")
+colnames(hip)
+hip %>% apply(2, class)
+```
+2719 filas y 9 columnas todas numéricas
+
+
+
+Calcula las tendencias centrales de todos los datos del dataset (mean, media) Tip: puedes usar la función apply()
+```{r}
+# También nos vale summary
+cat("Medias: ")
+hip %>% apply(2, mean, na.rm=T)
+cat("Medianas: ")
+hip %>% apply(2, median, na.rm=T)
+```
+
+
+Haz lo mismo para las medidas de dispersión mínimo y máximo. ¿Seria posible hacerlo con un único comando?¿Que hace la función range()?
+```{r}
+hip %>% apply(2, range, na.rm=T)
+```
+
+
+Sin embargo las medidas mas populares de dispersión son la varianza (var()), su desviación standard (sd()) y la desviación absoluta de la mediana mad(). Calcula estas medidas para los valores de la variable RA
+```{r}
+cat("Varianza: ")
+hip$RA %>% var(na.rm=T)
+cat("Desviación standard: ")
+hip$RA %>% sd(na.rm=T)
+cat("Desviación absoluta de la mediana: ")
+hip$RA %>% mad(na.rm=T)
+```
+
+
+Imagina que quieres calcular dos de estos valores de una sola vez. ¿Te serviría este código?
+```{r}
+f = function(x) c(median(x), mad(x))  
+f(hip[,3])
+```
+Nos calcula la media y la desviación absoluta de la mediana.
+
+
+
+¿Cuál sería el resultado de aplicar apply(hip,2,f)?
+```{r}
+apply(hip,2,f)
+```
+Aplica la función anterior a todas las columnas.
+
+
+Vamos a medir la dispersión de la muestra utilizando el concepto de cuartiles. El percentil 90 es aquel dato que excede en un 10% a todos los demás datos. El cuartil (quantile) es el mismo concento, solo que habla de proporciones en vez de porcentajes. De forma que el percentil 90 es lo mismo que el cuartil 0.90. La mediana “median” de un dataset es el valor más central, en otras palabras exactamente la mitad del dataset excede la media. Calcula el cuartil .10 y .50 para la columna RA del dataset hip. Sugerencia: quantile()
+```{r}
+hip$RA %>% quantile(c(0.1,0.5), na.rm=T)
+```
+
+
+Los cuantiles 0.25 y 0.75 se conocen como el  “first quartile” o Q1 y el “third quartile” o Q3, respectivamente. Calcula los cuatro cuartiles para RA con un único comando.
+```{r}
+hip$RA %>% quantile(seq(0.25,0.75,0.25), na.rm=T)
+```
+
+
+Otra medida de dispersion es la diferencia entre el primer y el tercer cuartil conocida como rango intercuartil (IQR) Inter Quantile Range. ¿Obtienes ese valor con la función summary()?
+```{r}
+hip$RA %>% IQR()
+hip$RA %>% summary()
+```
+El IQR no se obtiene en summary() pero se puede calcular con la diferencia del 1er y 3er cuartil
+
+
+Hasta ahora has ignorado la presencia de  valores perdidos NA. La función any() devuelve TRUE si se encuentra al menos un TRUE en el vector que damos como argumento. Su combinación con is.na es muy útil. ¿qué obtienes cuando ejecutas el siguiente comando? ¿Cómo lo interpretas?
+```{r}
+hasNA = function(x) any(is.na(x)) 
+apply(hip,2,hasNA)
+```
+La columna B.V es la única que tiene NA.
+
+
+Prueba a ejecutar el siguiente comando.
+```{r}
+min(hip$B.V)
+```
+
+hip1 = na.omit(hip) Como has observado  nos devuelve NA para toda la columna,  normalmente querríamos poder usar la función sobre el resto de datos que no son NA: Para ello podemos utilizar la función na.omit. ¿Que ocurre cuando lo hacemos?. Usando apply calcula la media para hip. Intenta calcular la media de forma que solo cambie la de B.V cuando ignores los valores NA.
+```{r}
+hip1 <- na.omit(hip) 
+mean(hip$B.V)
+mean(hip1$B.V)
+hip %>% apply(2,mean,na.rm=T)
+```
+
+Obten una idea aproximada de tus datos mediante la creación de un boxplot del hip dataset
+```{r}
+# hip
+# ggplot(hip, aes(x=B.V, y=HIP, na.rm=T)) +
+#   geom_boxplot() +
+#   theme_dark()
+```
+
+Crea un scatterplot que te compare los valores de RA y DE. Representa los puntos con el símbolo ‘.’ Y que estos puntos sean de color rojo si DE excede de 0. Sugerencia: puedes usar dplyr/tidyverse o Rbase ifelse()
+```{r}
+ggplot(hip, aes(x=RA, y=DE)) +
+  geom_point(aes(color=ifelse(DE > 0, "red", "blue"))) +  # shape="." si quisieramos ese
+  scale_color_identity() +  # Importante para que se interpreten bien los colores
+  theme_light()
+```
+
+En vez de crear los plots por separado para cada par de columnas, hazlos con un solo comando con el scatterplot matrix
+```{r}
+scatterplotMatrix(hip, pch=20, col="deepskyblue")
+```
+
+Para poder acceder a las variables por su nombre usa attach(hip).Vamos a seleccionar las estrellas Hyadas del dataset aplicando los siguientes filtros:
+
+- RA in the range (50,100) 
+- DE in the range (0,25) 
+- pmRA in the range (90,130) 
+- pmDE in the range (-60,-10) 
+- e_Plx <5 
+- Vmag >4 OR B.V <0.2 (this eliminates 4 red giants) 
+```{r}
+attach(hip)
+hip %>% filter(RA > 50 & RA < 100) %>% 
+  filter(DE > 0 & DE < 25) %>% 
+  filter(pmRA > 90 & pmRA < 130) %>% 
+  filter(pmDE > -60 & pmDE < -10) %>% 
+  filter(e_Plx < 5) %>% 
+  filter(Vmag > 4 | B.V < 0.2)
+```
+
+Crea un nuevo dataset con la aplicación de estos filtro. El Nuevo dataset se llama hyades. ¿Que dimensiones tiene? Grafica un scatterplot de Vmag vs B.V
+
+```{r}
+hyades <- hip %>% 
+  filter(RA > 50 & RA < 100) %>% 
+  filter(DE > 0 & DE < 25) %>% 
+  filter(pmRA > 90 & pmRA < 130) %>% 
+  filter(pmDE > -60 & pmDE < -10) %>% 
+  filter(e_Plx < 5) %>% 
+  filter(Vmag > 4 | B.V < 0.2) %>% data.frame()
+
+cat("Dimensiones: ")
+dim(hyades)
+
+ggplot(hyades, aes(x=Vmag, y=B.V)) +
+  geom_point() + 
+  geom_smooth(method=lm) +
+  theme_light()
+```
+
+
+
+### Ejemplo 2, InsectSprays dataset
+
+El dataset “InsectSprays” está incluido en la libreria de R “datasets”. Contiene el conteo de insectos extraidos de diferentes zonas agrícolas tratadas de forma experimental con diferentes insecticidas. Haz un boxplot para determiner que insecticida parece ser el más efectivo.
+
+```{r}
+insects <- InsectSprays
+str(insects)
+summary(insects)
+head(insects)
+
+ggplot(insects, aes(x=spray, y=count, fill=spray)) +
+  geom_boxplot() +
+  theme_light()
+```
+
+Para responder a la pregunta en este caso estamos interesados en los insecticidas con menos número de insectos, por tanto fácilmente podemos descartar los tipos A, B, y F por tener un gran número en comparación al resto.
+
+De los tres restantes, C parece ser el más eficaz puesto más del 50% de las mediciones han dado un conteo inferior al resto.
+
+
+### Ejemplo 3, Carseats
+
+Instala la library(ISLR), vamos a trabajar con el dataset Carseats. Si vas a usar dplyr puedes inspeccionar el paquete “dlookr”
+```{r}
+
+```
+
+Encuentra que variables tienen skewness
+```{r}
+
+```
+
+Genera dos listas, una de variables con skewness a la derecha y otra con skewness a la izquierda
+```{r}
+
+```
+
+Averigua que variables no están distribuidas de forma normal, crea gráficos que lo prueben
+```{r}
+
+```
+
+Encuentra que variables están correlaccionadas positiva y cuales negativamente. Crea el gráfico apropiado.
+```{r}
+
+```
+
+
+
+
+
+### Ejemplo 4, iris dataset
+
+Vamos a utilizar el ejemplo del dataset iris que está incluido en la distribución de R. Este dataset fue creado por Douglas Fisher.  Consta de tres clases y tipos de 3 clases de tipos de flores:
+
+- _setosa_
+- _virginica_
+- _versicolor_
+  
+Cada una de ellas con cuatro atributos:
+
+- sepal width
+- sepal length
+- petal width
+- petal length
+
+```{r}
+
+```
+
+
+Inspecciona las primeras filas del dataset y calcula el summary() del mismo con cada atributo del dataset
+```{r}
+
+```
+
+Crea un histograma de petal.width , teniendo en cuenta que el numero de bins es variable fija este a 9. Añádele color y nombres al eje x "Petal Width"y al gráfico dale el nombre de  "Histogram of Petal Width". Crea un histograma para cada variable
+```{r}
+
+```
+
+Crea los cuartiles del dataset
+```{r}
+
+```
+
+Representa en un boxplot la variable de ancho de hoja dependiendo del tipo de hoja que tengan
+```{r}
+
+```
+
+Crea los cuartiles para cada tipo de iris y represéntalos en un plot como líneas cada una de un color
+```{r}
+
+```
+
+Crea los boxplot de la longitud del pétalo en función de la especie de Iris.
+```{r}
+
+```
+
+Compara con scatter plots las variables entre sí.
+```{r}
+
+```
+
+Crea una nueva columna llamada proporción que es el ratio entre Sepal.Length y Sepal.Width. Podeis hacerlo en R base o usando el paquete dplyr. Los que no lo conozcan tienen información al final del documento
+```{r}
+
+```
+
+
+
+
+
+### Ejemplo 5, swiss dataset
+
+El conjunto de datos “swiss” contiene una medida estandarizada de fecundidad y varios indicadores socioeconómicos para cada una de las 47 provincias francófonas de Suiza.
+```{r}
+sw <- swiss
+```
+
+
+1. ¿Qué diagrama dibujaría para mostrar la distribución de todos los valores? ¿Qué conclusiones sacarías?
+```{r}
+
+```
+
+2. Dibuje gráficos para cada variable. ¿Qué puede concluir de las distribuciones con respecto a su forma y posibles valores atípicos?
+```{r}
+
+```
+
+3. Dibuja un diagrama de dispersión de Fertilidad frente a % Catholic. ¿Qué tipo de áreas tienen las tasas de fertilidad más bajas?
+```{r}
+
+```
+
+4. ¿Qué tipo de relación existe entre las variables Educación y Agricultura?
+```{r}
+
+```
+
+El conjunto de datos de aceites de oliva es bien conocido y se puede encontrar en varios paquetes, por ejemplo, como aceitunas en extracat. La fuente original de los datos es el artículo [Forina et al., 1983].
+```{r}
+
+```
+
+1. Dibuje un scatterplot  de las ocho variables continuas. ¿Cuáles de los ácidos grasos están fuertemente asociados positivamente y cuáles fuertemente asociados negativamente? 
+```{r}
+
+```
+
+2. ¿Hay valores atípicos u otras características que valga la pena mencionar?
+```{r}
+
+```
+
+
+
+### Ejemplo 6, HSAUR2 dataset
+
+El conjunto de datos se llama Lanza del paquete HSAUR2. 
+```{r}
+
+```
+
+1. Se informan los datos de cuatro estudios. Dibuje un diagrama para mostrar si los cuatro estudios son igualmente grandes. 
+```{r}
+
+```
+
+2. El resultado se mide por la clasificación de la variable con puntuaciones de 1 (mejor) a 5 (peor). ¿Cómo describirías la distribución?
+```{r}
+
+```
+
+
+
+El paquete vcdExtra incluye datos de un viejo estudio de cáncer de mama sobre la supervivencia o muerte de 474 pacientes. 
+```{r}
+
+```
+
+1. Convierta los datos en un data frame y dibuje gráficos para comparar las tasas de supervivencia, primero, por grado de malignidad y, en segundo lugar, por centro de diagnóstico. 
+```{r}
+
+```
+
+2. ¿Qué diagrama dibujaría para comparar las tasas de supervivencia tanto por grado de malignidad como por centro de diagnóstico? ¿Importa el orden de las variables explicativas?
+```{r}
+
+```
+
+
+
+* Dataset Crabs (del paquete MASS) [Venables y Ripley, 2002]. Los autores inicialmente se transforman a una escala logarítmica y luego escriben que:
+
+ “The data are very highly correlated and scatterplot matrices and brush plots [i.e. interactive graphics] are none too revealing.”. 
+```{r}
+
+```
+
+Utilizando gráficos generales, comente si la transformación logaritmica fue una buena idea y si está de acuerdo con su afirmación sobre las correlaciones.
+```{r}
+
+```
+
+
+
+## Extra 1.	Como crear subgrupos de datos en R
+
+Busca información sobre la function cut(). Para ilustrar su uso vamos a utilizar el dataset state.x77. Si no lo tienes instalado instala el paquete R-Datasets. Usa la función head() para ver como son tus datos..
+```{r}
+
+```
+
+- Extrae la columna Frost y asigna el resultado a la variable frost
+```{r}
+
+```
+
+- Tu Nuevo objeto es un vector numérico
+```{r}
+
+```
+
+- Ahora intenta agrupar los datos en frost en tres niveles. Para crear bins en tus datos puedes utilizar la función cut(). 
+```{r}
+
+```
+
+- ¿Que obtienes como nombres de los niveles?
+```{r}
+
+```
+
+- En la realidad no existen estados que tengan frost en días negativos. Esto es porque R añade un poco de padding. Prueba a solucionar el problema utilizando el parámetro include.lowest=TRUE en cut()
+```{r}
+
+```
+
+- Los nombres de los niveles no son demasiado informativos, especifica nuevos nombres para los niveles
+```{r}
+
+```
+
+- Después de este paso has creado un factor que clasifica los estados en bajo, medio y alto según el numero de heladas.
+```{r}
+
+```
+
+- Ahora cuenta el número de estados que  hay en cada uno de los niveles. PISTA: utiliza la función table()
+```{r}
+
+```
+
+
+
+### Extra 2.	Como ordenar tablas (dplyr)
+
+```{r}
+# install.packages("dslabs")
+library("dslabs")
+data("murders")
+library(tidyverse)
+```
+
+Utiizando el paquete dplyr realiza el siguiente análisis sobre el dataset murders. Para aquellos que no hicieron el curso de inicio a la programación para Ciencia de Datos he puesto en PRADO unas diapositivas explicando el funcionamiento.
+```{r}
+
+```
+
+- Averigua cual es el estado con la mayor población
+```{r}
+
+```
+
+- Averigua cual es el estado con el mayor ratio de asesinatos
+```{r}
+
+```
+
+- Averigua cual es el estado con el menor ratio de asesinatos
+```{r}
+
+```
+
+- Crea una tabla ordenada alfabeticamente por region y por el ratio de asesinatos 
+```{r}
+
+```
+
+- Crea una tabla con la media del ratio de asesinatos por region
+```{r}
+
+```

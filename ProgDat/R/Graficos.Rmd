@@ -1,0 +1,82 @@
+---
+title: "Graficos"
+author: "Ignacio Vellido"
+date: "10/26/2020"
+output:
+  html_document:
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+library(ggplot2)
+```
+
+---
+
+####  1)  Plot distance against stretch:
+
+```{r}
+ex1 <- data.frame(stretch=c(46,54,48,50,44,42,52), distance=c(148,182,173,166,109,141,166))
+ggplot(ex1, aes(x=stretch, y=distance)) + geom_point() + geom_line()
+```
+
+####  2) The follwing data have ten observations taken during the years 1970-79, on October snow cover for Eurasia (snow cover is in millions of square kilometers).
+
+```{r}
+ex2 <- data.frame(year=c(1970:1979), snow.cover=c(6.5,12.0,14.9,10.0,10.7,7.9,21.9,12.5,14.5,9.2))
+```
+
+Plot snow.cover versus year.
+
+```{r}
+ggplot(ex2, aes(y=snow.cover, x=year)) + geom_point() + geom_line() + scale_x_continuous(breaks=ex2$year)
+```
+
+Plot a histogram of the snow.cover values.
+```{r}
+ggplot(ex2, aes(x=snow.cover)) + geom_histogram(bins=15, binwidth=2, fill="black", color="white")
+```
+
+#### 3) Given the following data:
+
+```{r}
+library(readr)
+ex3 <- read_csv("./dataset_graphics.txt")
+
+
+colnames(ex3) <- c("year", "lowTemp", "highTemp", "warmMinTemp", "coldMinTemp", "avgMinTemp", "avgMaxTemp", "meanTemp", "totalPrecipitation", "totalSnowfall", "maxPrecipitation", "maxSnowfall")
+```
+
+Create a function to convert ºF to ºC and in (inches) to mm.
+```{r}
+f_to_c <- function(temp) {
+    return((temp - 32) * 5 / 9)
+}
+
+
+i_to_mm <- function(lenght) {
+    return(lenght * 25.4)
+}
+
+f_to_c(51)
+i_to_mm(5)
+```
+
+
+Plot Year vs. Warmest Minimum Temperature.
+```{r}
+ggplot(ex3, aes(x=year, y=warmMinTemp)) + geom_point() + geom_line()
+# En ºC
+ggplot(ex3, aes(x=year, y=f_to_c(warmMinTemp))) + geom_point() + geom_line()
+```
+
+Plot Year vs. Warmest Minimum Temperature and Coldest Minimum Temperature. Don’t forget to add a legend!
+```{r}
+ggplot(ex3, aes(x=year)) +
+    geom_line(aes(y=warmMinTemp, color="Warm temperature")) +
+    geom_line(aes(y=coldMinTemp, color="Cold temperature")) +
+    labs(title="Min temperature over the years", y="Temperature (ºF)", x="Year", color="Legend") +
+    theme(legend.position=c(0, 0), legend.justification=c(-3, -3.75)) +
+    scale_color_manual(values = c("red","blue"))
+```

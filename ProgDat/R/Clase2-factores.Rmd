@@ -1,0 +1,127 @@
+---
+title: "Clase2-factores"
+author: "Ignacio Vellido"
+date: "10/23/2020"
+output:
+  html_document:
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+library(tidyverse)
+```
+
+###	Factors
+
+Dado x = c(1, 2, 3, 3, 5, 3, 2, 4, NA), ¿cuáles son los levels de factor(x)?
+
+a)	1, 2, 3, 4, 5
+b)	 NA
+c)	1, 2, 3, 4, 5, NA
+
+```{r}
+x <- c(1, 2, 3, 3, 5, 3, 2, 4, NA)
+factor(x) # a)
+```
+
+Dado  x <- c(11, 22, 47, 47, 11, 47, 11) y la ejecución de la sentencia factor(x, levels=c(11, 22, 47), ordered=TRUE) ¿cuál es el cuarto elemento de la salida? 
+
+a. 11
+b. 22
+c. 47
+
+```{r}
+x <- c(11, 22, 47, 47, 11, 47, 11)
+factor(x, levels=c(11, 22, 47), ordered=TRUE)
+```
+
+Para el factor z <- c("p", "a" , "g", "t", "b"), reemplaza el tercer elemento de z por "b".
+
+a. factor(z[3]) <- "b"
+b. levels(z[3]) <- "b"
+c. z[3] <- "b"
+
+```{r}
+z <- factor(c("p", "a" , "g", "t", "b"))
+# factor(z[3]) <- "b" # No se puede asignar
+# levels(z[3]) <- "b" # No permite puesto que no está incluyendo el número de niveles suficiente
+z[3] <- "b"
+z
+# levels(z)[3] <- "b" # Esto habría renombrado el tercer level a b
+```
+
+Dado z <- factor(c("p", "q", "p", "r", "q"))  escribe una expresión de R que cambie el level  "p" a "w" 
+
+```{r}
+z <- factor(c("p", "q", "p", "r", "q"))
+levels(z)[levels(z) == "p"] <- "w"
+z
+```
+
+---
+
+Usa el dataset “iris” escribe la expresión necesaria para convertir la variable “Sepal.Length”  en un factor con cinco niveles (levels) . Pista (mira la función table() y la función cut().
+
+```{r}
+data <- iris
+cut(data$Sepal.Length, 5) %>% # Se agrupa en 5 rangos
+  factor() %>% # Se convierte a factor
+  table() # Se muestra con table
+```
+
+Escribe la expresión necesaria para generar una tabla de frecuencias con dos filas y tres columnas. Las filas deben referirse a si la variable “Sepal.length” es menor que 5 y las columnas a las diferentes especies. El resultado debe ser:
+
+|       | setosa | versicolor | virginica |
+|-------|------|--------|-------|
+| FALSE | 30   |   49   |  49   |
+| TRUE  | 20   |   1    |     1 |
+
+
+```{r}
+table(data$Sepal.Length < 5, row.names=data$Species)
+# Filtra y asigna tabla con los nombres de las especias
+```
+
+---
+
+El factor responses se define como:
+
+```{r}
+responses <- factor(c("Agree", "Agree", "Strongly Agree","Disagree", "Agree"))
+```
+
+sin embargo nos damos cuenta que tiene un nuevo nivel, "Strongly Disagree", que no estaba presente cuando se creó. Añade el nuevo nivel al factor y conviértelo en un factor ordenado. Debe quedar de la siguiente forma:
+
+Levels: Strongly Agree < Agree < Disagree < Strongly Disagree
+
+```{r}
+# Se podría redefinir el factor de nuevo, o ...
+levels(responses) <- c(levels(responses), "Srongly Disagree")
+responses
+# Para ordenarlo 
+ordered(responses, levels=c("Strongly Agree", "Agree", "Disagree", "Strongly Disagree"))
+```
+
+Dado el factor: 
+
+```{r}
+x <- factor(c("high","low","medium","high","high","low","medium"))
+```
+
+escribe la expresión en R que permita dar valores numéricos únicos para los distintos niveles (levels) de x según el siguiente esquema: 
+
+level high   => value 1
+
+level low    => value 2
+
+level medium => value 3
+
+Pista: investiga la función unique() y los parámetros de data.frame()
+
+```{r}
+# Se convierte x a numérico y nos quedamos con los valores únicos
+# Puesto que se mantiene el orden los levels de factor se corresponden según el esquema
+levels(x) <- x %>% as.numeric() %>% unique()
+x
+```

@@ -1,0 +1,71 @@
+---
+title: "Strings"
+author: "Ignacio Vellido"
+date: "10/27/2020"
+output:
+  html_document:
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold")
+library(tidyverse)
+```
+
+---
+
+Create a string array contaning your first name and last names (e.g., ["Rocio", "Romero", Zaliz"]). Using that array and the R functions you just learned create a new string with the initial of your first name, a dot, and your last names (e.g., "R. Romero Zaliz") / Crea un vector de strings con tu primer nombre y tus dos apellidos. A partir de éste crea un nuevo string con la inicial de tu nombre (y un punto) y el apellido completo utilizando lo aprendido anteriormente. En mi caso debería quedar: "R. Romero Zaliz".
+
+```{r}
+name <- c("Ignacio", "Vellido", "Exposito")
+abb <- paste(substr(name[1], 1, 1), ".", name[2], name[3])
+abb
+```
+
+---
+
+Given an array of strings representing dates (e.g., [“2005-11-28”, “2015-10-18”, “2000-01-01”]), show only those corresponding to odd months / Dado un vector de fechas, expresadas como strings (e.g., [“2005-11-28”, “2015-10-18”, “2000-01-01”]), muestra solamente aquellas correspondientes a los meses impares.
+
+```{r}
+dates <- c("2005-11-28", "2015-10-18", "2000-01-01")
+
+x <- unlist(strsplit(dates, "-"))
+y <- grep("[0-9]{4}", x)
+years <- x[y] %>% as.numeric()
+
+years[which(years %% 2 == 1)]
+```
+
+---
+
+Given a string with several words (e.g., “Esta es una frase, pero no cualquier frase.”) create an array with each of the words in the string (e.g., ["Esta","es","una","frase","pero","no","cualquier","frase"])/ Dado un string con varias palabras (e.g., “Esta es una frase, pero no cualquier frase.”) crea un vector con cada una de las palabras del string (e.g., ["Esta","es","una","frase","pero","no","cualquier","frase"]).
+
+```{r}
+string <- "Esta es una frase, pero no cualquier frase."
+strsplit(string, "[ ,.]+")
+```
+
+---
+
+Search in an array of strings those including only vocals "a" and "e" / Busca las palabras que usan solamente las vocales “a” y “e” en un vector de strings.
+
+```{r}
+string <- strsplit("Esta es una frase, pero no cualquier frase.", "[ ,.]+") %>% unlist()
+
+# Solo los que empiezan y acaban con ese conjunto de letras
+words <- grepl("^[aeb-df-hj-np-tv-z]+$", string, ignore.case = T)   
+
+string[words]
+```
+
+---
+
+Given three numeric arrays representing days, months and years, create an array with dates (only if they are valid) (Hint: research the as.Date function) / Dados tres vectores dia, mes y anno crea un vector con las fechas completas. Si la fecha es inválida, ésta se descartará (Ayuda: investiga la función as.Date).
+
+```{r}
+days <- c(25,02,01,11,30,29,5) %>% as.character()
+months <- c(1,2,3,4,5,6,7) %>% as.character()
+years <- c(0001, 1991, 2000, 1572, 1921, 2340, 1721) %>% as.character()
+
+paste(days, months, years, sep="-") %>% as.Date("%d-%m-%Y")
+```

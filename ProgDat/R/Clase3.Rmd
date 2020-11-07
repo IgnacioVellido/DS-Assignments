@@ -1,0 +1,568 @@
+---
+title: "Clase3"
+author: "Ignacio Vellido"
+date: "10/26/2020"
+output:
+  html_document:
+    theme: darkly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold", R.options=list(max.print=25))
+library(tidyverse)
+```
+
+### Durante la clase
+
+````{r}
+unique(starwars$species)
+```
+
+Androides con altura > 96 y < 200
+````{r}
+starwars %>% 
+  filter(species == "Droid" & 
+           height > 96 & 
+           height < 200)
+```
+
+Androides con altura > 96 que provienen de Naboo
+````{r}
+starwars %>% 
+  filter(species == "Droid" & 
+           height > 96 & 
+           homeworld == "Naboo")
+```
+
+Androides con altura >= 96 que provienen de Naboo o Tatooine
+````{r}
+starwars %>% 
+  filter(species == "Droid" & 
+           height >= 96 & 
+           (homeworld == "Naboo" |
+           homeworld == "Tatooine"))
+```
+
+
+Selecciona todas las variables que terminen con color
+````{r}
+starwars %>% 
+  select(name, ends_with("color"))
+```
+
+Sin eye_color
+````{r}
+starwars %>% 
+  select(-eye_color)
+```
+
+Sin eye_color ni gender
+````{r}
+starwars %>% 
+  select(-c(gender,eye_color))
+```
+
+
+Crear variable de índice corporal
+````{r}
+starwars %>%
+  mutate(imc = mass/height)
+```
+
+Obtener desviación típica para altura
+````{r}
+starwars %>%
+  summarize(sdHeight = sd(height, na.rm=T))
+```
+
+Máximo de peso
+````{r}
+starwars %>%
+  summarize(maxMass = max(mass, na.rm=T))
+```
+
+Media y desvicación estándar de altura
+````{r}
+starwars %>%
+  summarize(sdHeight = sd(height, na.rm=T), meanHeight = mean(height, na.rm=T))
+```
+
+Medias de altura y masa
+````{r}
+starwars %>%
+  summarize(meanMass = mean(mass, na.rm=T), meanHeight = mean(height, na.rm=T))
+```
+
+
+Especies de más de dos individuos y que la media de peso sea mayor a 50kg
+````{r}
+starwars %>%
+  group_by(species) %>%
+  summarize(n = n()) %>%
+  filter(mean(starwars$mass) > 50 & n > 2)
+```
+
+Tabla ordenada donde por cada especie se muestre el nº de individuos y en cuantos planetas viven
+````{r}
+starwars %>%
+  group_by(species) %>%
+  summarize(n = n(), numPlanets = n_distinct(homeworld)) %>%
+  arrange(desc(numPlanets)) %>%
+  table()
+```
+
+---
+
+### Dataframes
+
+Busca los datasets “beaver1” y “beaver2” que contienen información sobre la temperatura corporal de dos castores. Añade una columna llamada “ID” al dataset beaver1 que tenga siempre el valor 1. De forma similar añade una columna “ID” al dataset beaver2 que tenga siempre el valor 2. A continuación concatena de forma vertical los dos dataframes y busca el subset de datos donde ambos Castores están activos.
+
+````{r}
+b1 <- beaver1
+b2 <- beaver2
+
+b1 <- b1 %>% mutate(ID = 1)
+b2 <- b2 %>% mutate(ID = 2)
+
+beavers <- bind_rows(b1, b2)
+beavers %>% filter(activ == 1)
+```
+
+
+Vamos a trabajar con un ejemplo que viene por defecto en la instalación de R USArrests. Este data frame contiene la información para cada estado Americano de las tasas de criminales (por 100.000 habitantes). Los datos de las columnas se refieren a Asesinatos, violaciones y porcentaje de la población que vive en áreas urbanas. Los datos son de 1973. Contesta a las siguientes preguntas sobre los datos
+
+````{r}
+usa <- USArrests
+```
+
+- Las dimensiones del dataframe 
+
+````{r}
+str(usa)
+```
+
+- ¿Cómo calcularías el número de filas?
+````{r}
+count(usa)
+```
+
+- Numero  de columnas 
+
+````{r}
+length(usa)
+```
+
+- Obtén el nombre de las filas y las columnas para este data frame
+
+````{r}
+rownames(usa)
+colnames(usa)
+```
+
+- échale un vistazo a los datos, por ejemplo a las seis primeras filas
+
+````{r}
+head(usa, 6)
+```
+
+- Ordena de forma decreciente las filas de nuestro data frame según el porcentaje de población en el área urbana. Para ello investiga la función order() y sus parámetros.
+
+````{r}
+usa %>% arrange(desc(UrbanPop))
+```
+
+- ¿Podrías añadir un segundo criterio de orden?, ¿cómo?
+
+````{r}
+usa %>% arrange(desc(UrbanPop), desc(Murder))
+```
+
+- Muestra por pantalla la columna con los datos de asesinato
+
+````{r}
+usa %>% select(Murder)
+```
+
+- Muestra las tasas de asesinato para el segundo, tercer y cuarto estado 
+
+````{r}
+usa[2:4,] %>% select(Murder)
+```
+
+- Muestra las primeras cinco filas de todas las columnas
+
+````{r}
+usa %>% head(5)
+```
+
+- Muestra todas las filas para las dos primeras columnas
+
+````{r}
+usa %>% select(1,2)
+```
+
+- Muestra todas las filas de las columnas 1 y 3
+
+````{r}
+usa %>% select(1,3)
+```
+
+- Muestra solo las primeras cinco filas de las columnas 1 y 2
+
+````{r}
+usa %>% select(1,2) %>% head(5)
+```
+
+
+Vamos con expresiones un poco mas complicadas:…
+
+- ¿Que estado tiene la menor tasa de asesinatos? ¿qué línea contiene esa información?, obtén esa información
+
+````{r}
+usa %>% arrange(desc(Murder)) %>% head(1)
+```
+
+- ¿Que estados tienen una tasa inferior al 4%?, obtén esa información?
+
+````{r}
+usa %>% filter(Murder < 4)
+```
+
+- ¿Que estados están en el cuartil superior (75) en lo que a población en zonas urbanas se refiere? 
+
+````{r}
+n <- count(usa) %>% as.numeric()
+usa %>% arrange(desc(UrbanPop)) %>% head(n / 4)
+```
+
+---
+
+Carga el set de datos CO2 y realiza las siguientes acciones:
+
+````{r}
+co2 <- CO2
+```
+
+a. Ordena alfabéticamente los datos en función de la variable Plant. Recuerda que Plant es un factor. Imprime el resultado por pantalla para comprobarlo
+
+````{r}
+co2$Plant # Es un factor con levels ordenados, no los queremos
+co2 %>% arrange(factor(Plant, levels=sort(levels(Plant))))
+# Creamos un nuevo factor con los levels ordenados alfabéticamente
+```
+
+b. Ordena los datos en función del incremento de la variable uptake y el orden alfabético de la planta (en ese orden)
+
+````{r}
+orderedPlant <- factor(co2$Plant, levels=sort(levels(co2$Plant)))
+co2 %>% arrange(uptake, orderedPlant)
+```
+
+c. Ordena de nuevo los datos en function del increment de la variable uptake y el orden alfabético reverso de la planta (en ese orden)
+
+````{r}
+orderedPlant <- factor(co2$Plant, levels=sort(levels(co2$Plant)))
+co2 %>% arrange(uptake, desc(orderedPlant))
+```
+
+---
+
+Para este ejercicio vamos a usar el dataset state.x77. Asegurate de que el objeto es un dataframe, si no lo es fuerza su conversión.
+
+````{r}
+df <- state.x77 %>% as.data.frame()
+```
+
++	Averigua cuantos estados tienen ingresos (Income) menores de 4300. Pista investiga subset()
+
+````{r}
+df %>% filter(Income < 4300) %>% count()
+```
+
++ Averigua cual es el estado con los ingresos mas altos.
+
+````{r}
+df %>% arrange(Income) %>% head(1)
+```
+
++	Crea un data frame 2 df2 con los datasets existentes en R: state.abb, state.area, state.division, state.name, state.region. Las filas tienen que ser los nombres de los estados.
+
+````{r}
+df2 <- bind_cols(state.abb, state.area, state.division, state.region)
+df2 <- data.frame(df2, row.names = state.name)
+colnames(df2) <- c("state.abb", "state.area", "state.division", "state.region")
+df2
+```
+
++	Elimina de todas las variables la palabra state. Busca alguna función para strings.
+
+````{r}
+colnames(df2) <- sub("state.", "", colnames(df2))
+df2
+```
+
++	Borra la variable division de df2. Estas borrando una única variable del dataframe
+
+````{r}
+df2 <- df2 %>% select(-division)
+df2
+```
+
++	Añade por columnas el nuevo dataframe df2 al dataframe state.x77
+
+````{r}
+df3 <- bind_cols(df, df2)
+df3
+```
+
++ Elimina las variables Life Exp, HS Grad, Frost, abb, y area.
+
+````{r}
+df3 <- df3 %>% select(-c("Life Exp", "HS Grad", Frost, abb, area))
+df3
+```
+
++	Añade una variable que categorice el nivel de formacion (illiteracy) de manera que  [0,1) is low, [1,2) is some, [2, inf) is high.
+
+````{r}
+df3 %>% 
+  group_by(catIlli = cut(Illiteracy, breaks = c(0,1,2,Inf), labels = c("low", "some", "high")))
+```
+
++	Encuentra que estado del oeste (west) tiene la formación mas baja y los mayors ingresos. ¿Que estado es?
+
+````{r}
+df3 %>% filter(region == "West") %>% 
+  arrange(Illiteracy, desc(Income)) %>% 
+  head(1)
+```
+
+Crea un dataframe df with 40 columns, as follows:
+
+````{r}
+df <- as.data.frame(matrix(sample(1:5, 2000, T), ncol=40))
+```
+
+a.	Ordena el dataframe por columnas, de izquierda a derecha en orden creciente 
+
+````{r}
+arrange_at(df, 1:ncol(df))
+```
+
+b.	Ordena el dataframe por columnas, de izquierda a derecha en orden decreciente
+
+````{r}
+arrange_at(df, desc(1:ncol(df)))
+```
+
+c.	Ordena el dataframe por columnas, de derecha a izquierda en orden creciente
+
+````{r}
+arrange_at(df, ncol(df):1)
+```
+
+###	Importando información
+
+Vamos a trabajar con otro dataframe. Descarga el fichero student.txt de la plataforma PRADO, almacena la información en una variable llamada “students”. Ten en cuenta que los datos son tab-delimited y tienen un texto para cada columna. Comprueba que R ha leído correctamente el fichero imprimiendo el objeto en la pantalla
+
+````{r}
+student <- read_delim("Datos/student.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
+- Imprime solo los nombres de la columnas
+
+````{r}
+colnames(student)
+```
+
+- Llama a la columna “height” solo
+
+````{r}
+student["height"]
+```
+
+- ¿Cuantas observaciones hay en cada grupo?. Utiliza la función table().  Este comando se puede utilizar para crear tablas cruzadas (cross-tabulation)
+
+````{r}
+student %>% group_by(population) %>% 
+  count()
+```
+
+- Crea nuevas variables a partir de los datos que tenemos. Vamos a crear una variable nueva “sym” que contenga M si el genero es masculino y F si el genero es femenino. Busca en la ayuda información sobre la función ifelse(). Crea una segunda variable “colours” cuyo valor será “Blue” si el estudiante es de kuopio y “Red” si es de otro sitio.
+
+````{r}
+student <- student %>% mutate(sym = ifelse(gender=="male", "M", "F"))
+student <- student %>% mutate(colours = ifelse(population=="kuopio", "Blue", "Red"))
+student
+```
+
+- Con los datos anteriores de height y shoesize y las nuevas variables crea un nuevo data.frame que se llame students.new
+
+````{r}
+students.new <- student %>% select(height, shoesize)
+```
+
+- Comprueba que la clase de student.new es un dataframe
+
+````{r}
+class(students.new)
+```
+
+- Crea dos subsets a partir del set de datos student. Divídelo dependiendo del sexo. Para ello primero comprueba que estudiantes son hombres (male).
+
+````{r}
+student.male <- student %>% filter(gender == "male")
+student.female <- student %>% filter(gender == "female")
+```
+
+- Utiliza la function write.table() para guarder el contenido de student.new en un archivo.
+
+````{r}
+write.table(students.new, "./prueba.txt")
+```
+
+---
+
+### Lists
+
+Las listas son colecciones de objetos que pueden tener modos diferentes (e.g. numéricos, vectores, arrays..)
+
+Ejemplo de cómo crear una lista. Ejecuta los comandos y describe que es lo que ocurre
+
+```{r}
+my_list <- list(name="Fred", wife="Mary", no.children=3, child.ages=c(4,7,9))
+
+# Muestra los nombres de las "columnas" / "atributos"
+attributes(my_list)
+names(my_list)
+```
+
+
+```{r}
+# Segundo elemento (wife)
+my_list[2]
+```
+
+
+```{r}
+# Segundo elemento como valor puro
+my_list[[2]]
+```
+
+
+```{r}
+# Elemento wife
+my_list$wife
+```
+
+
+```{r}
+# Del elemento 4 el elemento 2
+my_list[[4]][2]
+```
+
+
+```{r}
+# Tamaño del elemento 4
+length(my_list[[4]])
+```
+
+
+```{r}
+# Sustituye elemento wife por secuencia
+my_list$wife <- 1:12 
+my_list$wife
+```
+
+
+```{r}
+# Sustituye elemento wife por NULL
+my_list$wife <- NULL
+my_list$wife
+```
+
+
+```{r}
+# Añade al final otra lista
+my_list <- c(my_list, list(my_title2=month.name[1:12]))
+```
+
+
+```{r}
+# Convierte la lista a vector
+unlist(my_list)
+```
+
+
+```{r}
+# Crea df con una sola columa (pares nombre-valor)
+data.frame(unlist(my_list))
+```
+
+
+```{r}
+# Deja los valores en forma de matriz Nx1
+matrix(unlist(my_list))
+```
+
+---
+
+###	table()
+
+La función table() cuenta el numero de elementos repetidos en un vector. Es la función más básica de clustering.
+
+Cuenta el numero de entradas idénticas en la variable  Sepal.Length del dataset iris.
+
+````{r}
+table(iris$Sepal.Length)
+```
+
+
+###	Como ordenar datos, hacer selecciones con if(), calcular condicionales totales, transponer columnas y filas
+
+Vamos a volver a utilizar el datasets mtcars. 
+
++	Ordena este data set de forma ascendente según su valo de hp. PISTA: with()
+
+````{r}
+mtcars %>% arrange(hp)
+```
+
++	Hazlo ahora de forma descendente
+
+````{r}
+mtcars %>% arrange(desc(hp))
+```
+
++	Calcula la media de la columna mpg. 
+
+````{r}
+mean(mtcars$mpg)
+```
+
++	Calcula la media de mpg para aquellos datos cuyo valor de hp sea menor que 150 y por separado para aquellos cuyo valor de hp sea mayor o igual a 150
+
+````{r}
+mtcars %>% filter(hp < 150) %>% pull(mpg) %>% mean()
+mtcars %>% filter(hp >= 150) %>% pull(mpg) %>% mean()
+```
+
++	Busca los valores únicos de la columna cyl de mtcars. PISTA unique()
+
+````{r}
+unique(mtcars$cyl)
+```
+
++	Obten los datos de mpg cyl disp hp para “Toyota Corolla"
+
+````{r}
+mtcars %>% filter(row.names(mtcars) == "Toyota Corolla") %>% select(mpg, cyl, disp, hp)
+```
+
++	Crea una nueva variable mpgClass de tipo categórico cuyo valor es “Low“ si el valor de mpg es menor que la media de la columna mpg y “High” si es mayor que la media de mpg. PISTA ifelse(). Combina ese comando con with() para añadir la nueva variable a mtcars
+
+````{r}
+mtcars %>% 
+  mutate(mpgClass = cut(mpg, breaks=c(-Inf,mean(mpg),Inf), labels=c("Low", "High")))
+```
