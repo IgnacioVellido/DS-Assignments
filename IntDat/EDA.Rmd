@@ -16,6 +16,8 @@ library(car)
 library(ISLR)
 library(dlookr)
 library(corrplot)
+library(HSAUR2)
+library(vcdExtra)
 ```
 
 ### 1. Exploratory Data Analysis
@@ -302,9 +304,16 @@ ggplot(iris, aes(x=Petal.Width)) +
 ```
 Crea un histograma para cada variable
 ```{r}
-
+for (col in head(colnames(iris), -1)) {
+  ggplot(iris, aes_string(x=col)) + 
+    geom_histogram(aes(y=..density..), bins=9, color="black", fill="grey") +
+    geom_density(alpha=.2, fill="black") +
+    labs(title=sprintf("Histogram of %s",col), x="Petal Width") +
+    theme_light() -> p
+  
+  print(p)
+}
 ```
-
 
 Crea los cuartiles del dataset
 ```{r}
@@ -313,30 +322,33 @@ Crea los cuartiles del dataset
 
 Representa en un boxplot la variable de ancho de hoja dependiendo del tipo de hoja que tengan
 ```{r}
-
+ggplot(iris, aes(y=Sepal.Width, fill=Species)) +
+  geom_boxplot() +
+  theme_light()
 ```
 
 Crea los cuartiles para cada tipo de iris y represéntalos en un plot como líneas cada una de un color
 ```{r}
-
+# quantile(iris$Sepal.Length)
 ```
 
 Crea los boxplot de la longitud del pétalo en función de la especie de Iris.
 ```{r}
-
+ggplot(iris, aes(y=Petal.Length, fill=Species)) +
+  geom_boxplot() +
+  theme_light()
 ```
 
 Compara con scatter plots las variables entre sí.
 ```{r}
-
+scatterplotMatrix(iris, col="skyblue2", smooth=list(spread=FALSE), pch=20)
 ```
 
 Crea una nueva columna llamada proporción que es el ratio entre Sepal.Length y Sepal.Width. Podeis hacerlo en R base o usando el paquete dplyr. Los que no lo conozcan tienen información al final del documento
 ```{r}
-
+iris2 <- iris
+iris2 %>% mutate(Sepal.Ratio=Sepal.Length/Sepal.Width)
 ```
-
-
 
 
 
@@ -350,8 +362,18 @@ sw <- swiss
 
 1. ¿Qué diagrama dibujaría para mostrar la distribución de todos los valores? ¿Qué conclusiones sacarías?
 ```{r}
-
+head(sw)
+cat("Dimensiones: ")
+dim(sw)
 ```
+El dataset contiene 5 variables numéricas para cada provincia.
+Una buena opción sería realizar un scatterplot para cada par de variables.
+
+```{r}
+scatterplotMatrix(sw, diagonal=list(method ="histogram", breaks="FD"), 
+                  col="skyblue2", regLine=F, smooth=list(spread=FALSE), pch=20)
+```
+
 
 2. Dibuje gráficos para cada variable. ¿Qué puede concluir de las distribuciones con respecto a su forma y posibles valores atípicos?
 ```{r}
@@ -389,12 +411,16 @@ El conjunto de datos de aceites de oliva es bien conocido y se puede encontrar e
 
 El conjunto de datos se llama Lanza del paquete HSAUR2. 
 ```{r}
-
+lanza <- Lanza
+head(lanza)
+str(lanza)
 ```
 
 1. Se informan los datos de cuatro estudios. Dibuje un diagrama para mostrar si los cuatro estudios son igualmente grandes. 
 ```{r}
-
+ggplot(lanza, aes(x=study, color=study)) +
+  geom_bar(fill="snow2", size=2) +
+  theme_light()
 ```
 
 2. El resultado se mide por la clasificación de la variable con puntuaciones de 1 (mejor) a 5 (peor). ¿Cómo describirías la distribución?
@@ -406,12 +432,22 @@ El conjunto de datos se llama Lanza del paquete HSAUR2.
 
 El paquete vcdExtra incluye datos de un viejo estudio de cáncer de mama sobre la supervivencia o muerte de 474 pacientes. 
 ```{r}
-
+vcd <- vcdExtra::Cancer %>% as.data.frame()
+str(vcd)
+vcd
 ```
 
 1. Convierta los datos en un data frame y dibuje gráficos para comparar las tasas de supervivencia, primero, por grado de malignidad y, en segundo lugar, por centro de diagnóstico. 
 ```{r}
+ggplot(vcd, aes(x=Grade, y=Freq, fill=Survival)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~Survival) +
+  theme_light()
 
+ggplot(vcd, aes(x=Center, y=Freq, fill=Survival)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~Survival) +
+  theme_light()
 ```
 
 2. ¿Qué diagrama dibujaría para comparar las tasas de supervivencia tanto por grado de malignidad como por centro de diagnóstico? ¿Importa el orden de las variables explicativas?
