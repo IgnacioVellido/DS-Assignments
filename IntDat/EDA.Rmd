@@ -342,7 +342,7 @@ ggplot(iris, aes(y=Petal.Length, fill=Species)) +
 
 Compara con scatter plots las variables entre sí.
 ```{r}
-scatterplotMatrix(iris, col="skyblue2", smooth=list(spread=FALSE), pch=20)
+scatterplotMatrix(select_if(iris, is.numeric), col="skyblue2", smooth=list(spread=FALSE), pch=20)
 ```
 
 Crea una nueva columna llamada proporción que es el ratio entre Sepal.Length y Sepal.Width. Podeis hacerlo en R base o usando el paquete dplyr. Los que no lo conozcan tienen información al final del documento
@@ -368,10 +368,16 @@ cat("Dimensiones: ")
 dim(sw)
 ```
 El dataset contiene 5 variables numéricas para cada provincia.
-Una buena opción sería realizar un scatterplot para cada par de variables.
+Podemos hacer un histograma por variable o un scatterplot para ver correlación entre ellas.
+
 
 ```{r}
-scatterplotMatrix(sw, diagonal=list(method ="histogram", breaks="FD"), 
+ggplot(gather(sw), aes(value)) +
+  geom_histogram(bins = 15, color="white") +
+  facet_wrap(~key, scales = 'free_x') +
+  theme_light()
+
+scatterplotMatrix(sw, diagonal=list(method ="histogram", breaks="FD"),
                   col="skyblue2", regLine=F, smooth=list(spread=FALSE), pch=20)
 ```
 
@@ -383,22 +389,32 @@ scatterplotMatrix(sw, diagonal=list(method ="histogram", breaks="FD"),
 
 3. Dibuja un diagrama de dispersión de Fertilidad frente a % Catholic. ¿Qué tipo de áreas tienen las tasas de fertilidad más bajas?
 ```{r}
-
+ggplot(sw, aes(x=Fertility, y=percent_rank(Catholic))) +
+  geom_point(pch=15) +
+  labs(y = "% Catholic") +
+  theme_light()
 ```
+Provincias con menor porcentaje de católicos tienden a tener menos tasa de fertilidad.
 
 4. ¿Qué tipo de relación existe entre las variables Educación y Agricultura?
 ```{r}
-
+ggplot(sw, aes(y=Education, x=Agriculture)) +
+  geom_point() +
+  geom_smooth(method=lm) +
+  theme_light()
 ```
+
+Cuanto mayor tasa de agricultura menor nivel de educación.
 
 El conjunto de datos de aceites de oliva es bien conocido y se puede encontrar en varios paquetes, por ejemplo, como aceitunas en extracat. La fuente original de los datos es el artículo [Forina et al., 1983].
 ```{r}
-
+data("olive")
+head(olive)
 ```
 
 1. Dibuje un scatterplot  de las ocho variables continuas. ¿Cuáles de los ácidos grasos están fuertemente asociados positivamente y cuáles fuertemente asociados negativamente? 
 ```{r}
-
+scatterplotMatrix(select_if(olive, is.numeric), pch = 20)
 ```
 
 2. ¿Hay valores atípicos u otras características que valga la pena mencionar?
