@@ -18,6 +18,7 @@ library(dlookr)
 library(corrplot)
 library(HSAUR2)
 library(vcdExtra)
+library(MASS)
 ```
 
 ### 1. Exploratory Data Analysis
@@ -425,7 +426,24 @@ ggplot(lanza, aes(x=study, color=study)) +
 
 2. El resultado se mide por la clasificación de la variable con puntuaciones de 1 (mejor) a 5 (peor). ¿Cómo describirías la distribución?
 ```{r}
+ggplot(lanza, aes(x=classification, fill=study)) +
+  geom_bar(size=1) +
+  facet_wrap(~study) +
+  theme_light()
 
+ggplot(lanza, aes(x=classification, fill=study)) +
+  geom_bar(size=1) +
+  theme_light()
+```
+
+Predominan mejores puntuaciones, aunque está fuertemente contrastada con notas bajas.
+Las notas sobre el estudio IV son mayoritariamente negativas, y en el II positivas.
+El estudio III esta mayormente igualado en número total de notas positivas/negativas.
+En el I parece que se da lo mismo pues existe una acumulación de notas 4/5 que probablemente igualan a 1/2.
+
+Una tabla de recuentos nos daría información más precisa.
+```{r}
+lanza %>% group_by(study) %>% count(classification) #%>% mutate(x = )
 ```
 
 
@@ -452,21 +470,28 @@ ggplot(vcd, aes(x=Center, y=Freq, fill=Survival)) +
 
 2. ¿Qué diagrama dibujaría para comparar las tasas de supervivencia tanto por grado de malignidad como por centro de diagnóstico? ¿Importa el orden de las variables explicativas?
 ```{r}
-
+ggplot(vcd) +
+  geom_bar(aes(x=Grade, y=Freq, fill=Survival), stat="identity") +
+  geom_bar(aes(x=Center, y=Freq, fill=Survival), stat="identity") +
+  facet_wrap(~Center + Grade) +
+  labs(x = "Center and grade")
+  theme_light()
 ```
 
 
-
-* Dataset Crabs (del paquete MASS) [Venables y Ripley, 2002]. Los autores inicialmente se transforman a una escala logarítmica y luego escriben que:
+* Dataset crabs (del paquete MASS) [Venables y Ripley, 2002]. Los autores inicialmente se transforman a una escala logarítmica y luego escriben que:
 
  “The data are very highly correlated and scatterplot matrices and brush plots [i.e. interactive graphics] are none too revealing.”. 
-```{r}
 
+```{r}
+head(crabs)
+str(crabs)
 ```
+
 
 Utilizando gráficos generales, comente si la transformación logaritmica fue una buena idea y si está de acuerdo con su afirmación sobre las correlaciones.
 ```{r}
-
+# scatterplotMatrix(crabs)
 ```
 
 
@@ -475,86 +500,80 @@ Utilizando gráficos generales, comente si la transformación logaritmica fue un
 
 Busca información sobre la function cut(). Para ilustrar su uso vamos a utilizar el dataset state.x77. Si no lo tienes instalado instala el paquete R-Datasets. Usa la función head() para ver como son tus datos..
 ```{r}
-
+states <- state.x77 %>% as.data.frame()
+head(states)
 ```
 
 - Extrae la columna Frost y asigna el resultado a la variable frost
 ```{r}
-
+frost <- states$Frost
 ```
 
 - Tu Nuevo objeto es un vector numérico
 ```{r}
-
+frost
 ```
 
 - Ahora intenta agrupar los datos en frost en tres niveles. Para crear bins en tus datos puedes utilizar la función cut(). 
 ```{r}
-
+frost %>% cut(3)
 ```
 
 - ¿Que obtienes como nombres de los niveles?
-```{r}
-
-```
+Se obtienen los rangos de los datos.
 
 - En la realidad no existen estados que tengan frost en días negativos. Esto es porque R añade un poco de padding. Prueba a solucionar el problema utilizando el parámetro include.lowest=TRUE en cut()
 ```{r}
-
+frost %>% cut(b=3, include.lowest = TRUE)
+# Sigue incluyendo el padding, solo que ahora el rango es cerrado
 ```
 
 - Los nombres de los niveles no son demasiado informativos, especifica nuevos nombres para los niveles
 ```{r}
-
+niveles <- frost %>% cut(b=3, include.lowest = TRUE, labels=c("Min", "Med", "Max"))
+niveles
 ```
 
 - Después de este paso has creado un factor que clasifica los estados en bajo, medio y alto según el numero de heladas.
-```{r}
-
-```
 
 - Ahora cuenta el número de estados que  hay en cada uno de los niveles. PISTA: utiliza la función table()
 ```{r}
-
+table(niveles)
 ```
-
 
 
 ### Extra 2.	Como ordenar tablas (dplyr)
 
 ```{r}
-# install.packages("dslabs")
 library("dslabs")
 data("murders")
-library(tidyverse)
+head(murders)
 ```
 
-Utiizando el paquete dplyr realiza el siguiente análisis sobre el dataset murders. Para aquellos que no hicieron el curso de inicio a la programación para Ciencia de Datos he puesto en PRADO unas diapositivas explicando el funcionamiento.
-```{r}
-
-```
+Utiizando el paquete dplyr realiza el siguiente análisis sobre el dataset murders.
 
 - Averigua cual es el estado con la mayor población
 ```{r}
-
+murders %>% top_n(1, population)
 ```
 
 - Averigua cual es el estado con el mayor ratio de asesinatos
 ```{r}
-
+murders %>% top_n(1, total/population)
 ```
 
 - Averigua cual es el estado con el menor ratio de asesinatos
 ```{r}
-
+murders %>% top_n(1, desc(total/population))
 ```
 
 - Crea una tabla ordenada alfabeticamente por region y por el ratio de asesinatos 
 ```{r}
-
+# En orden decreciente
+murders %>% arrange(region, desc(total/population))
 ```
 
 - Crea una tabla con la media del ratio de asesinatos por region
 ```{r}
-
+murders %>% mutate(ratio = total/population) %>% group_by(region) %>% summarize(media = mean(ratio), .groups="keep")
 ```
