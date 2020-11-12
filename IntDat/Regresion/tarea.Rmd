@@ -1,0 +1,74 @@
+---
+title: "Tarea-California"
+author: "Ignacio Vellido"
+date: "11/11/2020"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Configuración RMarkdown
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(tidyverse)
+library(ggplot2)
+library(ISLR)
+library(MASS)
+library(car)
+library(reshape2)
+# library(VIM)
+# library(dlookr)
+# library(corrplot)
+# library(HSAUR2)
+# library(vcdExtra)
+# library(cepp)
+# library("dslabs")
+# library(moments)
+```
+
+
+__Cargamos los datos__
+```{r}
+xtra <- read.csv("./data/california.dat", comment.char="@", header = FALSE)
+
+# Asignación manual siguiendo el CSV
+names(xtra) <- c("Longitude", "Latitude", "HousingMedianAge", "TotalRooms",
+                 "TotalBedrooms", "Population", "Households", "MedianIncome",
+                 "MedianHouseValue")
+
+head(xtra)
+```
+
+La salida es la última columna, _MedianHouseValue_
+
+__Previsualicación de las variables respecto a la salida__
+```{r}
+# temp <-xtra
+# 
+# plotY<-function (x,y) {
+#   plot(temp[,y]~temp[,x], xlab=paste(names(temp)[x]," X",x,sep=""), ylab=names(temp)[y])
+# }
+# 
+# par(mfrow=c(3,4)) #Si margin too large => (2,3)
+# x <-sapply(1:(dim(temp)[2]-1), plotY, dim(temp)[2])
+# par(mfrow=c(1,1))
+
+# Usando ggplot
+# aux <- gather(xtra, -MedianHouseValue, key="hola", value="adios")
+# 
+# ggplot(aux, aes(x=adios, y=MedianHouseValue, color=adios)) +
+#   geom_point(alpha=0.3) +
+#   facet_wrap(.~hola, scale="free") +
+#   theme_light()
+
+aux <- melt(xtra, "MedianHouseValue")
+
+ggplot(aux, aes(x=value, y=MedianHouseValue, color=variable)) +
+  geom_point(alpha=0.1, pch=20) +
+  facet_wrap(.~variable, scale="free", ncol = 2) +
+  theme_light()
+```
+

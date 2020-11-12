@@ -22,6 +22,9 @@ library(HSAUR2)
 library(vcdExtra)
 library(MASS)
 library(cepp)
+library("dslabs")
+library(reshape2)
+library(moments)
 ```
 
 ## Ejemplo 1, hip dataset
@@ -57,7 +60,7 @@ __Haz lo mismo para las medidas de dispersión mínimo y máximo. ¿Seria posibl
 ```{r}
 hip %>% apply(2, range, na.rm=T)
 ```
-
+Nos muestra mínimos y máximos de cada variable.
 
 __Sin embargo las medidas mas populares de dispersión son la varianza (var()), su desviación standard (sd()) y la desviación absoluta de la mediana mad(). Calcula estas medidas para los valores de la variable RA__
 ```{r}
@@ -132,10 +135,17 @@ hip %>% apply(2,mean,na.rm=T)
 
 __Obten una idea aproximada de tus datos mediante la creación de un boxplot del hip dataset__
 ```{r}
-# hip
-# ggplot(hip, aes(x=B.V, y=HIP, na.rm=T)) +
+for (col in colnames(hip)) {
+  ggplot(hip, aes_string(col)) +
+    geom_boxplot() +
+    theme_light() -> p
+  print(p)
+}
+
+# ggplot(pivot_longer(hip, 1:9), aes(x=name, y=value, fill=name)) +
 #   geom_boxplot() +
-#   theme_dark()
+#   facet_wrap(~name) +
+#   scale_y_continuous()
 ```
 
 __Crea un scatterplot que te compare los valores de RA y DE. Representa los puntos con el símbolo ‘.’ Y que estos puntos sean de color rojo si DE excede de 0. Sugerencia: puedes usar dplyr/tidyverse o Rbase ifelse()__
@@ -367,19 +377,19 @@ ggplot(gather(irisCuartiles, key="key", value="value", 1:4),
   theme_light()
 ```
 
-Crea los boxplot de la longitud del pétalo en función de la especie de Iris.
+__Crea los boxplot de la longitud del pétalo en función de la especie de Iris.__
 ```{r}
 ggplot(iris, aes(y=Petal.Length, fill=Species)) +
   geom_boxplot() +
   theme_light()
 ```
 
-Compara con scatter plots las variables entre sí.
+__Compara con scatter plots las variables entre sí.__
 ```{r}
 scatterplotMatrix(select_if(iris, is.numeric), col="skyblue2", smooth=list(spread=FALSE), pch=20)
 ```
 
-Crea una nueva columna llamada proporción que es el ratio entre Sepal.Length y Sepal.Width. Podeis hacerlo en R base o usando el paquete dplyr. Los que no lo conozcan tienen información al final del documento
+__Crea una nueva columna llamada proporción que es el ratio entre Sepal.Length y Sepal.Width. Podeis hacerlo en R base o usando el paquete dplyr.__
 ```{r}
 iris2 <- iris
 iris2 %>% mutate(Sepal.Ratio=Sepal.Length/Sepal.Width)
@@ -389,13 +399,13 @@ iris2 %>% mutate(Sepal.Ratio=Sepal.Length/Sepal.Width)
 
 ### Ejemplo 5, swiss dataset
 
-El conjunto de datos “swiss” contiene una medida estandarizada de fecundidad y varios indicadores socioeconómicos para cada una de las 47 provincias francófonas de Suiza.
+__El conjunto de datos “swiss” contiene una medida estandarizada de fecundidad y varios indicadores socioeconómicos para cada una de las 47 provincias francófonas de Suiza.__
 ```{r}
 sw <- swiss
 ```
 
 
-1. ¿Qué diagrama dibujaría para mostrar la distribución de todos los valores? ¿Qué conclusiones sacarías?
+__1. ¿Qué diagrama dibujaría para mostrar la distribución de todos los valores? ¿Qué conclusiones sacarías?__
 ```{r}
 head(sw)
 cat("Dimensiones: ")
@@ -416,12 +426,11 @@ scatterplotMatrix(sw, diagonal=list(method ="histogram", breaks="FD"),
 ```
 
 
-2. Dibuje gráficos para cada variable. ¿Qué puede concluir de las distribuciones con respecto a su forma y posibles valores atípicos?
-```{r}
+__2. Dibuje gráficos para cada variable. ¿Qué puede concluir de las distribuciones con respecto a su forma y posibles valores atípicos?__
+Salvo la varibale Catholics todas se pueden asociar a una normal.
+A pesar de esto, la variable Education tiene outliers en los valores altos y Agriculture tiene una forma bastante achatada.
 
-```
-
-3. Dibuja un diagrama de dispersión de Fertilidad frente a % Catholic. ¿Qué tipo de áreas tienen las tasas de fertilidad más bajas?
+__3. Dibuja un diagrama de dispersión de Fertilidad frente a % Catholic. ¿Qué tipo de áreas tienen las tasas de fertilidad más bajas?__
 ```{r}
 ggplot(sw, aes(x=Fertility, y=percent_rank(Catholic))) +
   geom_point(pch=15) +
@@ -430,7 +439,7 @@ ggplot(sw, aes(x=Fertility, y=percent_rank(Catholic))) +
 ```
 Provincias con menor porcentaje de católicos tienden a tener menos tasa de fertilidad.
 
-4. ¿Qué tipo de relación existe entre las variables Educación y Agricultura?
+__4. ¿Qué tipo de relación existe entre las variables Educación y Agricultura?__
 ```{r}
 ggplot(sw, aes(y=Education, x=Agriculture)) +
   geom_point() +
@@ -440,41 +449,46 @@ ggplot(sw, aes(y=Education, x=Agriculture)) +
 
 Cuanto mayor tasa de agricultura menor nivel de educación.
 
-El conjunto de datos de aceites de oliva es bien conocido y se puede encontrar en varios paquetes, por ejemplo, como aceitunas en extracat. La fuente original de los datos es el artículo [Forina et al., 1983].
+__El conjunto de datos de aceites de oliva es bien conocido y se puede encontrar en varios paquetes, por ejemplo, como aceitunas en extracat. La fuente original de los datos es el artículo [Forina et al., 1983].__
 ```{r}
 data("olive")
 head(olive)
 ```
 
-1. Dibuje un scatterplot  de las ocho variables continuas. ¿Cuáles de los ácidos grasos están fuertemente asociados positivamente y cuáles fuertemente asociados negativamente? 
+__1. Dibuje un scatterplot  de las ocho variables continuas. ¿Cuáles de los ácidos grasos están fuertemente asociados positivamente y cuáles fuertemente asociados negativamente? __
 ```{r}
 scatterplotMatrix(select_if(olive, is.numeric), pch = 20)
-```
 
-2. ¿Hay valores atípicos u otras características que valga la pena mencionar?
+corrplot(cor(select_if(olive, is.numeric)), method="color")
+```
+Asociados positivamente: palmitic-palmitoleic, linoleic-palmitoleic ...
+Asociados negativamente: palmitic-oleic, palmitoleic-oleic...
+
+__2. ¿Hay valores atípicos u otras características que valga la pena mencionar?__
+Muchas de las variables cuentan con un fuerte máximo local cerca del global, es posible que no sigan distribuciones normales. 
 ```{r}
-
+shapiro.test(olive$eicosenoic)
+shapiro.test(olive$palmitic)
 ```
-
-
+Por ejemplo, para este par de variables el test de Shapiro nos dice que no se puede asumir la normalidad.
 
 ### Ejemplo 6, HSAUR2 dataset
 
-El conjunto de datos se llama Lanza del paquete HSAUR2. 
+__El conjunto de datos se llama Lanza del paquete HSAUR2.__
 ```{r}
 lanza <- Lanza
 head(lanza)
 str(lanza)
 ```
 
-1. Se informan los datos de cuatro estudios. Dibuje un diagrama para mostrar si los cuatro estudios son igualmente grandes. 
+__1. Se informan los datos de cuatro estudios. Dibuje un diagrama para mostrar si los cuatro estudios son igualmente grandes.__ 
 ```{r}
 ggplot(lanza, aes(x=study, color=study)) +
   geom_bar(fill="snow2", size=2) +
   theme_light()
 ```
 
-2. El resultado se mide por la clasificación de la variable con puntuaciones de 1 (mejor) a 5 (peor). ¿Cómo describirías la distribución?
+__2. El resultado se mide por la clasificación de la variable con puntuaciones de 1 (mejor) a 5 (peor). ¿Cómo describirías la distribución?__
 ```{r}
 ggplot(lanza, aes(x=classification, fill=study)) +
   geom_bar(size=1) +
@@ -498,14 +512,14 @@ lanza %>% group_by(study) %>% count(classification) #%>% mutate(x = )
 
 
 
-El paquete vcdExtra incluye datos de un viejo estudio de cáncer de mama sobre la supervivencia o muerte de 474 pacientes. 
+__El paquete vcdExtra incluye datos de un viejo estudio de cáncer de mama sobre la supervivencia o muerte de 474 pacientes.__
 ```{r}
 vcd <- vcdExtra::Cancer %>% as.data.frame()
 str(vcd)
 vcd
 ```
 
-1. Convierta los datos en un data frame y dibuje gráficos para comparar las tasas de supervivencia, primero, por grado de malignidad y, en segundo lugar, por centro de diagnóstico. 
+__1. Convierta los datos en un data frame y dibuje gráficos para comparar las tasas de supervivencia, primero, por grado de malignidad y, en segundo lugar, por centro de diagnóstico. __
 ```{r}
 ggplot(vcd, aes(x=Grade, y=Freq, fill=Survival)) +
   geom_bar(stat="identity") +
@@ -518,7 +532,7 @@ ggplot(vcd, aes(x=Center, y=Freq, fill=Survival)) +
   theme_light()
 ```
 
-2. ¿Qué diagrama dibujaría para comparar las tasas de supervivencia tanto por grado de malignidad como por centro de diagnóstico? ¿Importa el orden de las variables explicativas?
+__2. ¿Qué diagrama dibujaría para comparar las tasas de supervivencia tanto por grado de malignidad como por centro de diagnóstico? ¿Importa el orden de las variables explicativas?__
 ```{r}
 ggplot(vcd) +
   geom_bar(aes(x=Grade, y=Freq, fill=Survival), stat="identity") +
@@ -529,64 +543,80 @@ ggplot(vcd) +
 ```
 
 
-* Dataset crabs (del paquete MASS) [Venables y Ripley, 2002]. Los autores inicialmente se transforman a una escala logarítmica y luego escriben que:
+__Dataset crabs (del paquete MASS) [Venables y Ripley, 2002]. Los autores inicialmente se transforman a una escala logarítmica y luego escriben que:__
 
  “The data are very highly correlated and scatterplot matrices and brush plots [i.e. interactive graphics] are none too revealing.”. 
 
 ```{r}
+data(crabs)
 head(crabs)
 str(crabs)
 ```
 
 
-Utilizando gráficos generales, comente si la transformación logaritmica fue una buena idea y si está de acuerdo con su afirmación sobre las correlaciones.
+__Utilizando gráficos generales, comente si la transformación logaritmica fue una buena idea y si está de acuerdo con su afirmación sobre las correlaciones.__
 ```{r}
-# scatterplotMatrix(crabs)
+crabsSelected <- gather(select_if(crabs[-3], is.numeric))
+
+ggplot(crabsSelected, aes(value)) +
+  geom_histogram(aes(y=..density..), bins = 15, color="white") +
+  geom_density(alpha=.2, fill="blue") +
+  facet_wrap(~key, scales = "free_x") +
+  theme_light()
 ```
 
+Podemos ver que la transformación logarítmica ha resultado en una normalización de los datos numéricos (se ha eliminado la variable index por únicamente numerar las instancias).
+Ya que la normalización es una condición necesaria para una gran parte de test estadísticos, podemos concluir que ha sido buena idea.
 
+```{r}
+scatterplotMatrix(select_if(crabs, is.numeric), pch=20)
+
+corrplot(cor(select_if(crabs, is.numeric)), method="color")
+```
+
+Los gráficos muestran una alta correlación en las variables númericas.
 
 ## Extra 1.	Como crear subgrupos de datos en R
 
-Busca información sobre la function cut(). Para ilustrar su uso vamos a utilizar el dataset state.x77. Si no lo tienes instalado instala el paquete R-Datasets. Usa la función head() para ver como son tus datos..
+__Busca información sobre la function cut(). Para ilustrar su uso vamos a utilizar el dataset state.x77. Si no lo tienes instalado instala el paquete R-Datasets. Usa la función head() para ver como son tus datos.__
 ```{r}
 states <- state.x77 %>% as.data.frame()
 head(states)
 ```
 
-- Extrae la columna Frost y asigna el resultado a la variable frost
+__- Extrae la columna Frost y asigna el resultado a la variable frost__
 ```{r}
 frost <- states$Frost
 ```
 
-- Tu Nuevo objeto es un vector numérico
+__- Tu Nuevo objeto es un vector numérico__
 ```{r}
 frost
 ```
 
-- Ahora intenta agrupar los datos en frost en tres niveles. Para crear bins en tus datos puedes utilizar la función cut(). 
+__- Ahora intenta agrupar los datos en frost en tres niveles. Para crear bins en tus datos puedes utilizar la función cut(). __
 ```{r}
 frost %>% cut(3)
 ```
 
-- ¿Que obtienes como nombres de los niveles?
+__- ¿Que obtienes como nombres de los niveles?__
 Se obtienen los rangos de los datos.
 
-- En la realidad no existen estados que tengan frost en días negativos. Esto es porque R añade un poco de padding. Prueba a solucionar el problema utilizando el parámetro include.lowest=TRUE en cut()
+__- En la realidad no existen estados que tengan frost en días negativos. Esto es porque R añade un poco de padding. Prueba a solucionar el problema utilizando el parámetro include.lowest=TRUE en cut()__
 ```{r}
 frost %>% cut(b=3, include.lowest = TRUE)
 # Sigue incluyendo el padding, solo que ahora el rango es cerrado
 ```
 
-- Los nombres de los niveles no son demasiado informativos, especifica nuevos nombres para los niveles
+__- Los nombres de los niveles no son demasiado informativos, especifica nuevos nombres para los niveles__
 ```{r}
 niveles <- frost %>% cut(b=3, include.lowest = TRUE, labels=c("Min", "Med", "Max"))
 niveles
 ```
 
-- Después de este paso has creado un factor que clasifica los estados en bajo, medio y alto según el numero de heladas.
+__- Después de este paso has creado un factor que clasifica los estados en bajo, medio y alto según el numero de heladas.__
 
-- Ahora cuenta el número de estados que  hay en cada uno de los niveles. PISTA: utiliza la función table()
+__- Ahora cuenta el número de estados que  hay en cada uno de los niveles. PISTA: utiliza la función table()__
 ```{r}
 table(niveles)
 ```
@@ -595,35 +625,34 @@ table(niveles)
 ### Extra 2.	Como ordenar tablas (dplyr)
 
 ```{r}
-library("dslabs")
 data("murders")
 head(murders)
 ```
 
 Utiizando el paquete dplyr realiza el siguiente análisis sobre el dataset murders.
 
-- Averigua cual es el estado con la mayor población
+__- Averigua cual es el estado con la mayor población__
 ```{r}
 murders %>% top_n(1, population)
 ```
 
-- Averigua cual es el estado con el mayor ratio de asesinatos
+__- Averigua cual es el estado con el mayor ratio de asesinatos__
 ```{r}
 murders %>% top_n(1, total/population)
 ```
 
-- Averigua cual es el estado con el menor ratio de asesinatos
+__- Averigua cual es el estado con el menor ratio de asesinatos__
 ```{r}
 murders %>% top_n(1, desc(total/population))
 ```
 
-- Crea una tabla ordenada alfabeticamente por region y por el ratio de asesinatos 
+__- Crea una tabla ordenada alfabeticamente por region y por el ratio de asesinatos__
 ```{r}
 # En orden decreciente
 murders %>% arrange(region, desc(total/population))
 ```
 
-- Crea una tabla con la media del ratio de asesinatos por region
+__- Crea una tabla con la media del ratio de asesinatos por region__
 ```{r}
 murders %>% mutate(ratio = total/population) %>% group_by(region) %>% summarize(media = mean(ratio), .groups="keep")
 ```

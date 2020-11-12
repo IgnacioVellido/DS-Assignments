@@ -1,0 +1,201 @@
+---
+title: "Exploratory Data Analysis"
+author: "Ignacio Vellido"
+date: "11/10/2020"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(ggplot2)
+library(tidyverse)
+library(VIM)
+library(Amelia)
+library(corrplot)
+# library(car)
+# library(ISLR)
+# library(dlookr)
+# library(HSAUR2)
+# library(vcdExtra)
+# library(MASS)
+# library(cepp)
+# library("dslabs")
+# library(reshape2)
+# library(moments)
+```
+
+# Dataset car_example
+
+Cargamos el dataset
+```{r}
+library(readxl)
+car_example <- read_excel("Data/car_example.xls")
+head(car_example)
+```
+
+Sacamos unos datos generales sobre él
+```{r}
+str(car_example)
+```
+
+Vemos que contamos con un dataset de 16 variables y 1578 obseravaciones.
+Todas las variables son numéricas a excepción de _car\_full\_nm_, _decade_ y _make\_rm_, que son de tipo chr.
+
+_make\_rm_ corresponde a la marca del coche, y sería más conveniente transformarla en factor
+```{r}
+# Sacamos los niveles
+lev <- car_example$make_nm %>% unique()
+
+# Deberíamos comprobar que todos los valores son distintos y que no haya habido errores
+# en la escritura
+
+# Sustituímos en el dataset
+car_example$make_nm <- factor(car_example$make_nm)
+```
+
+Hacemos lo mismo con el nombre
+```{r}
+car_example$car_full_nm <- factor(car_example$car_full_nm)
+```
+
+Podemos separar el año del nombre y añadirlo como una sola variable
+
+De la misma manera, sería más oportuno guardar _decade_ como factor ordenado, puesto que existe relación entre los distintos valores
+```{r}
+lev <- unique(car_example$decade)
+
+# Estos levels están ordenados de forma decreciente, según la interpretación
+# podría ser más o menos conveniente. En este caso la invertiremos al añadirla
+
+car_example$decade <- car_example$decade %>% factor(rev(lev), ordered=TRUE)
+```
+
+Nos quedan las variables de la siguiente manera
+```{r}
+str(car_example)
+```
+
+## Missing values
+
+Vamos a echar un vistazo a los NA en nuestro dataset
+```{r}
+aggr(car_example, col=c('blue','red'), numbers=TRUE,
+  sortVars=TRUE, labels=names(car_example), cex.axis=.7, gap=3,
+  ylab=c("Histogram of missing data","Pattern"))
+
+missmap(car_example, main="Missing Map")
+```
+
+Vemos que hay un número exageradamente grande de NA en la variable "car_0_60_time_seconds" (75%).
+Primero deberíamos averiguar por qué, la medida parece bastante estándar y fácil de computar.
+
+```{r}
+table(car_example$decade)
+```
+
+Una posible hipótesis es que esa medida se dejó de usar en los últimos años, donde se encuentran la mayoría de datos.
+
+De todas maneras, al ser un número tan alto, no merece la pena intentar rellenar, por lo que la descartamos.
+
+```{r}
+car_example$car_0_60_time_seconds <- NULL
+```
+
+Para el resto de NA, el número es tan bajo que podemos imputar o eliminarlas.
+Deberíamos mirar si son del mismo año/marca, o alguna información que nos explique por qué.
+Decidimos quitarlas
+
+```{r}
+cat("Observaciones perdidas")
+nrow(car_example) - nrow(car_example %>% na.omit())
+
+car_example <- car_example %>% na.omit()
+```
+
+## Análisis
+
+## "housepower" vs "top speed"·
+
+```{r}
+ggplot(data=car_example, aes(x=horsepower_bhp, y=top_speed_mph)) +
+        geom_point(alpha=.4, size=4, color="#880011") +
+        ggtitle("Horsepower vs. Top Speed") +
+        labs(x="Horsepower, bhp", y="Top Speed,\n mph")
+```
+
+El conjunto de datos en torno a 150 es raro. Existe una gran cantidad de datos que no siguen la linealidad del resto.
+
+_Hipótesis_: Velocidad tope en sobre ese valor.
+
+_Evaluación_: Histograma de la velocidad tope
+```{r}
+ggplot(data=car_example, aes(top_speed_mph)) +
+        geom_histogram(alpha=.4, size=1, bins=30, color="#880011") +
+        ggtitle("Horsepower vs. Top Speed") +
+        labs(x="Horsepower, bhp", y="Top Speed,\n mph")
+```
+_Observación_: Histograma ladeado a la izquierda, pocos valores a la derecha y un pico alto en torno a 150.
+Podemos suponer que existe un tope.
+
+Analizamos el rango para averiguar el valor exacto.
+```{r}
+car_example %>% filter(top_speed_mph > 150 & top_speed_mph < 159) %>%
+  ggplot(aes(top_speed_mph)) +
+        geom_bar(alpha=.4, size=1, color="#880011") +
+        ggtitle("Horsepower vs. Top Speed") +
+        labs(x="Horsepower, bhp", y="Top Speed,\n mph")
+```
+
+Encontramos el tope en 155
+
+Nos preguntamos por qué existe ese tope. ¿Puede estár asociado a la década?
+```{r}
+ggplot(data=car_example, aes(top_speed_mph, fill=decade)) +
+        geom_histogram(alpha=.4, size=0.5, bins=25, color="black") +
+        ggtitle("Horsepower vs. Top Speed") +
+        facet_wrap(~decade) +
+        labs(x="Horsepower, bhp", y="Top Speed,\n mph")
+```
+
+_Observación_: Vemos que este límite surge a partir de los 90s y se hace fuerte en el último milenio. Es bastante probable que exista alguna regulación que fuerce gran parte de los coches a este tope.
+En décadas anteriores existen pocas observaciones que superen este límite, probablemente por las capacidades de fabricación.
+Una vez se puede obtener esa potencia, es posible que los coches que superan no esten orientado al público general.
+
+
+__Pregúnta__: Todas las comañías limitan los coches a esa velocidad
+```{r}
+car_example %>% 
+  filter(decade == "2000s" | decade == "2010s") %>% 
+  filter(top_speed_mph == 155) %>% 
+  group_by(make_nm) %>% 
+  count()
+```
+
+Vemos que existen marcas con gran número de coches limitados a esta velocidad, mayoritariamente correspondientes a coches alemanes (Audi, Jaguar, BMW, Mercedes...)
+
+Realizamos la comparación inicial por décadas
+```{r}
+ggplot(data=car_example, aes(x=horsepower_bhp, y=top_speed_mph, fill=decade, color=decade)) +
+        geom_point(alpha=.4, size=1.5) +
+        facet_wrap(~decade) +
+        ggtitle("Horsepower vs. Top Speed") +
+        labs(x="Horsepower, bhp", y="Top Speed,\n mph") +
+        theme_light()
+```
+
+Y vemos como se el pico que apreciamos inicialmente solo se da en las últimas décadas
+También apreciamos coches en la última década que se disparan en velocidad y potencia, posiblemente se asocien a coches de competeción. Lo comprobamos
+```{r}
+car_example %>% 
+  filter(decade == "2010s") %>% 
+  filter(horsepower_bhp > 800) %>% 
+  group_by(make_nm)
+```
+
+Como suponíamos, son coches de muy alta gama, supercoches.
+
