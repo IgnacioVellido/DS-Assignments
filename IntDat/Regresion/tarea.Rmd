@@ -153,17 +153,96 @@ X3 - 0.01111
 
 Mostramos el ajuste para X8
 ```{r}
-# ggplot(xtra, aes(x=MedianIncome, y=MedianHouseValue)) +
-#   geom_point(alpha=0.1) +
-#   stat_summary(fun.data=fit1) +
-#   geom_smooth(method="lm") +
-#   geom_line(color='red',data = predicted_df, aes(x=mpg_pred, y=hp)) +
-#   theme_light()
-
 plot(Y~X8, xtra)
 abline(fit8, col="red")
 confint(fit8)
 ```
+
+
+Vamos a probar un modelo multivariable hacia abajo.
+Con todas:
+```{r}
+fit0 <- lm(Y~., data=xtra)
+summary(fit0)
+```
+
+Todas nos sale con un p-value < 0.05, por lo que no nos indica que alguna sea irrelevante.
+Hay que notar que el R2 es mayor que ajustando X8 únicamente. Puesto que sigue siendo lineal (no se ha añadido mucha complejidad), podemos aceptar este modelo como mejor.
+
+Pese a ello, vamos a comparar los R2 con eliminando una variable (a excepción de X8, que sabemos que es importante).
+(Todas tienen un p-value demasiado bajo como para dejarnos guiar por eso a la hora de eliminar, mejor probar con todas)
+```{r}
+fit1 <- lm(Y~.-X1, data=xtra)
+fit2 <- lm(Y~.-X2, data=xtra)
+fit3 <- lm(Y~.-X3, data=xtra)
+fit4 <- lm(Y~.-X4, data=xtra)
+fit5 <- lm(Y~.-X5, data=xtra)
+fit6 <- lm(Y~.-X6, data=xtra)
+fit7 <- lm(Y~.-X7, data=xtra)
+
+summary(fit1)
+summary(fit2)
+summary(fit3)
+summary(fit4)
+summary(fit5)
+summary(fit6)
+summary(fit7)
+```
+Obtenemos R2s muy cercanos pero ligeramente inferiores, cosa que no pasaría quitando X8
+```{r}
+fit8 <- lm(Y~.-X8, data=xtra)
+summary(fit8)
+```
+
+Puesto que muchas de las variables no han afectado, vamos a intentar reducir el modelo sin afectar mucho el R2.
+Habíamos obtenido el menor decremento de R2 quitando X7.
+Los p-value siguen siendo demasiado bajos para orientarnos, volvemos a probar eliminando una a una.
+
+```{r}
+fit1 <- lm(Y~.-X1-X7, data=xtra)
+fit2 <- lm(Y~.-X2-X7, data=xtra)
+fit3 <- lm(Y~.-X3-X7, data=xtra)
+fit4 <- lm(Y~.-X4-X7, data=xtra)
+fit5 <- lm(Y~.-X5-X7, data=xtra)
+fit6 <- lm(Y~.-X6-X7, data=xtra)
+
+summary(fit1)
+summary(fit2)
+summary(fit3)
+summary(fit4)
+summary(fit5)
+summary(fit6)
+```
+Viendo los resultados, si quitamos X4 solo perdemos un 0,2%
+
+Seguimos:
+```{r}
+fit1 <- lm(Y~.-X1-X4-X7, data=xtra)
+fit2 <- lm(Y~.-X2-X4-X7, data=xtra)
+fit3 <- lm(Y~.-X3-X4-X7, data=xtra)
+fit5 <- lm(Y~.-X5-X4-X7, data=xtra)
+fit6 <- lm(Y~.-X6-X4-X7, data=xtra)
+
+summary(fit1)
+summary(fit2)
+summary(fit3)
+summary(fit5)
+summary(fit6)
+```
+
+Perderíamos un 1% si quitáramos X3
+
+---------
+
+Vamos a buscar interacciones.
+Por la descripción de las variables X4 (Rooms) y X8 (Households) sería relevante para calcular la Y
+```{r}
+fit1 <- lm(Y~.-X7-X1+X4*X8, data=xtra)
+summary(fit1)
+```
+
+
+------------------------------------------------------------------------------
 
 Cálculo manual del error
 ```{r}
@@ -181,11 +260,6 @@ yprime <- predict(fit1, xtra)
 sqrt(sum(abs(xtra$MedianHouseValue-yprime)^2)/length(yprime))
 ```
 
-Obtención del modelo con todas las variables
-```{r}
-fit5 <- lm(MedianHouseValue~., data=xtra)
-summary(fit5)
-```
 No existen variables irrelevantes, todas tienen Pr < 0.05
 
 
