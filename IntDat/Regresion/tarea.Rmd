@@ -29,6 +29,12 @@ library(reshape2)
 # library(moments)
 ```
 
+Descripción del dataset:
+```
+This data set contains information about all the block groups in California from the 1990 Census. In this sample a block group on average includes 1425.5 individuals living in a geographically compact area.
+
+The task is to aproximate the median house value of each block from the values of the rest of the variables.
+```
 
 __Cargamos los datos__
 ```{r}
@@ -39,6 +45,7 @@ names(xtra) <- c("Longitude", "Latitude", "HousingMedianAge", "TotalRooms",
                  "TotalBedrooms", "Population", "Households", "MedianIncome",
                  "MedianHouseValue")
 
+attach(xtra)
 head(xtra)
 ```
 
@@ -46,17 +53,6 @@ La salida es la última columna, _MedianHouseValue_
 
 __Previsualicación de las variables respecto a la salida__
 ```{r}
-# temp <-xtra
-# 
-# plotY<-function (x,y) {
-#   plot(temp[,y]~temp[,x], xlab=paste(names(temp)[x]," X",x,sep=""), ylab=names(temp)[y])
-# }
-# 
-# par(mfrow=c(3,4)) #Si margin too large => (2,3)
-# x <-sapply(1:(dim(temp)[2]-1), plotY, dim(temp)[2])
-# par(mfrow=c(1,1))
-
-# Usando ggplot
 # aux <- gather(xtra, -MedianHouseValue, key="hola", value="adios")
 # 
 # ggplot(aux, aes(x=adios, y=MedianHouseValue, color=adios)) +
@@ -64,11 +60,84 @@ __Previsualicación de las variables respecto a la salida__
 #   facet_wrap(.~hola, scale="free") +
 #   theme_light()
 
+# Usando ggplot
 aux <- melt(xtra, "MedianHouseValue")
 
 ggplot(aux, aes(x=value, y=MedianHouseValue, color=variable)) +
   geom_point(alpha=0.1, pch=20) +
   facet_wrap(.~variable, scale="free", ncol = 2) +
   theme_light()
+```
+
+Variables candidatas para el ajuste:
+```{r}
+ggplot(xtra, aes(x=HousingMedianAge, y=MedianHouseValue)) +
+  geom_point(alpha=0.1) +
+  theme_light()
+```
+
+Obtenemos modelo para ??
+```{r}
+fit1 <- lm(MedianHouseValue~MedianIncome, data=xtra)
+fit1
+
+# Visualizamos
+summary(fit1)
+par(mfrow=c(2,1))
+
+# ggplot(xtra, aes(x=MedianIncome, y=MedianHouseValue)) +
+#   geom_point(alpha=0.1) +
+#   stat_summary(fun.data=fit1) +
+#   geom_smooth(method="lm") +
+#   geom_line(color='red',data = predicted_df, aes(x=mpg_pred, y=hp)) +
+#   theme_light()
+
+plot(MedianHouseValue~MedianIncome, xtra)
+abline(fit1, col="red")
+confint(fit1)
+```
+
+Cálculo manual del error
+```{r}
+sqrt(sum(fit1$residuals^2)/(length(fit1$residuals)-2))
+```
+
+Predicción sobre nuevos valores, recordamos que:
+
+- Longitude real[-124.35,-114.31]
+- Latitude real[32.54,41.95]
+- HousingMedianAge real[1,52]
+- TotalRooms real[2,39320]
+- TotalBedrooms real[1,6445]
+- Population real[3,35682]
+- Households real[1,6082]
+- MedianIncome real[0.4999,15.0001]
+- Output - MedianHouseValue real[14999,500001] 
+```{r}
+predict(fit1, data.frame(MedianIncome=c(12, 11.2, 3)))
+```
+
+Cálculo manual de la raíz del ECM (RMSE) para conjuntos de test (a modo de ejemplo se usa el propio conjunto inicial)
+```{r}
+yprime <- predict(fit1, xtra)
+sqrt(sum(abs(xtra$MedianHouseValue-yprime)^2)/length(yprime))
+```
+
+Obtención del modelo con todas las variables
+```{r}
+fit5 <- lm(MedianHouseValue~., data=xtra)
+summary(fit5)
+```
+No existen variables irrelevantes, todas tienen Pr < 0.05
+
+
+```{r}
+temp <-Boston
+plotY<-function (x,y) {
+plot(temp[,y]~temp[,x], xlab=paste(names(temp)[x]," X",x,sep=""), ylab=names(temp)[y])
+}
+par(mfrow=c(3,4)) #Si margin too large => (2,3)
+x <-sapply(1:(dim(temp)[2]-1), plotY, dim(temp)[2])
+par(mfrow=c(1,1))
 ```
 
