@@ -20,16 +20,16 @@ knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center",
 library(tidyverse)
 library(ggplot2)
 library(cowplot)
+library(corrplot)
+library(reshape2)
 # library(car)
 # library(ISLR)
 # library(dlookr)
-# library(corrplot)
 # library(HSAUR2)
 # library(vcdExtra)
 # library(MASS)
 # library(cepp)
 # library("dslabs")
-# library(reshape2)
 # library(moments)
 ```
 
@@ -119,5 +119,31 @@ plot_grid(plotlist=plt, ncol=3, labels = names, label_size = 8)
 ```
 
 El dataset no cuenta con missing values
+```{r}
+sum(is.na(auto))
+```
+
+Corrplot
+```{r}
+corrplot(cor(auto), method="color")
+```
+
+Vemos correlaciones bastante fuertes, vamos a mostrar algunas
+```{r}
+ggplot(auto, aes(x=Displacement, y=Mpg)) +
+  geom_point() +
+  geom_smooth(formula = y~log(x), method=glm) +
+  theme_light()
+```
+
+Previsualicación de las variables respecto a la salida
+```{r}
+ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
+  geom_point(alpha=0.3) +
+  facet_wrap(.~variable, scale="free") +
+  theme_light()
+```
+Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida
+Model year parece seguir una linealidad de grado 1 con mucha variabilidad.
 
 # Dataset de regresión: haberman
