@@ -1,0 +1,70 @@
+\documentclass[13pt,a4paper]{article}
+\usepackage[spanish,es-nodecimaldot]{babel}	% Utilizar español
+\usepackage[utf8]{inputenc}					% Caracteres UTF-8
+\usepackage{graphicx}						% Imagenes
+\usepackage[hidelinks]{hyperref}			% Poner enlaces sin marcarlos en rojo
+\usepackage{fancyhdr}						% Modificar encabezados y pies de pagina
+\usepackage{float}							% Insertar figuras
+\usepackage[textwidth=390pt]{geometry}		% Anchura de la pagina
+\usepackage[nottoc]{tocbibind}				% Referencias (no incluir num pagina indice en Indice)
+\usepackage{enumitem}						% Permitir enumerate con distintos simbolos
+\usepackage[T1]{fontenc}					% Usar textsc en sections
+\usepackage{amsmath}						% Símbolos matemáticos
+\usepackage[ruled,vlined]{algorithm2e}      % Pseudocódigo
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{dsfont}
+\usepackage{subfigure}
+
+% Comando para poner el nombre de la asignatura
+\newcommand{\asignatura}{Introducción a la Ciencia de Datos}
+\newcommand{\autor}{Ignacio Vellido Expósito}
+\newcommand{\titulo}{Trabajo teórico/práctico}
+\newcommand{\subtitulo}{Análisis de datos, Regresión y Clasificación}
+
+% Configuracion de encabezados y pies de pagina
+\pagestyle{fancy}
+\lhead{\autor{}}
+\rhead{\asignatura{}}
+\lfoot{Máster Ciencia de Datos e Ingeniería de Computadores}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}		% Linea cabeza de pagina
+\renewcommand{\footrulewidth}{0.4pt}		% Linea pie de pagina
+
+% ==============================================================================
+% ==============================================================================
+
+\begin{document}
+    \pagenumbering{gobble}
+    \input{portada/portada}
+    
+    \pagenumbering{arabic}
+    \tableofcontents
+    \thispagestyle{empty}				% No usar estilo en la pagina de indice
+
+    \newpage
+
+    % ==============================================================================
+
+    % \input{secciones/intro} \newpage
+    % \input{secciones/eda} \newpage
+    % \input{secciones/regresion} \newpage
+    % \input{secciones/clasificacion} \newpage
+    % \input{secciones/anexo_eda} \newpage
+    % \input{secciones/anexo_reg} \newpage
+    % \input{secciones/anexo_cla} \newpage
+
+    \setlength{\parskip}{1em}
+
+    
+    % ==============================================================================
+    
+    \newpage
+    % \nocite{*}
+    % \bibliography{bibliografia}
+	% \bibliographystyle{plain}
+\end{document}
+
+% ==============================================================================
+% ==============================================================================

@@ -1,0 +1,123 @@
+---
+title: "EDA"
+author: "Ignacio Vellido"
+date: "11/13/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Para PDF output
+# pdf_document: 
+#     keep_tex: yes
+#     df_print: kable
+
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+# library(car)
+# library(ISLR)
+# library(dlookr)
+# library(corrplot)
+# library(HSAUR2)
+# library(vcdExtra)
+# library(MASS)
+# library(cepp)
+# library("dslabs")
+# library(reshape2)
+# library(moments)
+```
+
+# Intro
+Para este trabajo contamos con dos datasets distintos: __autoMPG6__ para aplicar Regresión y __haberman__ para aplicar Clasificación.
+
+## Dataset de regresión: autoMPG6
+
+Este dataset codifica el consumo de gasolina de distintos coches (en millas por galón, Mpg) en base a las siguientes características:
+
+1. Displacement: Variable numérica continua, contamos con valores reales en el rango [68.0,455.0]. Indica la cilindrada del coche, la suma del volumen útil de los cilindros del motor, probablemente medida en pulgadas cúbicas.
+2. Horse_power: Variable numérica continua, contamos con valores enteros en el rango [46,230]. Mide la potencia del coche.
+3. Weight: Variable numérica continua, contamos con valores enteros en el rango [1613,5140]. Por los valores (y viendo que las variables parecen usar sistemas de medida americanos) seguramente se almacene en libras.
+4. Acceleration: Variable numérica continua, contamos con valores reales en el rango [8.0,24.8]. Aceleración del coche. Una vez más por el rango parece estar medido en millas por hora.
+5. Model_year: Variable numérica discreta, contamos con valores enteros en el rango [70,82]. Indica las dos últimas cifras del año de producción.
+
+
+El objetivo es poder predecir, en base a los cinco atributos, el consumo Mpg de un nuevo coche. 
+- Mpg: Variable numérica continua, contamos con valores reales en el rango [9.0,46.6]. Millas-por-galón, indica la cantidad de galones (1G ≈ 3,78L) de fuél que consume un vehículo al recorrer una milla (1m ≈ 1,6km).
+1
+## Dataset de clasificación: haberman
+
+# EDA
+# Dataset de regresión: autoMPG6
+
+Cargamos los datos:
+```{r}
+names <- c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
+
+auto <- read_csv("Data/autoMPG6/autoMPG6.dat", comment = "@", col_names = names)
+
+head(auto)
+```
+
+Hacemos summary para sacar datos de relevancia
+```{r}
+summary(auto)
+```
+Vamos a sacar plots de cada variable para verlo mejor
+```{r}
+ggplot(gather(auto), aes(value)) +
+  geom_histogram(bins = 15, color="white") +
+  facet_wrap(~key, scales = 'free_x') +
+  theme_light() +
+  theme(strip.background = element_rect(fill="grey", size=2))+
+  theme(strip.text = element_text(colour = 'black')) +
+  labs(title="Histogramas de cada variable", x = "")
+```
+
+Una a una
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+bins <- c(10,10,15,15,14,18)
+plt <- list(length = length(names))
+
+for (i in 1:length(names)) {
+  ggplot(auto, aes_string(x=names[i])) + 
+    geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
+    geom_density(alpha=.3, fill="black", size=1) +
+    # labs(title=sprintf("%s", names[i]), x="") +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[i])
+}
+
+plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+Cuartiles:
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+plt <- list(length = length(names))
+
+for (i in 1:length(names)) {
+  ggplot(auto, aes_string(x=names[i])) + 
+    geom_boxplot(fill=colors[i]) +
+    coord_flip() +
+    # labs(title=sprintf("%s", names[i]), x="") +
+    labs(title="", x="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[i])
+}
+
+plot_grid(plotlist=plt, ncol=3, labels = names, label_size = 8)
+```
+
+El dataset no cuenta con missing values
+
+# Dataset de regresión: haberman
