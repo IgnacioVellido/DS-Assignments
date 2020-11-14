@@ -19,18 +19,19 @@ knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center",
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)
-library(cowplot)
-library(corrplot)
-library(reshape2)
+library(cowplot)  # plot_grid
+library(corrplot) # corr y corrplot
+library(reshape2) # melt
+library(dlookr) # normality
+library(caret)  # preprocess
+library(moments)  # skewness
 # library(car)
 # library(ISLR)
-# library(dlookr)
 # library(HSAUR2)
 # library(vcdExtra)
 # library(MASS)
 # library(cepp)
 # library("dslabs")
-# library(moments)
 ```
 
 # Intro
@@ -99,6 +100,133 @@ for (i in 1:length(names)) {
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
+Vemos que hay al menos algunas variables que no parecen seguir una normal (model_year, displacement y weight), lo comprobamos con un test estadístico:
+```{r}
+# Con Shapiro-Wilk test
+normality(auto) %>% filter(p_value < 0.05)
+```
+El test de Shapiro nos dice que ninguna variable sigue una distribución normal. Se muestra aquí no dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
+
+Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+bins <- c(10,10,15,15,14,18)
+plt <- list(length = length(names))
+
+x<-rnorm(100, mean=0, sd=1)
+
+for (i in 1:length(names)) {
+  ggplot(auto, aes_string(sample=names[i])) + 
+    stat_qq(alpha=.3, fill=colors[i], size=1) +
+    stat_qq_line() +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[i])
+}
+
+plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+Estos gráficos Q-Q nos muestran más claramente que las variables no siguen distribuciones normales.
+La distribución de Acceleration es la que más se asemeja y eso lo vemos en el estadístico de Shapiro, pero en la cola superior existe una diferencia significativa que hace que el test rechace.
+
+La variable Mpg parece seguir una distribución "exponencial" ??
+```{r}
+# ggplot(auto, aes(sample=Mpg)) + 
+#     stat_qq(alpha=.3, size=1) +
+#     stat_qq_line(distribution = stats::qchisq, dparams=(df=1)) +
+#     labs(title="", x="", y="") +
+#     theme_light()
+```
+
+Skewness:
+```{r}
+skewCols <- find_skewness(auto)
+colnames(auto)[skewCols]
+
+skewness(auto$Displacement)
+skewness(auto$Horse_power)
+skewness(auto$Weight)
+skewness(auto$Mpg)
+```
+Como se había visto en las gráficas, nos indica las variables de tienen skewness, en los 3 casos positivas.
+Mpg tiene cierta skewness, pero cae por debajo del umbral de 0.5.
+
+Hay que aplicar transformaciones para normalizar, depende de la variable unas u otras.
+Primero debemos averiguar que tipo de distribución siguen.
+
+Algunas parecen tener una distribución exponencial
+
+<!-- Para normalizarlas podemos usar el paqueta carret, de forma que nos ajuste las variables a una distribución normal de media cero y desviación típica 1 -->
+
+<!-- (Scale + center es estandarizar) -->
+```{r}
+
+auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))
+auto_norm <- predict(auto_transform, auto[,1:6])
+
+auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))
+# transform the dataset using the parameters
+auto_norm <- predict(auto_transform, auto[,1:6])
+
+summary(auto_norm)
+```
+
+Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente.
+Aunque para regresión no es necesario, podemos estandarizar los datos a media 0 y dev 1, facilitanto un poco los cálculos.
+Esto lo deberíamos tener en cuenta a la hora de interpretar los datos.
+(SEGURO QUE SE PUEDE ?)
+
+
+Vamos a demostrar que las variables están normalizadas:
+```{r}
+normality(auto_norm) %>% filter(p_value < 0.05)
+
+# shapiro.test(auto_norm$Acceleration)
+# 
+# ggplot(auto_norm, aes(sample=Acceleration)) +
+#     stat_qq(alpha=.3, size=1) +
+#     stat_qq_line() +
+#     labs(title="", x="", y="") +
+#     theme_light()
+
+# colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+# bins <- c(10,10,15,15,14,18)
+# plt <- list(length = length(names))
+# 
+# for (i in 1:length(names)) {
+#   ggplot(auto, aes_string(x=names[i])) + 
+#     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
+#     geom_density(alpha=.3, fill="black", size=1) +
+#     # labs(title=sprintf("%s", names[i]), x="") +
+#     labs(title="", x="", y="") +
+#     theme_light() -> plt[[i]]
+#   
+#   print(plt[i])
+# }
+# 
+# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+# 
+# 
+# # QQ-plots
+# 
+# x<-rnorm(100, mean=0, sd=1)
+# 
+# for (i in 1:length(names)) {
+#   ggplot(auto_norm, aes_string(sample=names[i])) + 
+#     stat_qq(alpha=.3, fill=colors[i], size=1) +
+#     stat_qq_line() +
+#     labs(title="", x="", y="") +
+#     theme_light() -> plt[[i]]
+#   
+#   print(plt[i])
+# }
+# 
+# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+
 Cuartiles:
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
@@ -145,5 +273,45 @@ ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
 ```
 Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida
 Model year parece seguir una linealidad de grado 1 con mucha variabilidad.
+
+---
+
+Para este dataset, al ser casi todas las variables numéricas continuas, existen pocos tratamientos que aplicar.
+Si tiene sentido en este caso transformar Model_year a Factor (para regresión ???)
+
+No tenemos variables categóricas que transformar.
+
+---
+
+### Ordenar
+Volvemos a mostrar la cabecera de los datos:
+```{r}
+head(auto)
+```
+
+En este caso no es necesario aplicar ninguna reorganización.
+Cada variable ocupa su propia columna, y contiene un único tipo de información.
+No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse)
+
+Comprobamos que haya valores repetidos:
+```{r}
+sum(duplicated(auto))
+```
+Column headers are values, not variable names.
+• Multiple variables are stored in one column.
+• Variables are stored in both rows and columns.
+• Multiple types of observational units are stored in the
+same table.
+• A single observational unit is stored in multiple tables.
+
+---
+
+Hipótesis:
+
+- Horse_power debe influir en Mpg (explicar con plot mpg-horse)
+- Weight debe influir en Mpg: Un coche más pesado debería consumir más (explicar con plot mpg-weight)
+- Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años (explicar con plot modelYear-todas)
+- Debería haber correlación entre displacement (cilindrada) y horse y acceleration
+- Horse y acceleration podrían estar relacionadas
 
 # Dataset de regresión: haberman
