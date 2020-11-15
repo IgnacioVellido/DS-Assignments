@@ -76,14 +76,14 @@ La descripción del problema nos da alguna información adicional sobre las vari
 
 - H.1: Horse_power puede influir en Mpg: A más potencia, más consumo. (explicar con plot mpg-horse)
 - H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir más (explicar con plot mpg-weight)
-- H.4: Debería haber correlación entre displacement (cilindrada) con horse y acceleration
-- H.5: Horse y acceleration podrían estar relacionadas
-- H.3: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años (explicar con plot modelYear-todas)
+- H.3: Debería haber correlación entre displacement (cilindrada) con horse y acceleration
+- H.4: Horse y acceleration podrían estar relacionadas
+- H.5: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años (explicar con plot modelYear-todas)
 - H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse_power y Acceleration.
 - H.7: Model_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos...) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas del siglo XX, podría ir el consumo hacia abajo)
 - H.8: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model_year no debería tener relevancia para este problema de regresión.
 - H.9: Horse_power podría depender de las variables Displacement y Weight
-- H.4: Acceleration podría estar explicado en base a Displacement y Horse_power ??
+- H.10: Acceleration podría estar explicado en base a Displacement y Horse_power ??
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -314,7 +314,7 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 
 ------------------------------
 
-Algunas variables parecen seguir una distribución exponencial, lo comprobamos:
+<!-- Algunas variables parecen seguir una distribución exponencial, lo comprobamos: -->
 ```{r}
 # auto %>% apply(2, function(c) {
 #   fit <- fitdistr(c, "exponential") 
@@ -338,7 +338,7 @@ Algunas variables parecen seguir una distribución exponencial, lo comprobamos:
 
 
 
-Vamos a demostrar que las variables están normalizadas:
+<!-- Vamos a demostrar que las variables están normalizadas: -->
 ```{r}
 # normality(auto_norm) %>% filter(p_value < 0.05)
 ```
@@ -413,24 +413,55 @@ Vamos a demostrar que las variables están normalizadas:
 
 ### Análisis de correlación
 
+Tenemos que tener en cuenta que las variables no siguen distribuciones normales.
+Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos usar el coeficiente de Kendall para los cálculos.
+Independientemente del método usado vamos a obtener las mismas correlaciones en este dataset, solo varía la fuerza con la que se dan.
+<!-- Las variables no siguen distribución normal, pero no pasa nada, Pearson no da problemas -->
+
 Corrplot
 ```{r}
-corrplot(cor(auto), method="color")
+corrplot.mixed(cor(auto), tl.pos="lt", upper="color", title="Pearson")
+corrplot.mixed(cor(auto, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
 ```
 
-```{r}
-corrplot(cor(auto), method="number")
-```
+Estas gráficas nos dicen que existe una alta correlación en el dataset, generalmente entre todas las variables (a excepción de Model_year), pero extremadamente fuerte en las parejas:
+
+1. Horse_power & Displacement
+2. Weight & Displacement
+3. Weight & Horse_power
+4. Acceleration & Horse_power
+5. Mpg & Horse_power
+6. Mpg & Displacement
+7. Mpg & Weight
 
 ```{r}
 scatterplotMatrix(auto, pch=20, col="deepskyblue")
 ```
+El scatterplot anterior nos muestra mejor la forma de estas correlaciones.
+Vemos que en todos los casos en los que se da una correlación positiva existe una tendencia lineal entre los datos de ambas variables, y en las negativas una tendencia logarítmica.
 
+Vamos a mostrar algunas
+Positivas
+```{r}
+ggplot(auto, aes(x=Horse_power, y=Displacement)) +
+  geom_point() +
+  geom_smooth(formula = y~x, method=glm) +
+  theme_light()
 
+ggplot(auto, aes(x=Weight, y=Displacement)) +
+  geom_point() +
+  geom_smooth(formula = y~x, method=glm) +
+  theme_light()
+```
 
-Vemos correlaciones bastante fuertes, vamos a mostrar algunas
+Negativas
 ```{r}
 ggplot(auto, aes(x=Displacement, y=Mpg)) +
+  geom_point() +
+  geom_smooth(formula = y~log(x), method=glm) +
+  theme_light()
+
+ggplot(auto, aes(x=Weight, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
   theme_light()
@@ -443,20 +474,49 @@ ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
   facet_wrap(.~variable, scale="free") +
   theme_light()
 ```
-Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida
-Model year parece seguir una linealidad de grado 1 con mucha variabilidad.
+Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida.
+
+Como habíamos supuesto en la hipótesis H.9, Horse_power podría depender de Displacement y Weight.
+Esta claro que la potencia de un motor va a depender de la cilindrada y el peso que tenga.
+
+```{r}
+auto %>%
+  dplyr::select(Displacement, Horse_power, Weight) %>%  
+  scatterplotMatrix(pch=20, col="deepskyblue")
+```
+Podemos apreciar como la función de densidad de Horse_power parece una ("MEDIANIZACIÓN") de las otras dos.
+
+Vamos a intentar comprobarlo
+```{r}
+scale(auto) %>%
+  as.data.frame() %>% 
+  mutate(hp = (Displacement+Weight) / 2) %>% 
+  dplyr::select(Horse_power, hp) %>%  
+  scatterplotMatrix(pch=20, col="deepskyblue")
+```
+Viendo que no son tan similares como creíamos, buscamos la fórmula real del cálculo de los caballos de vapor:
+Horsepower = 	Weight / (ET/5.825)**3
+
+Vemos que en este caso se trata de la aceleración y no la cilindrada:
+
+```{r}
+auto %>%
+  mutate(hp = Weight * ((Acceleration / (234))**3) ) %>%
+  # as.data.frame() %>% 
+  dplyr::select(Horse_power, hp) %>%  
+  scatterplotMatrix(pch=20, col="deepskyblue")
+```
 
 ---------------------------------------------------------------------------
 
 ### Tratamiento de variables
 
 Para este dataset, al ser casi todas las variables numéricas continuas, existen pocos tratamientos que aplicar.
-Si tiene sentido en este caso transformar Model_year a Factor (para regresión ???)
 
 No tenemos variables categóricas que transformar.
 
 
-(GENERAR INTERVALOS ??)
+Para añadir interpretabilidad, podríamos agrupar la variable Weight en intervalos, pero puesto que vamos a aplicar regresión sería más conveniente realizarlo con los resultados finales.
 
 --------------------------------------------------------------------------
 
@@ -468,19 +528,32 @@ head(auto)
 ```
 
 En este caso no es necesario aplicar ninguna reorganización.
-Cada variable ocupa su propia columna, y contiene un único tipo de información.
-No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse)
+Cada variable ocupa su propia columna, y contiene un único tipo de información, con unidades de observación diferentes
+No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse).
 
-Column headers are values, not variable names.
-• Multiple variables are stored in one column.
-• Variables are stored in both rows and columns.
-• Multiple types of observational units are stored in the
-same table.
-• A single observational unit is stored in multiple tables.
+<!-- Column headers are values, not variable names. -->
+<!-- • Multiple variables are stored in one column. -->
+<!-- • Variables are stored in both rows and columns. -->
+<!-- • Multiple types of observational units are stored in the -->
+<!-- same table. -->
+<!-- • A single observational unit is stored in multiple tables. -->
 
 --------------------------------------------------------------------------
 
 #### Resolución de hipótesis
+
+Nos habíamos planteado las siguientes hipótesis
+
+- H.1: Horse_power puede influir en Mpg: A más potencia, más consumo. (explicar con plot mpg-horse)
+- H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir más (explicar con plot mpg-weight)
+- H.3: Debería haber correlación entre displacement (cilindrada) con horse y acceleration
+- H.4: Horse y acceleration podrían estar relacionadas
+- H.5: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años (explicar con plot modelYear-todas)
+- H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse_power y Acceleration.
+- H.7: Model_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos...) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas del siglo XX, podría ir el consumo hacia abajo)
+- H.8: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model_year no debería tener relevancia para este problema de regresión.
+- H.9: Horse_power podría depender de las variables Displacement y Weight
+- H.10: Acceleration podría estar explicado en base a Displacement y Horse_power ??
 
 --------------------------------------------------------------------------
 
