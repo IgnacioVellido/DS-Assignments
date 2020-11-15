@@ -25,11 +25,11 @@ library(reshape2) # melt
 library(dlookr) # normality
 library(caret)  # preprocess
 library(moments)  # skewness
-# library(car)
+library(car)  # scatterplotMatrix
+library(MASS)
 # library(ISLR)
 # library(HSAUR2)
 # library(vcdExtra)
-# library(MASS)
 # library(cepp)
 # library("dslabs")
 ```
@@ -87,8 +87,6 @@ La descripción del problema nos da alguna información adicional sobre las vari
 
 ---------------------------------------------------------------------------------------------------------------------
 
-#### Análisis univariable
-
 Cargamos los datos:
 ```{r}
 names <- c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
@@ -109,6 +107,8 @@ En un principio, el dataset está planteado para regresión, por lo que tendría
 - Mantenerlo como numérico, pero teniendo cuidado de cómo interpretar el año. 
 
 Proseguimos con tanto dejando Model_year como variable numérica.
+
+#### Análisis univariable
 
 ```{r}
 head(auto)
@@ -175,25 +175,59 @@ for (i in 1:length(names)) {
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
+Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
+```{r}
+scale(auto) %>%  apply(2, IQR)
+```
 
-##### Displacement
+También podemos ver la distancia entre mínimos y máximos
+```{r}
+scale(auto) %>%  apply(2, range) %>% apply(2, dist)
+```
+
+##### Displacement:
 
 (coger los plots de la variable sola)
 
-La cilindrada vemos 
+La cilindrada vemos con una desviación grande y una gran concentración en los valores inferiores.
+Desviado a la izquierda, no parece seguir una distribución normal.
+Existe una alta concentración en torno al valor 125, muy por encima del recuento que alcanzan el resto de valores 
+
+#### Horse_power
+
+Similar a Displacement pero cuenta con una mayor dispersión y algunos valores muya altos. A día de hoy los coches suelen rondar los 120 en turismos y los 200 en SUVs. Aquí contamos con predominancia en el rango aproximado [70, 125] con algunas instancias por encima de los 200.
+Desviado a la izquierda, no parece seguir una distribución normal.
+
+#### Weight
+
+Una distribución más achatada que las anteriores, también ladeada hacia la izquierda.
+Un rango mayor 
+
+#### Acceleration
+
+Valores altamentes concentrados pero en general con un rango alto.
+Parece seguir una distribución normal.
+
+#### Model_year
+
+Aunque no se vea bien en las gráficas, contammos con valores de todos los años, más o menos equitativamente
+```{r}
+table(auto$Model_year)
+```
+
 
 --------------------------------------------------------------------------------
 
 ### Análisis sobre las distribuciones
 
-Vemos que hay al menos algunas variables que no parecen seguir una normal (model_year, displacement y weight), lo comprobamos con un test estadístico:
+Hemos comentado antes que no apreciamos semejanzas con una distribución normal en algunas de las variables, lo comprobamos con un test estadístico (Shapiro-Wilk test):
 ```{r}
-# Con Shapiro-Wilk test
 normality(auto) %>% filter(p_value < 0.05)
-
-# with(beaver, tapply(temp, activ, shapiro.test))
 ```
-El test de Shapiro nos dice que ninguna variable sigue una distribución normal. Se muestra aquí no dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
+El test de Shapiro nos dice que ninguna variable sigue una distribución normal, con bastante certeza excepto en Acceleration.
+
+Se muestra aquí como no hay que dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
+El p-value de Acceleration está muy cerca del umbral (0.03 vs 0.05). Es bastante probable de que la parte central derecha de la distribución sea la causante de no asegurar la normalidad.
 
 Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
 ```{r}
@@ -232,20 +266,28 @@ Skewness:
 ```{r}
 skewCols <- find_skewness(auto)
 colnames(auto)[skewCols]
+```
 
+
+```{r}
+cat("Displacement: ")
 skewness(auto$Displacement)
+cat("Horse_power: ")
 skewness(auto$Horse_power)
+cat("Weight: ")
 skewness(auto$Weight)
+cat("Mpg: ")
 skewness(auto$Mpg)
 ```
-Como se había visto en las gráficas, nos indica las variables de tienen skewness, en los 3 casos positivas.
-Mpg tiene cierta skewness, pero cae por debajo del umbral de 0.5.
+Sobre la skewness, tal y como se había visto en las gráficas, algunas de las variables la tienen, en los 3 casos positivas (hacia la izquierda).
+
+Los plots nos han dado idea de que Mpg tiene cierta skewness, pero cae por debajo del umbral de 0.5.
 
 -------------------------------------------------------------
 
 ### Transformaciones
 
-Hay que aplicar transformaciones para normalizar, depende de la variable unas u otras.
+Las transformaciones necesarias para normalizar una distribución dependen de la variable en cuestion.
 Primero debemos averiguar que tipo de distribución siguen.
 
 Algunas parecen tener una distribución exponencial
@@ -254,11 +296,11 @@ Algunas parecen tener una distribución exponencial
 
 <!-- (Scale + center es estandarizar) -->
 ```{r}
+# auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))
+# auto_norm <- predict(auto_transform, auto[,skewCols])
 
-auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))
-auto_norm <- predict(auto_transform, auto[,1:6])
-
-auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))
+# auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))
+auto_transform <- preProcess(auto[,1:6], method=c("YeoJohnson","scale", "center"))
 # transform the dataset using the parameters
 auto_norm <- predict(auto_transform, auto[,1:6])
 
@@ -266,15 +308,64 @@ summary(auto_norm)
 ```
 
 Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente.
-Aunque para regresión no es necesario, podemos estandarizar los datos a media 0 y dev 1, facilitanto un poco los cálculos.
-Esto lo deberíamos tener en cuenta a la hora de interpretar los datos.
-(SEGURO QUE SE PUEDE ?)
+
+Aunque para regresión no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no va a variar, por lo que es conveniente hacerlo.
+Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de la regresión para no confundirnos.
+
+------------------------------
+
+Algunas variables parecen seguir una distribución exponencial, lo comprobamos:
+```{r}
+# auto %>% apply(2, function(c) {
+#   fit <- fitdistr(c, "exponential") 
+# 
+#   # goodness of fit test
+#   ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
+# })
+# 
+# auto %>% apply(2, function(c) {
+#   fit <- fitdistr(c, "chi-squared", start=list(df=3),method="Brent",lower=0.1,upper=100) 
+# 
+#   # goodness of fit test
+#   # ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
+#   ks.test(c,pchisq,df=10)
+# })
+
+
+# hist(auto$Displacement, freq = FALSE, breaks = 100, xlim = c(0, quantile(auto$Displacement, 0.99)))
+# curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
+```
+
 
 
 Vamos a demostrar que las variables están normalizadas:
 ```{r}
-normality(auto_norm) %>% filter(p_value < 0.05)
+# normality(auto_norm) %>% filter(p_value < 0.05)
+```
 
+
+```{r}
+# colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+# bins <- c(10,10,15,15,14,18)
+# plt <- list(length = length(names))
+# 
+# x<-rnorm(100, mean=0, sd=1)
+# 
+# for (i in 1:length(names)) {
+#   ggplot(auto_norm, aes_string(sample=names[i])) + 
+#     stat_qq(alpha=.3, fill=colors[i], size=1) +
+#     stat_qq_line() +
+#     labs(title="", x="", y="") +
+#     theme_light() -> plt[[i]]
+#   
+#   print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+# }
+# 
+# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+
+```{r}
 # shapiro.test(auto_norm$Acceleration)
 # 
 # ggplot(auto_norm, aes(sample=Acceleration)) +
@@ -326,6 +417,16 @@ Corrplot
 ```{r}
 corrplot(cor(auto), method="color")
 ```
+
+```{r}
+corrplot(cor(auto), method="number")
+```
+
+```{r}
+scatterplotMatrix(auto, pch=20, col="deepskyblue")
+```
+
+
 
 Vemos correlaciones bastante fuertes, vamos a mostrar algunas
 ```{r}
