@@ -37,31 +37,80 @@ library(moments)  # skewness
 # Intro
 Para este trabajo contamos con dos datasets distintos: __autoMPG6__ para aplicar Regresión y __haberman__ para aplicar Clasificación.
 
-## Dataset de regresión: autoMPG6
+## Descripciones de los problemas
+
+### autoMPG6
+
+http://lib.stat.cmu.edu/datasets/cars.desc
 
 Este dataset codifica el consumo de gasolina de distintos coches (en millas por galón, Mpg) en base a las siguientes características:
 
-1. Displacement: Variable numérica continua, contamos con valores reales en el rango [68.0,455.0]. Indica la cilindrada del coche, la suma del volumen útil de los cilindros del motor, probablemente medida en pulgadas cúbicas.
-2. Horse_power: Variable numérica continua, contamos con valores enteros en el rango [46,230]. Mide la potencia del coche.
-3. Weight: Variable numérica continua, contamos con valores enteros en el rango [1613,5140]. Por los valores (y viendo que las variables parecen usar sistemas de medida americanos) seguramente se almacene en libras.
-4. Acceleration: Variable numérica continua, contamos con valores reales en el rango [8.0,24.8]. Aceleración del coche. Una vez más por el rango parece estar medido en millas por hora.
-5. Model_year: Variable numérica discreta, contamos con valores enteros en el rango [70,82]. Indica las dos últimas cifras del año de producción.
+1. Displacement: Indica la cilindrada del coche, la suma del volumen útil de los cilindros del motor, medido en pulgadas cúbicas.
+2. Horse_power: Mide la potencia del coche.
+3. Weight: Peso en libras.
+4. Acceleration: Aceleración del coche de 0 a 60 millas por hora, medido en segundos.
+5. Model_year: Indica las dos últimas cifras del año de producción.
 
 
-El objetivo es poder predecir, en base a los cinco atributos, el consumo Mpg de un nuevo coche. 
-- Mpg: Variable numérica continua, contamos con valores reales en el rango [9.0,46.6]. Millas-por-galón, indica la cantidad de galones (1G ≈ 3,78L) de fuél que consume un vehículo al recorrer una milla (1m ≈ 1,6km).
-1
-## Dataset de clasificación: haberman
+El objetivo es poder predecir, en base a los cinco atributos, el consumo Mpg de un nuevo coche:
 
-# EDA
-# Dataset de regresión: autoMPG6
+6. Mpg: Millas-por-galón, indica la cantidad de galones (1G ≈ 3,78L) de fuél que consume un vehículo al recorrer una milla (1m ≈ 1,6km).
+
+---------------------------------------------------------------------------------------------------------------------
+
+# Análisis Estadístico de Datos
+
+### autoMPG6
+
+La descripción del problema nos da alguna información adicional sobre las variables:
+
+1. Displacement: Variable numérica continua, contamos con valores reales en el rango [68.0,455.0].
+2. Horse_power: Variable numérica continua, contamos con valores enteros en el rango [46,230].
+3. Weight: Variable numérica continua, contamos con valores enteros en el rango [1613,5140].
+4. Acceleration: Variable numérica continua, contamos con valores reales en el rango [8.0,24.8].
+5. Model_year: Variable numérica discreta, contamos con valores enteros en el rango [70,82].
+6. Mpg: Variable numérica continua, contamos con valores reales en el rango [9.0,46.6].
+
+
+#### Hipótesis de partida
+
+- H.1: Horse_power puede influir en Mpg: A más potencia, más consumo. (explicar con plot mpg-horse)
+- H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir más (explicar con plot mpg-weight)
+- H.4: Debería haber correlación entre displacement (cilindrada) con horse y acceleration
+- H.5: Horse y acceleration podrían estar relacionadas
+- H.3: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años (explicar con plot modelYear-todas)
+- H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse_power y Acceleration.
+- H.7: Model_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos...) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas del siglo XX, podría ir el consumo hacia abajo)
+- H.8: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model_year no debería tener relevancia para este problema de regresión.
+- H.9: Horse_power podría depender de las variables Displacement y Weight
+- H.4: Acceleration podría estar explicado en base a Displacement y Horse_power ??
+
+---------------------------------------------------------------------------------------------------------------------
+
+#### Análisis univariable
 
 Cargamos los datos:
 ```{r}
 names <- c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
 
 auto <- read_csv("Data/autoMPG6/autoMPG6.dat", comment = "@", col_names = names)
+```
 
+Antes de comenzar a analizar las variables nos plantemos una cuestión:
+¿Debemos considerar Model_year como una variable numérica o como un factor categórico?
+Aunque por la hipótesis H.7 podríamos acabar no eligiendo la variable para el problema, es necesario plantearse esta cuestión antes de comenzar.
+
+Sabemos que las observaciones para esta variable cuenta con valores entre 72 y 82, por lo que sabemos que tenemos información exacta del año (en comparación, por ejemplo, con la década).
+El hecho de tratarla como categórica o quantitativa depende mucho del problema.
+En este caso, tenemos interés en cuestionarnos por valores entre años, por ejemplo, el consumo entre los años 75 y 76 (por otro lado, no tenemos información más precisa para los meses dentro del año)
+
+En un principio, el dataset está planteado para regresión, por lo que tendríamos dos opciones:
+- Mantenerlo como categórico y generar variables dummy (Valores 0-1 para indicar si la instancia es de ese año). Suponiendo que tenemos al menos una instancia de cada año, esto nos generaría 12 variables nuevas.
+- Mantenerlo como numérico, pero teniendo cuidado de cómo interpretar el año. 
+
+Proseguimos con tanto dejando Model_year como variable numérica.
+
+```{r}
 head(auto)
 ```
 
@@ -69,6 +118,17 @@ Hacemos summary para sacar datos de relevancia
 ```{r}
 summary(auto)
 ```
+
+El dataset no cuenta con valores repetidos
+```{r}
+sum(duplicated(auto))
+```
+
+Ni missing values
+```{r}
+sum(is.na(auto))
+```
+
 Vamos a sacar plots de cada variable para verlo mejor
 ```{r}
 ggplot(gather(auto), aes(value)) +
@@ -79,7 +139,6 @@ ggplot(gather(auto), aes(value)) +
   theme(strip.text = element_text(colour = 'black')) +
   labs(title="Histogramas de cada variable", x = "")
 ```
-
 Una a una
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
@@ -90,20 +149,49 @@ for (i in 1:length(names)) {
   ggplot(auto, aes_string(x=names[i])) + 
     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
     geom_density(alpha=.3, fill="black", size=1) +
-    # labs(title=sprintf("%s", names[i]), x="") +
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[i])
+  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+bins <- c(10,10,15,15,14,18)
+plt <- list(length = length(names))
+
+for (i in 1:length(names)) {
+  ggplot(auto, aes_string(x=names[i])) + 
+    geom_boxplot(fill = colors[i]) +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+}
+
+plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+
+##### Displacement
+
+(coger los plots de la variable sola)
+
+La cilindrada vemos 
+
+--------------------------------------------------------------------------------
+
+### Análisis sobre las distribuciones
+
 Vemos que hay al menos algunas variables que no parecen seguir una normal (model_year, displacement y weight), lo comprobamos con un test estadístico:
 ```{r}
 # Con Shapiro-Wilk test
 normality(auto) %>% filter(p_value < 0.05)
+
+# with(beaver, tapply(temp, activ, shapiro.test))
 ```
 El test de Shapiro nos dice que ninguna variable sigue una distribución normal. Se muestra aquí no dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
 
@@ -122,7 +210,7 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[i])
+  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
@@ -152,6 +240,10 @@ skewness(auto$Mpg)
 ```
 Como se había visto en las gráficas, nos indica las variables de tienen skewness, en los 3 casos positivas.
 Mpg tiene cierta skewness, pero cae por debajo del umbral de 0.5.
+
+-------------------------------------------------------------
+
+### Transformaciones
 
 Hay que aplicar transformaciones para normalizar, depende de la variable unas u otras.
 Primero debemos averiguar que tipo de distribución siguen.
@@ -226,30 +318,9 @@ normality(auto_norm) %>% filter(p_value < 0.05)
 # plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
+-----------------------------------------------------------
 
-Cuartiles:
-```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-plt <- list(length = length(names))
-
-for (i in 1:length(names)) {
-  ggplot(auto, aes_string(x=names[i])) + 
-    geom_boxplot(fill=colors[i]) +
-    coord_flip() +
-    # labs(title=sprintf("%s", names[i]), x="") +
-    labs(title="", x="") +
-    theme_light() -> plt[[i]]
-  
-  print(plt[i])
-}
-
-plot_grid(plotlist=plt, ncol=3, labels = names, label_size = 8)
-```
-
-El dataset no cuenta con missing values
-```{r}
-sum(is.na(auto))
-```
+### Análisis de correlación
 
 Corrplot
 ```{r}
@@ -274,16 +345,22 @@ ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
 Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida
 Model year parece seguir una linealidad de grado 1 con mucha variabilidad.
 
----
+---------------------------------------------------------------------------
+
+### Tratamiento de variables
 
 Para este dataset, al ser casi todas las variables numéricas continuas, existen pocos tratamientos que aplicar.
 Si tiene sentido en este caso transformar Model_year a Factor (para regresión ???)
 
 No tenemos variables categóricas que transformar.
 
----
 
-### Ordenar
+(GENERAR INTERVALOS ??)
+
+--------------------------------------------------------------------------
+
+### Ordenaciones
+
 Volvemos a mostrar la cabecera de los datos:
 ```{r}
 head(auto)
@@ -293,10 +370,6 @@ En este caso no es necesario aplicar ninguna reorganización.
 Cada variable ocupa su propia columna, y contiene un único tipo de información.
 No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse)
 
-Comprobamos que haya valores repetidos:
-```{r}
-sum(duplicated(auto))
-```
 Column headers are values, not variable names.
 • Multiple variables are stored in one column.
 • Variables are stored in both rows and columns.
@@ -304,14 +377,10 @@ Column headers are values, not variable names.
 same table.
 • A single observational unit is stored in multiple tables.
 
----
+--------------------------------------------------------------------------
 
-Hipótesis:
+#### Resolución de hipótesis
 
-- Horse_power debe influir en Mpg (explicar con plot mpg-horse)
-- Weight debe influir en Mpg: Un coche más pesado debería consumir más (explicar con plot mpg-weight)
-- Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años (explicar con plot modelYear-todas)
-- Debería haber correlación entre displacement (cilindrada) y horse y acceleration
-- Horse y acceleration podrían estar relacionadas
+--------------------------------------------------------------------------
 
-# Dataset de regresión: haberman
+#### Conclusiones
