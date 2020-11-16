@@ -41,20 +41,31 @@ Para este trabajo contamos con dos datasets distintos: __autoMPG6__ para aplicar
 
 ### haberman
 
-http://lib.stat.cmu.edu/datasets/cars.desc
+http://archive.ics.uci.edu/ml/datasets/Haberman%27s+Survival
+https://sci2s.ugr.es/keel/dataset.php?cod=62
 
-Este dataset codifica el consumo de gasolina de distintos coches (en millas por galón, Mpg) en base a las siguientes características:
+Este dataset codifica el ratio de supervivencia de pacientes operados de cáncer de pecho en base a las siguientes características:
 
-1. Displacement: Indica la cilindrada del coche, la suma del volumen útil de los cilindros del motor, medido en pulgadas cúbicas.
-2. Horse_power: Mide la potencia del coche.
-3. Weight: Peso en libras.
-4. Acceleration: Aceleración del coche de 0 a 60 millas por hora, medido en segundos.
-5. Model_year: Indica las dos últimas cifras del año de producción.
+1. Age: Indica la edad del paciente en el momento de la operación.
+2. Year: Los dos últimas cifras del año en el que se operó el paciente.
+3. Positive: Número de nodos auxiliares positivos detectados. Esta variable hace referencia a los ganglios linfáticos que dan positivos como presentes de cáncer. A mayor número de nodos detectados, mayor es la gravedad del cáncer.
+Aunque normalmente la primera zona de propagación del cáncer son estos nodos, no es la única medida de la seriedad, pues este puede propagarse a otras zonas del cuerpo.
+En principio deberíamos suponer la posibilidad de que puede haber cosas de no supervivencia con bajo número de positivos, pero la bibliografía nos asegura que la probabilidad es baja.
 
+Viendo que solo tenemos esta medida del cáncer en el dataset es posible que la operación que recivieron los pacientes sea algún tipo de cirugía de ganglios linfáticos, donde el cirujano intenta extraer los nodos afectados por el tumor.
+Por consiguiente, cuanto mayor es la cantidad de nodos detectados, más complicaciones pueden acarrear de la operación.
+(poner referencias)
 
-El objetivo es poder predecir, en base a los cinco atributos, el consumo Mpg de un nuevo coche:
+https://www.cancer.org/cancer/breast-cancer/treatment/surgery-for-breast-cancer/lymph-node-surgery-for-breast-cancer.html
+https://en.wikipedia.org/wiki/Lymph_node#:~:text=A%20lymph%20node%2C%20or%20lymph,include%20B%20and%20T%20cells.
 
-6. Mpg: Millas-por-galón, indica la cantidad de galones (1G ≈ 3,78L) de fuél que consume un vehículo al recorrer una milla (1m ≈ 1,6km).
+El objetivo es poder clasificar, en base a los tres atributos, si los pacientes pueden sobrevir 5 años o más:
+
+4. Survival: Sí/No indicando la supervivencia del paciente tras 5 años.
+
+BUSCAR POSIBLES COMPLICACIONES
+
+Contamos por tanto con un problema de clasificación binario en base a tres características, y con un número total de 306 instancias.
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -65,33 +76,34 @@ El objetivo es poder predecir, en base a los cinco atributos, el consumo Mpg de 
 La descripción del problema nos da alguna información adicional sobre las variables:
 
 1. Displacement: Variable numérica continua, contamos con valores reales en el rango [68.0,455.0].
-2. Horse_power: Variable numérica continua, contamos con valores enteros en el rango [46,230].
-3. Weight: Variable numérica continua, contamos con valores enteros en el rango [1613,5140].
-4. Acceleration: Variable numérica continua, contamos con valores reales en el rango [8.0,24.8].
-5. Model_year: Variable numérica discreta, contamos con valores enteros en el rango [70,82].
-6. Mpg: Variable numérica continua, contamos con valores reales en el rango [9.0,46.6].
+2. 
+3. 
+4. 
+5. 
+6. 
 
 
 #### Hipótesis de partida
 
-- H.1: Horse_power puede influir en Mpg: A más potencia, más consumo.
-- H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir más.
-- H.3: Debería haber correlación entre displacement (cilindrada) con horse y acceleration
-- H.4: Horse y acceleration podrían estar relacionadas
-- H.5: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años 
-- H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse_power y Acceleration.
-- H.7: Model_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos...) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas del siglo XX, podría ir el consumo hacia abajo)
-- H.8: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model_year no debería tener relevancia para este problema de regresión.
-- H.9: Horse_power podría depender de las variables Displacement y Weight
+- H.1:
+- H.2:
+- H.3:
+- H.4:
+- H.5:
+- H.6:
+- H.7:
+- H.8:
 
 ---------------------------------------------------------------------------------------------------------------------
 
 Cargamos los datos:
 ```{r}
-names <- c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
+names <- c("Age", "Year", "Positive", "Survival")
 
-auto <- read_csv("Data/autoMPG6/autoMPG6.dat", comment = "@", col_names = names)
+haberman <- read_csv("Data/haberman/haberman.dat", comment = "@", col_names = names)
 ```
+
+ANALIZAR Nº POSITIVOS VS Nº NEGATIVOS
 
 Antes de comenzar a analizar las variables nos plantemos una cuestión:
 ¿Debemos considerar Model_year como una variable numérica o como un factor categórico?
@@ -110,7 +122,7 @@ Proseguimos con tanto dejando Model_year como variable numérica.
 #### Análisis univariable
 
 ```{r}
-head(auto)
+head(haberman)
 ```
 
 Hacemos summary para sacar datos de relevancia
