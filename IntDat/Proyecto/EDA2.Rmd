@@ -35,7 +35,7 @@ library(MASS) # fit
 ```
 
 # Intro
-Para este trabajo contamos con dos datasets distintos: __autoMPG6__ para aplicar Regresión y __haberman__ para aplicar Clasificación.
+Para este trabajo contamos con dos datasets distintos: __habermanMPG6__ para aplicar Regresión y __haberman__ para aplicar Clasificación.
 
 ## Descripciones de los problemas
 
@@ -44,7 +44,7 @@ Para este trabajo contamos con dos datasets distintos: __autoMPG6__ para aplicar
 http://archive.ics.uci.edu/ml/datasets/Haberman%27s+Survival
 https://sci2s.ugr.es/keel/dataset.php?cod=62
 
-Este dataset codifica el ratio de supervivencia de pacientes operados de cáncer de pecho en base a las siguientes características:
+Este dataset codifica el ratio de supervivencia de pacientes operados de cáncer de pecho en el Hospital Universitario de Chicago, en base a las siguientes características:
 
 1. Age: Indica la edad del paciente en el momento de la operación.
 2. Year: Los dos últimas cifras del año en el que se operó el paciente.
@@ -71,28 +71,23 @@ Contamos por tanto con un problema de clasificación binario en base a tres cara
 
 # Análisis Estadístico de Datos
 
-### autoMPG6
+### haberman
 
 La descripción del problema nos da alguna información adicional sobre las variables:
 
-1. Displacement: Variable numérica continua, contamos con valores reales en el rango [68.0,455.0].
-2. 
-3. 
-4. 
-5. 
-6. 
-
+1. Age: Variable numérica discreta, contamos con valores enteros en el rango [30,83].
+2. Year: Variable numérica discreta, contamos con valores enteros en el rango [58,69].
+3. Positive: Variable numérica discreta, contamos con valores enteros en el rango [0,52].
+4. Survival: Variable binaria
 
 #### Hipótesis de partida
 
-- H.1:
-- H.2:
-- H.3:
-- H.4:
-- H.5:
-- H.6:
-- H.7:
-- H.8:
+- H.1: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados: Por los razonamientos explicados en la introducción del problema.
+- H.2: Habrá mayor ratio de supervivencia cuanto más joven sea el paciente.
+- H.3: El rango de Year es pequeño. La influencia de esta variable creemos que podría darse solo si durante ese período se hubieran descubierto técnicas mejores de cirugía. Este razonamiento va orientado de cara a la población y no a la muestra.
+Puesto que contamos con datos de un solo hospital durante pocos años, es posible que el equipo de cirugía hubiera sido el mismo para la mayoría de pacientes.
+- H.4: Podría haber relación entre la edad y el número de positivos, posiblemente indicando lo tardío que se descubre el cáncer.
+- H.5: La bibliografía nos dice que el cáncer puede aparecer a diferentes edades con diferentes factores de riesgo (alcoholismo, herencia genética...). Podría ser que el número de variables con las que contamos sea insuficiente para la clasificación.
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -103,23 +98,20 @@ names <- c("Age", "Year", "Positive", "Survival")
 haberman <- read_csv("Data/haberman/haberman.dat", comment = "@", col_names = names)
 ```
 
-ANALIZAR Nº POSITIVOS VS Nº NEGATIVOS
+R por defecto nos carga las variables Age, Year y Positive como numéricas y Survival
 
-Antes de comenzar a analizar las variables nos plantemos una cuestión:
-¿Debemos considerar Model_year como una variable numérica o como un factor categórico?
-Aunque por la hipótesis H.7 podríamos acabar no eligiendo la variable para el problema, es necesario plantearse esta cuestión antes de comenzar.
+Vamos a transformar Survival a Factor
+```{r}
+haberman$Survival <- haberman$Survival %>% factor(levels = c("negative", "positive"), labels = c("No", "Yes"))
+```
 
-Sabemos que las observaciones para esta variable cuenta con valores entre 72 y 82, por lo que sabemos que tenemos información exacta del año (en comparación, por ejemplo, con la década).
-El hecho de tratarla como categórica o quantitativa depende mucho del problema.
-En este caso, tenemos interés en cuestionarnos por valores entre años, por ejemplo, el consumo entre los años 75 y 76 (por otro lado, no tenemos información más precisa para los meses dentro del año)
 
-En un principio, el dataset está planteado para regresión, por lo que tendríamos dos opciones:
-- Mantenerlo como categórico y generar variables dummy (Valores 0-1 para indicar si la instancia es de ese año). Suponiendo que tenemos al menos una instancia de cada año, esto nos generaría 12 variables nuevas.
-- Mantenerlo como numérico, pero teniendo cuidado de cómo interpretar el año. 
+Y como estamos orientados a clasificación, vamos a convertir ... ?=?=?=?
 
-Proseguimos con tanto dejando Model_year como variable numérica.
 
 #### Análisis univariable
+
+ANALIZAR Nº POSITIVOS VS Nº NEGATIVOS
 
 ```{r}
 head(haberman)
@@ -127,22 +119,40 @@ head(haberman)
 
 Hacemos summary para sacar datos de relevancia
 ```{r}
-summary(auto)
+summary(haberman)
 ```
 
-El dataset no cuenta con valores repetidos
+El dataset cuenta con valores repetidos
 ```{r}
-sum(duplicated(auto))
+sum(duplicated(haberman))
 ```
 
-Ni missing values
+Mostramos las columnas
 ```{r}
-sum(is.na(auto))
+ind <- duplicated(haberman) | duplicated(haberman, fromLast = TRUE)
+haberman[ind,] %>% arrange(Age)
+```
+
+Existen dos posibilidades para el origen de estos datos:
+
+1. Errores en la introducción de los datos, entradas repetidas por error.
+2. Sean entradas de pacientes distintos casualmente con las mismas características.
+
+Como en este caso tenemos muy pocas variables (y un número moderado de entradas, 306), es probable que los pacientes coincidan en las características.
+Además, podemos ver que las entradas en la mayoría de los casos las variables solo están duplicadas (solo hay una entrada triplicada).
+
+Por tanto proseguimos sin eliminar estas instancias duplicadas.
+
+---
+
+No contamos con missing values
+```{r}
+sum(is.na(haberman))
 ```
 
 Vamos a sacar plots de cada variable para verlo mejor
 ```{r}
-ggplot(gather(auto), aes(value)) +
+ggplot(gather(haberman), aes(value)) +
   geom_histogram(bins = 15, color="white") +
   facet_wrap(~key, scales = 'free_x') +
   theme_light() +
@@ -157,7 +167,7 @@ bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 for (i in 1:length(names)) {
-  ggplot(auto, aes_string(x=names[i])) + 
+  ggplot(haberman, aes_string(x=names[i])) + 
     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
     geom_density(alpha=.3, fill="black", size=1) +
     labs(title="", x="", y="") +
@@ -175,7 +185,7 @@ bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 for (i in 1:length(names)) {
-  ggplot(auto, aes_string(x=names[i])) + 
+  ggplot(haberman, aes_string(x=names[i])) + 
     geom_boxplot(fill = colors[i]) +
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
@@ -188,12 +198,12 @@ plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 
 Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
 ```{r}
-scale(auto) %>% apply(2, IQR)
+scale(haberman) %>% apply(2, IQR)
 ```
 
 También podemos ver la distancia entre mínimos y máximos
 ```{r}
-scale(auto) %>% apply(2, range) %>% apply(2, dist)
+scale(haberman) %>% apply(2, range) %>% apply(2, dist)
 ```
 
 ##### Displacement:
@@ -223,7 +233,7 @@ Parece seguir una distribución normal.
 
 Aunque no se vea bien en las gráficas, contammos con valores de todos los años, más o menos equitativamente
 ```{r}
-table(auto$Model_year)
+table(haberman$Model_year)
 ```
 
 
@@ -231,9 +241,13 @@ table(auto$Model_year)
 
 ### Análisis sobre las distribuciones
 
+GGPAIRS
+TEST ANOVA EN REGRESIÓN
+CORRELACIÓN DE 3 VARIABLES EN REGRESIÓN
+
 Hemos comentado antes que no apreciamos semejanzas con una distribución normal en algunas de las variables, lo comprobamos con un test estadístico (Shapiro-Wilk test):
 ```{r}
-normality(auto) %>% filter(p_value < 0.05)
+normality(haberman) %>% filter(p_value < 0.05)
 ```
 El test de Shapiro nos dice que ninguna variable sigue una distribución normal, con bastante certeza excepto en Acceleration.
 
@@ -249,7 +263,7 @@ plt <- list(length = length(names))
 x<-rnorm(100, mean=0, sd=1)
 
 for (i in 1:length(names)) {
-  ggplot(auto, aes_string(sample=names[i])) + 
+  ggplot(haberman, aes_string(sample=names[i])) + 
     stat_qq(alpha=.3, fill=colors[i], size=1) +
     stat_qq_line() +
     labs(title="", x="", y="") +
@@ -266,7 +280,7 @@ La distribución de Acceleration es la que más se asemeja y eso lo vemos en el 
 
 La variable Mpg parece seguir una distribución "exponencial" ??
 ```{r}
-# ggplot(auto, aes(sample=Mpg)) + 
+# ggplot(haberman, aes(sample=Mpg)) + 
 #     stat_qq(alpha=.3, size=1) +
 #     stat_qq_line(distribution = stats::qchisq, dparams=(df=1)) +
 #     labs(title="", x="", y="") +
@@ -275,20 +289,20 @@ La variable Mpg parece seguir una distribución "exponencial" ??
 
 Skewness:
 ```{r}
-skewCols <- find_skewness(auto)
-colnames(auto)[skewCols]
+skewCols <- find_skewness(haberman)
+colnames(haberman)[skewCols]
 ```
 
 
 ```{r}
 cat("Displacement: ")
-skewness(auto$Displacement)
+skewness(haberman$Displacement)
 cat("Horse_power: ")
-skewness(auto$Horse_power)
+skewness(haberman$Horse_power)
 cat("Weight: ")
-skewness(auto$Weight)
+skewness(haberman$Weight)
 cat("Mpg: ")
-skewness(auto$Mpg)
+skewness(haberman$Mpg)
 ```
 Sobre la skewness, tal y como se había visto en las gráficas, algunas de las variables la tienen, en los 3 casos positivas (hacia la izquierda).
 
@@ -307,15 +321,15 @@ Algunas parecen tener una distribución exponencial
 
 <!-- (Scale + center es estandarizar) -->
 ```{r}
-# auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))
-# auto_norm <- predict(auto_transform, auto[,skewCols])
+# haberman_transform <- preProcess(haberman[,skewCols], method=c("YeoJohnson"))
+# haberman_norm <- predict(haberman_transform, haberman[,skewCols])
 
-# auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))
-auto_transform <- preProcess(auto[,1:6], method=c("YeoJohnson","scale", "center"))
+# haberman_transform <- preProcess(haberman[,1:6], method=c("scale", "center"))
+haberman_transform <- preProcess(haberman[,1:6], method=c("YeoJohnson","scale", "center"))
 # transform the dataset using the parameters
-auto_norm <- predict(auto_transform, auto[,1:6])
+haberman_norm <- predict(haberman_transform, haberman[,1:6])
 
-summary(auto_norm)
+summary(haberman_norm)
 ```
 
 Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente.
@@ -327,14 +341,14 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 
 <!-- Algunas variables parecen seguir una distribución exponencial, lo comprobamos: -->
 ```{r}
-# auto %>% apply(2, function(c) {
+# haberman %>% apply(2, function(c) {
 #   fit <- fitdistr(c, "exponential") 
 # 
 #   # goodness of fit test
 #   ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
 # })
 # 
-# auto %>% apply(2, function(c) {
+# haberman %>% apply(2, function(c) {
 #   fit <- fitdistr(c, "chi-squared", start=list(df=3),method="Brent",lower=0.1,upper=100) 
 # 
 #   # goodness of fit test
@@ -343,7 +357,7 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 # })
 
 
-# hist(auto$Displacement, freq = FALSE, breaks = 100, xlim = c(0, quantile(auto$Displacement, 0.99)))
+# hist(haberman$Displacement, freq = FALSE, breaks = 100, xlim = c(0, quantile(haberman$Displacement, 0.99)))
 # curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
 ```
 
@@ -351,7 +365,7 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 
 <!-- Vamos a demostrar que las variables están normalizadas: -->
 ```{r}
-# normality(auto_norm) %>% filter(p_value < 0.05)
+# normality(haberman_norm) %>% filter(p_value < 0.05)
 ```
 
 
@@ -363,7 +377,7 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 # x<-rnorm(100, mean=0, sd=1)
 # 
 # for (i in 1:length(names)) {
-#   ggplot(auto_norm, aes_string(sample=names[i])) + 
+#   ggplot(haberman_norm, aes_string(sample=names[i])) + 
 #     stat_qq(alpha=.3, fill=colors[i], size=1) +
 #     stat_qq_line() +
 #     labs(title="", x="", y="") +
@@ -377,9 +391,9 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 
 
 ```{r}
-# shapiro.test(auto_norm$Acceleration)
+# shapiro.test(haberman_norm$Acceleration)
 # 
-# ggplot(auto_norm, aes(sample=Acceleration)) +
+# ggplot(haberman_norm, aes(sample=Acceleration)) +
 #     stat_qq(alpha=.3, size=1) +
 #     stat_qq_line() +
 #     labs(title="", x="", y="") +
@@ -390,7 +404,7 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 # plt <- list(length = length(names))
 # 
 # for (i in 1:length(names)) {
-#   ggplot(auto, aes_string(x=names[i])) + 
+#   ggplot(haberman, aes_string(x=names[i])) + 
 #     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
 #     geom_density(alpha=.3, fill="black", size=1) +
 #     # labs(title=sprintf("%s", names[i]), x="") +
@@ -408,7 +422,7 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 # x<-rnorm(100, mean=0, sd=1)
 # 
 # for (i in 1:length(names)) {
-#   ggplot(auto_norm, aes_string(sample=names[i])) + 
+#   ggplot(haberman_norm, aes_string(sample=names[i])) + 
 #     stat_qq(alpha=.3, fill=colors[i], size=1) +
 #     stat_qq_line() +
 #     labs(title="", x="", y="") +
@@ -431,8 +445,8 @@ Independientemente del método usado vamos a obtener las mismas correlaciones en
 
 Corrplot
 ```{r}
-corrplot.mixed(cor(auto), tl.pos="lt", upper="color", title="Pearson")
-corrplot.mixed(cor(auto, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
+corrplot.mixed(cor(haberman), tl.pos="lt", upper="color", title="Pearson")
+corrplot.mixed(cor(haberman, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
 ```
 
 Estas gráficas nos dicen que existe una alta correlación en el dataset, generalmente entre todas las variables (a excepción de Model_year), pero extremadamente fuerte en las parejas:
@@ -446,7 +460,7 @@ Estas gráficas nos dicen que existe una alta correlación en el dataset, genera
 7. Mpg & Weight
 
 ```{r}
-scatterplotMatrix(auto, pch=20, col="deepskyblue")
+scatterplotMatrix(haberman, pch=20, col="deepskyblue")
 ```
 El scatterplot anterior nos muestra mejor la forma de estas correlaciones.
 Vemos que en todos los casos en los que se da una correlación positiva existe una tendencia lineal entre los datos de ambas variables, y en las negativas una tendencia logarítmica.
@@ -454,12 +468,12 @@ Vemos que en todos los casos en los que se da una correlación positiva existe u
 Vamos a mostrar algunas
 Positivas
 ```{r}
-ggplot(auto, aes(x=Horse_power, y=Displacement)) +
+ggplot(haberman, aes(x=Horse_power, y=Displacement)) +
   geom_point() +
   geom_smooth(formula = y~x, method=glm) +
   theme_light()
 
-ggplot(auto, aes(x=Weight, y=Displacement)) +
+ggplot(haberman, aes(x=Weight, y=Displacement)) +
   geom_point() +
   geom_smooth(formula = y~x, method=glm) +
   theme_light()
@@ -467,12 +481,12 @@ ggplot(auto, aes(x=Weight, y=Displacement)) +
 
 Negativas
 ```{r}
-ggplot(auto, aes(x=Displacement, y=Mpg)) +
+ggplot(haberman, aes(x=Displacement, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
   theme_light()
 
-ggplot(auto, aes(x=Weight, y=Mpg)) +
+ggplot(haberman, aes(x=Weight, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
   theme_light()
@@ -480,7 +494,7 @@ ggplot(auto, aes(x=Weight, y=Mpg)) +
 
 Previsualicación de las variables respecto a la salida
 ```{r}
-ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
+ggplot(melt(haberman, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
   geom_point(alpha=0.3) +
   facet_wrap(.~variable, scale="free") +
   theme_light()
@@ -491,7 +505,7 @@ Como habíamos supuesto en la hipótesis H.9, Horse_power podría depender de Di
 Esta claro que la potencia de un motor va a depender de la cilindrada y el peso que tenga.
 
 ```{r}
-auto %>%
+haberman %>%
   dplyr::select(Displacement, Horse_power, Weight) %>%  
   scatterplotMatrix(pch=20, col="deepskyblue")
 ```
@@ -499,7 +513,7 @@ Podemos apreciar como la función de densidad de Horse_power parece una ("MEDIAN
 
 Vamos a intentar comprobarlo
 ```{r}
-scale(auto) %>%
+scale(haberman) %>%
   as.data.frame() %>% 
   mutate(hp = (Displacement+Weight) / 2) %>% 
   dplyr::select(Horse_power, hp) %>%  
@@ -526,7 +540,7 @@ Para añadir interpretabilidad, podríamos agrupar la variable Weight en interva
 
 Volvemos a mostrar la cabecera de los datos:
 ```{r}
-head(auto)
+head(haberman)
 ```
 
 En este caso no es necesario aplicar ninguna reorganización.
@@ -548,7 +562,7 @@ Nos habíamos planteado las siguientes hipótesis
 
 - H.1: Horse_power puede influir en Mpg: A más potencia, más consumo.
 ```{r}
-ggplot(auto, aes(x=Horse_power, y=Mpg)) +
+ggplot(haberman, aes(x=Horse_power, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
   theme_light()
@@ -564,7 +578,7 @@ La hemos referenciado anteriormente
 
 - H.4: Horse y acceleration podrían estar relacionadas
 ```{r}
-ggplot(auto, aes(x=Horse_power, y=Acceleration)) +
+ggplot(haberman, aes(x=Horse_power, y=Acceleration)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
   theme_light()
@@ -574,7 +588,7 @@ Similarmente a lo ocurrido con la hipótesis anterior, esto puede ser un problem
 
 - H.5: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años.
 ```{r}
-ggplot(melt(auto, "Model_year"), aes(y=value, x=Model_year, color=variable)) +
+ggplot(melt(haberman, "Model_year"), aes(y=value, x=Model_year, color=variable)) +
   geom_point(alpha=0.3) +
   facet_wrap(.~variable, scale="free") +
   theme_light()
@@ -586,12 +600,12 @@ También vemos que la dispersión en las prestaciones de los coches disminuyen l
 
 Podemos creer en principio que puede deberse a un decremento del número de instancias con el paso de los años, pero recordamos que en general los datos están repartidos equitativamente
 ```{r}
-table(auto$Model_year)
+table(haberman$Model_year)
 ```
 
 Podemos ver cómo varían los rangos para cada año
 ```{r}
-years <- auto %>% group_split(Model_year)
+years <- haberman %>% group_split(Model_year)
 
 for (y in years) {
   cat("Year: ")
@@ -614,7 +628,7 @@ Ciertamente. Se ha comprobado en la hipótesis anterior.
 
 Hemos visto que existe tendencia, lineal con gran dispersión, y positiva.
 ```{r}
-ggplot(auto, aes(x=Model_year, y=Mpg)) +
+ggplot(haberman, aes(x=Model_year, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~x, method=glm) +
   theme_light()
@@ -624,7 +638,7 @@ Por desgracia no contamos información sobre los modelos de los coches
 
 Podemos ver como se ubican los diferentes años en un plot Horse_power vs Mpg
 ```{r}
-ggplot(auto, aes(x=Horse_power, y=Mpg, color=Model_year)) +
+ggplot(haberman, aes(x=Horse_power, y=Mpg, color=Model_year)) +
   geom_point() +
   theme_light()
 ```
