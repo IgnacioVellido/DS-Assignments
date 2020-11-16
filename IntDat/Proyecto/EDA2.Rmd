@@ -39,7 +39,7 @@ Para este trabajo contamos con dos datasets distintos: __autoMPG6__ para aplicar
 
 ## Descripciones de los problemas
 
-### autoMPG6
+### haberman
 
 http://lib.stat.cmu.edu/datasets/cars.desc
 
