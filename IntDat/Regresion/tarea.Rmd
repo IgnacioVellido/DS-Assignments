@@ -19,43 +19,31 @@ library(ISLR)
 library(kknn)
 library(car)
 library(reshape2)
-# library(VIM)
-# library(dlookr)
-# library(corrplot)
-# library(HSAUR2)
-# library(vcdExtra)
-# library(cepp)
-# library("dslabs")
-# library(moments)
+library(corrplot)
 ```
 
-Descripción del dataset:
-```
+## Descripción del dataset
+
 This data set contains information about all the block groups in California from the 1990 Census. In this sample a block group on average includes 1425.5 individuals living in a geographically compact area.
 
 The task is to aproximate the median house value of each block from the values of the rest of the variables.
-```
+
 
 Contiene las siguientes variables:
 
-- Longitude:\t real\t[-124.35,-114.31]
-- Latitude:\t real\t[32.54,41.95]
-- HousingMedianAge:\t real\t[1,52]
-- TotalRooms:\t real\t[2,39320]
-- TotalBedrooms:\t real\t[1,6445]
-- Population:\t real\t[3,35682]
-- Households:\t real\t[1,6082]
-- MedianIncome:\t real\t[0.4999,15.0001]
-- Output - __MedianHouseValue__:\t real\t[14999,500001] 
+- Longitude: real[-124.35,-114.31]
+- Latitude: real[32.54,41.95]
+- HousingMedianAge: real[1,52]
+- TotalRooms: real[2,39320]
+- TotalBedrooms: real[1,6445]
+- Population: real[3,35682]
+- Households: real[1,6082]
+- MedianIncome: real[0.4999,15.0001]
+- Output - __MedianHouseValue__: real[14999,500001] 
 
-__Cargamos los datos__
+Cargamos los datos
 ```{r}
 xtra <- read.csv("./data/california.dat", comment.char="@", header = FALSE)
-
-# Asignación manual siguiendo el CSV
-# names(xtra) <- c("Longitude", "Latitude", "HousingMedianAge", "TotalRooms",
-#                  "TotalBedrooms", "Population", "Households", "MedianIncome",
-#                  "MedianHouseValue")
 
 # Asignamos nombres automáticamente para facilitar el acceso
 n <- length(names(xtra)) - 1
@@ -67,7 +55,7 @@ head(xtra)
 ```
 
 
-__Previsualicación de las variables respecto a la salida__
+Previsualicación de las variables respecto a la salida
 ```{r}
 # Usando ggplot
 aux <- melt(xtra, "Y")
@@ -81,6 +69,7 @@ ggplot(aux, aes(x=value, y=Y, color=variable)) +
 No se ve linealidad aparente entre las variables y la salida.
 
 X8 podría seguir una logarítmica.
+
 Ampliamos el gráfico para ella:
 ```{r}
 ggplot(xtra, aes(x=X8, y=Y)) +
@@ -89,6 +78,8 @@ ggplot(xtra, aes(x=X8, y=Y)) +
 ```
 
 Podría haber sido lineal pero la nube de puntos de arriba no da buenas sensaciones.
+
+## Modelos univariables
 
 Obtenemos un modelo simple para cada variable
 ```{r}
@@ -141,7 +132,6 @@ summary(fit7)
 
 ```{r}
 summary(fit8)
-# par(mfrow=c(2,1))
 ```
 
 Todas las variables tienen un p-value bajo, pero a excepción de X8, ninguna tiene un R^2 alto.
@@ -158,8 +148,11 @@ abline(fit8, col="red")
 confint(fit8)
 ```
 
+--------------------------------------------------------------------------------
 
-Vamos a probar un modelo multivariable hacia abajo.
+## Modelos multivariables
+
+Vamos a probar un modelo multivariable descendente.
 Con todas:
 ```{r}
 fit0 <- lm(Y~., data=xtra)
@@ -188,213 +181,222 @@ summary(fit5)
 summary(fit6)
 summary(fit7)
 ```
+
 Obtenemos R2s muy cercanos pero ligeramente inferiores, cosa que no pasaría quitando X8
 ```{r}
 fit8 <- lm(Y~.-X8, data=xtra)
 summary(fit8)
 ```
 
-Puesto que muchas de las variables no han afectado, vamos a intentar reducir el modelo sin afectar mucho el R2.
-Habíamos obtenido el menor decremento de R2 quitando X7.
-Los p-value siguen siendo demasiado bajos para orientarnos, volvemos a probar eliminando una a una.
+Por obtener mayor simplicidad en el modelo, podríamos quitar X7 sin afectar mucho el R2.
+Podríamos seguir haciendo esto con X4 perdiendo solo un 0,2%
 
-```{r}
-fit1 <- lm(Y~.-X1-X7, data=xtra)
-fit2 <- lm(Y~.-X2-X7, data=xtra)
-fit3 <- lm(Y~.-X3-X7, data=xtra)
-fit4 <- lm(Y~.-X4-X7, data=xtra)
-fit5 <- lm(Y~.-X5-X7, data=xtra)
-fit6 <- lm(Y~.-X6-X7, data=xtra)
+## Interacciones
 
-summary(fit1)
-summary(fit2)
-summary(fit3)
-summary(fit4)
-summary(fit5)
-summary(fit6)
-```
-Viendo los resultados, si quitamos X4 solo perdemos un 0,2%
-
-Seguimos:
-```{r}
-fit1 <- lm(Y~.-X1-X4-X7, data=xtra)
-fit2 <- lm(Y~.-X2-X4-X7, data=xtra)
-fit3 <- lm(Y~.-X3-X4-X7, data=xtra)
-fit5 <- lm(Y~.-X5-X4-X7, data=xtra)
-fit6 <- lm(Y~.-X6-X4-X7, data=xtra)
-
-summary(fit1)
-summary(fit2)
-summary(fit3)
-summary(fit5)
-summary(fit6)
-```
-
-Perderíamos un 1% si quitáramos X3
-
----------
-
-Vamos a buscar interacciones.
 Por la descripción de las variables X4 (Rooms) y X8 (Households) sería relevante para calcular la Y
 ```{r}
-fit1 <- lm(Y~.-X7-X1+X4*X8, data=xtra)
+fit1 <- lm(Y~.-X7+X4*X8, data=xtra)
 summary(fit1)
 ```
 
+Y vemos que la interacción aporta significativamente, tiene un p-value bajo (tambien el estadístico F)
 
-------------------------------------------------------------------------------
-
-Cálculo manual del error
+Variables con correlación
 ```{r}
-sqrt(sum(fit1$residuals^2)/(length(fit1$residuals)-2))
+corrplot.mixed(cor(xtra), tl.pos="lt", upper="color", title="Pearson")
 ```
 
-Predicción sobre nuevos valores:
+Probamos a añadir X1 con X2
 ```{r}
-predict(fit1, data.frame(MedianIncome=c(12, 11.2, 3)))
+fit1 <- lm(Y~.-X7+X4*X8+X1*X2, data=xtra)
+summary(fit1)
+```
+Nos dice de quitar X2 pero al ser un término de jerarquía no podemos.
+No aporta una gran mejora respecto al modelo aditivo previo.
+
+```{r}
+fit1 <- lm(Y~.+X4*X8+X5*X7, data=xtra)
+summary(fit1)
 ```
 
-Cálculo manual de la raíz del ECM (RMSE) para conjuntos de test (a modo de ejemplo se usa el propio conjunto inicial)
+Añadimos interacción X5-X7 y el modelo mejora, y no necesitamos quitar ninguna variable
+
+## No linealidad
+
 ```{r}
-yprime <- predict(fit1, xtra)
-sqrt(sum(abs(xtra$MedianHouseValue-yprime)^2)/length(yprime))
+fit1 <- lm(Y~.+X4*X8+X5*X7+I(X1^2), data=xtra)
+summary(fit1)
+```
+El modelo es válido, pero la mejora es ínfima y añade peor interpretabilidad, no merece la pena.
+
+```{r}
+fit1 <- lm(Y~.+X4*X8+X5*X7+I(log(X8)), data=xtra)
+summary(fit1)
+```
+Lo mismo que en el caso anterior
+
+## KNN
+
+```{r}
+fitknn1 <- kknn(Y ~ ., xtra, xtra) # Por defecto k = 7, distance = 2, kernel = "optimal" y scale=TRUE
+summary(fitknn1$fitted.values)
 ```
 
-No existen variables irrelevantes, todas tienen Pr < 0.05
-
-
-Obtenemos el modelo KNN para todas las variables:
+RMSE
 ```{r}
-fitknn1 <- kknn(MedianHouseValue~., xtra, xtra)
+yprime <- fitknn1$fitted.values
+
+sqrt(sum((xtra$Y-yprime)^2)/length(yprime)) #RMSE
 ```
 
+Modelo aditivo anterior
+```{r}
+fitknn2 <- kknn(Y~.+X4*X8+X5*X7, xtra, xtra)
+
+yprime <- fitknn2$fitted.values
+sqrt(sum((xtra$Y-yprime)^2)/length(yprime)) #RMSE
+```
+
+Bajamos algo, pero poco.
+
+## Cross-validation
 
 ```{r}
-nombre<-"california"
-run_lm_fold<-function(i, x, tt= "test") {
-file <-paste(x, "-5-", i, "tra.dat", sep="")
-x_tra<-read.csv(file, comment.char="@", header=FALSE)
-file <-paste(x, "-5-", i, "tst.dat", sep="")
-x_tst<-read.csv(file, comment.char="@", header=FALSE)
-In <-length(names(x_tra)) -1
-names(x_tra)[1:In] <-paste ("X", 1:In, sep="")
-names(x_tra)[In+1] <-"Y"
-names(x_tst)[1:In] <-paste ("X", 1:In, sep="")
-names(x_tst)[In+1] <-"Y"
-if (tt== "train") {
-test <-x_tra
+#------------- 5-fold cross-validation LM todas las variables
+nombre <- "data/california"
+
+run_lm_fold <- function(i, x, tt = "test") {
+    file <- paste(x, "-5-", i, "tra.dat", sep="")
+    x_tra <- read.csv(file, comment.char="@", header=FALSE)
+    file <- paste(x, "-5-", i, "tst.dat", sep="")
+    x_tst <- read.csv(file, comment.char="@", header=FALSE)
+    In <- length(names(x_tra)) - 1
+    
+    names(x_tra)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tra)[In+1] <- "Y"
+    names(x_tst)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tst)[In+1] <- "Y"
+    
+    if (tt == "train") {
+        test <- x_tra
+    }
+    else {
+        test <- x_tst
+    }
+    
+    fitMulti=lm(Y~.,x_tra)
+    yprime=predict(fitMulti,test)
+    sum(abs(test$Y-yprime)^2)/length(yprime) ## RMSE
 }
-else {
-test <-x_tst
-}
-fitMulti=lm(Y~.,x_tra)
-yprime=predict(fitMulti,test)
-sum(abs(test$Y-yprime)^2)/length(yprime) ##MSE
-}
+
 lmMSEtrain<-mean(sapply(1:5,run_lm_fold,nombre,"train"))
 lmMSEtest<-mean(sapply(1:5,run_lm_fold,nombre,"test"))
 ```
 
 
 ```{r}
-California <- read.csv("california.dat", comment.char="@", header=FALSE)
-n<-length(names(California)) -1;
-names(California)[1:n] <-paste ("X", 1:n, sep=""); names(California)[n+1] <-"Y"
-temp <-California
-plotY<-function (x,y) {
-plot(temp[,y]~temp[,x], xlab=names(temp)[x], ylab=names(temp)[y])
+#------------- 5-fold cross-validation KNN todas las variables
+nombre <- "data/california"
+
+run_knn_fold <- function(i, x, tt = "test") {
+    file <- paste(x, "-5-", i, "tra.dat", sep="")
+    x_tra <- read.csv(file, comment.char="@", header=FALSE)
+    file <- paste(x, "-5-", i, "tst.dat", sep="")
+    x_tst <- read.csv(file, comment.char="@", header=FALSE)
+    In <- length(names(x_tra)) - 1
+    
+    names(x_tra)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tra)[In+1] <- "Y"
+    names(x_tst)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tst)[In+1] <- "Y"
+    
+    if (tt == "train") {
+        test <- x_tra
+    }
+    else {
+        test <- x_tst
+    }
+    
+    fitMulti=kknn(Y~.,x_tra,test)
+    yprime=fitMulti$fitted.values
+    sum(abs(test$Y-yprime)^2)/length(yprime) ##RMSE
 }
-par(mfrow=c(2,4)); x<-sapply(1:(dim(temp)[2]-1), plotY, dim(temp)[2]); par(mfrow=c(1,1))
-fitX8 <-lm(Y~X8, California)
-fitX7 <-lm(Y~X7, California)
-fitX4 <-lm(Y~X4, California)
+knnMSEtrain<-mean(sapply(1:5,run_knn_fold,nombre,"train"))
+knnMSEtest<-mean(sapply(1:5,run_knn_fold,nombre,"test"))
+```
 
 
-fit1=lm(Y~X8+I(X8^2)+I(X8^3)+I(log(X3))+I(log(X4/X6))
-+I(log(X5/X6))+I(log(X6/X7))+I(log(X7)),California)
-#Modeloqueusael logaritmoporserY=ln(median house value)
-#recomendadoenel website quedescribe el problema
-#Haciendopruebasy analizandolos datosse planteanposibles
-#modeloshasta llegara unosatisfactorio
-fit2=lm(Y~., California)
-fit3=lm(Y~.+X4*X7*X8, California)
-fit4=lm(Y~.+I(X1^2)+I(X6^2)+I(X8^2)+I(X8^3)+I(X8^4)
-+X7*X8*X4*X5*X6, California)
-summary(fit1)$adj.r.squared
-summary(fit2)$adj.r.squared
-summary(fit3)$adj.r.squared
-summary(fit4)$adj.r.squared
+Resultados
+```{r}
+lmMSEtest
+knnMSEtest
+```
+KNN supera, y por mucho
 
+En training
+```{r}
+lmMSEtrain
+knnMSEtrain
+```
 
-nombre<-"california"
-run_lm_fold<-function(i, x, tt= "test") {
-file <-paste(x, "-5-", i, "tra.dat", sep=""); x_tra<-read.csv(file, comment.char="@", header=FALSE)
-file <-paste(x, "-5-", i, "tst.dat", sep=""); x_tst<-read.csv(file, comment.char="@", header=FALSE)
-In <-length(names(x_tra)) -1
-names(x_tra)[1:In] <-paste ("X", 1:In, sep=""); names(x_tra)[In+1] <-"Y"
-names(x_tst)[1:In] <-paste ("X", 1:In, sep=""); names(x_tst)[In+1] <-"Y"
-if (tt== "train") { test <-x_tra}
-else { test <-x_tst}
-fitMulti=lm(Y~.+I(X1^2)+I(X6^2)+I(X8^2)+I(X8^3)
-+I(X8^4)+X7*X8*X4*X5*X6,x_tra)
-yprime=predict(fitMulti,test)
-sum(abs(test$Y-yprime)^2)/length(yprime) ##MSE
-}
-lmMSEtrain<-mean(sapply(1:5,run_lm_fold,nombre,"train"))
-lmMSEtest<-mean(sapply(1:5,run_lm_fold,nombre,"test"))
-#Se obtendríatambiénpara k-NN talcualse hizoantes
+## Comparativas entre algoritmos
 
+```{r}
+#------------------- COMPARATIVAS GENERALES ENTRE ALGORITMOS
 
+# Leemos la tabla con los errores medios de test
+resultados <- read.csv("data/regr_test_alumnos.csv")
+tablatst <- cbind(resultados[,2:dim(resultados)[2]])
+colnames(tablatst) <- names(resultados)[2:dim(resultados)[2]]
+rownames(tablatst) <- resultados[,1]
 
-#leemosla tablacon los erroresmediosde test
-resultados<-read.csv("regr_test_alumnos.csv")
-tablatst<-cbind(resultados[,2:dim(resultados)[2]])
-colnames(tablatst) <-names(resultados)[2:dim(resultados)[2]]
-rownames(tablatst) <-resultados[,1]
-#leemosla tablacon los erroresmediosde entrenamiento
-resultados<-read.csv("regr_train_alumnos.csv")
-tablatra<-cbind(resultados[,2:dim(resultados)[2]])
-colnames(tablatra) <-names(resultados)[2:dim(resultados)[2]]
-rownames(tablatra) <-resultados[,1]
+# Leemos la tabla con los errores medios de entrenamiento
+resultados <- read.csv("data/regr_train_alumnos.csv")
+tablatra <- cbind(resultados[,2:dim(resultados)[2]])
+colnames(tablatra) <- names(resultados)[2:dim(resultados)[2]]
+rownames(tablatra) <- resultados[,1]
 
+# TABLA NORMALIZADA - lm (other) vs knn (ref) para WILCOXON
+# + 0.1 porque wilcox R falla para valores == 0 en la tabla
 
-# Comparativaporpares de LM y KNN (Wilcoxon’s test)
-##lm (other) vs knn(ref)
-# + 0.1 porquewilcoxR fallapara valores== 0 enla tabla
-difs<-(tablatst[,1] -tablatst[,2]) / tablatst[,1]
-wilc_1_2 <-cbind(ifelse(difs<0, abs(difs)+0.1, 0+0.1), ifelse(difs>0, abs(difs)+0.1, 0+0.1))
-colnames(wilc_1_2) <-c(colnames(tablatst)[1], colnames(tablatst)[2])
+difs <- (tablatst[,1] - tablatst[,2]) / tablatst[,1]
+wilc_1_2 <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+colnames(wilc_1_2) <- c(colnames(tablatst)[1], colnames(tablatst)[2])
 head(wilc_1_2)
+```
 
-# Se aplicael test y se interpretanlos resultados
-LMvsKNNtst<-wilcox.test(wilc_1_2[,1], wilc_1_2[,2], alternative = "two.sided", paired=TRUE)
-Rmas<-LMvsKNNtst$statistic
-pvalue<-LMvsKNNtst$p.value
-LMvsKNNtst<-wilcox.test(wilc_1_2[,2], wilc_1_2[,1], alternative = "two.sided", paired=TRUE)
-Rmenos<-LMvsKNNtst$statistic
+
+```{r}
+# Aplicación del test de WILCOXON
+LMvsKNNtst <- wilcox.test(wilc_1_2[,1], wilc_1_2[,2], alternative = "two.sided", paired=TRUE)
+Rmas <- LMvsKNNtst$statistic
+
+pvalue <- LMvsKNNtst$p.value
+
+LMvsKNNtst <- wilcox.test(wilc_1_2[,2], wilc_1_2[,1], alternative = "two.sided", paired=TRUE)
+Rmenos <- LMvsKNNtst$statistic
+
 Rmas
 Rmenos
 pvalue
-
-
-# ComparativasMúltiples–UsaremosFriedman y comopost-hoc Holm (los rankings se calculanporposicionesde los algoritmospara cadaproblemay nohacefaltanormalización)
-test_friedman<-friedman.test(as.matrix(tablatst))
-test_friedman
-
-# Se aplicapost-hoc Holm
-tam <-dim(tablatst)
-groups <-rep(1:tam[2], each=tam[1])
-pairwise.wilcox.test(as.matrix(tablatst), groups, p.adjust= "holm", paired = TRUE)
 ```
+
+Nos dice que gana KNN pero el p-value no es suficiente para tomar esta afirmación como cierta.
 
 
 ```{r}
-temp <-Boston
-plotY<-function (x,y) {
-plot(temp[,y]~temp[,x], xlab=paste(names(temp)[x]," X",x,sep=""), ylab=names(temp)[y])
-}
-par(mfrow=c(3,4)) #Si margin too large => (2,3)
-x <-sapply(1:(dim(temp)[2]-1), plotY, dim(temp)[2])
-par(mfrow=c(1,1))
+# Aplicación del test de Friedman
+test_friedman <- friedman.test(as.matrix(tablatst))
+test_friedman
+```
+El p-value es <0.05 por lo que podemos concluir que al menos hay un par de algoritmos de calidad diferente.
+
+
+```{r}
+# Aplicación del test post-hoc de HOLM
+tam <- dim(tablatst)
+groups <- rep(1:tam[2], each=tam[1])
+pairwise.wilcox.test(as.matrix(tablatst), groups, p.adjust = "holm", paired = TRUE)
 ```
 
+Con el test post-hoc de HOLM podemos asegurar que 3-1 son diferentes, pero no del resto no podemos afirmar nada

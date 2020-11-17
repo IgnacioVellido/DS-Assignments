@@ -1,0 +1,333 @@
+---
+title: "Regresion"
+author: "Ignacio Vellido"
+date: "11/17/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Para PDF output
+# pdf_document: 
+#     keep_tex: yes
+#     df_print: kable
+
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)  # plot_grid
+library(corrplot) # corr y corrplot
+library(reshape2) # melt
+library(dlookr) # normality
+library(caret)  # preprocess
+library(moments)  # skewness
+library(car)  # scatterplotMatrix
+library(MASS) # fit
+library(kknn) # kknn
+# library(ISLR)
+# library(HSAUR2)
+# library(vcdExtra)
+# library(cepp)
+# library("dslabs")
+```
+
+
+Cargamos los datos:
+```{r}
+names <- c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
+
+auto <- read_csv("Data/autoMPG6/autoMPG6.dat", comment = "@", col_names = names)
+```
+
+--------------------------------------------------------------------------------
+
+Recordamos que la descripción de los datos se encuentra en el apartado [??]
+
+Como se comentó en el apartado de EDA:
+
+"Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable.
+Aún así, hemos visto que tenemos algunas variables más interesentas que otras.
+Varibles correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad."
+
+Graficamos la relación de cada variable respecto a la salida
+```{r}
+ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
+  geom_point(alpha=0.3) +
+  facet_wrap(.~variable, scale="free") +
+  theme_light()
+```
+
+Como dijimos, se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida, probablemente de forma logarítmica. 
+
+Las matrices nos correlación nos confirman esta idea (con coeficientes de Pearson y Kendall)
+```{r}
+corrplot.mixed(cor(auto), tl.pos="lt", upper="color", title="Pearson")
+corrplot.mixed(cor(auto, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
+```
+
+Por tando, si las ordenáramos por cuáles parecen ser más prometedoras, tendríamos:
+Weight > Displacement > Horse_power > Model_year > Acceleration
+
+## Ajustes de regresión lineal univariables
+
+Vamos a analizar un ajuste con cada una de las características:
+```{r}
+lm(Mpg ~ Weight, data=auto) %>% summary()
+print("-------------------------------------------")
+lm(Mpg ~ Displacement, data=auto) %>% summary()
+print("-------------------------------------------")
+lm(Mpg ~ Horse_power, data=auto) %>% summary()
+print("-------------------------------------------")
+lm(Mpg ~ Model_year, data=auto) %>% summary()
+print("-------------------------------------------")
+lm(Mpg ~ Acceleration, data=auto) %>% summary()
+```
+
+Al ser univariable, no es necesario fijarse en el estadístico F por ahora.
+Para ver el potencial de la variable, debemos darle importancia al p-valor (comprobar de que sea lo suficientemente bajo), y posteriormente ver el R<sup>2</sup> para everiguar el porcentaje de la salida explicada.
+
+En base a los resultados vemos que el test de correlación nos había ayudado correctamente: de forma individual todas las variables tienen dependencia lineal, y el orden de calidad coincide con el orden de fuerza en las correlaciones.
+
+Guardamos el modelo aditivo hasta ahora
+```{r}
+fit <- lm(Mpg ~ Weight, data=auto)
+```
+
+
+Ya con el uso de la variable Weight vemos que podemos explicar un ~69% de la salida, un buen valor de partida.
+Graficamos el ajuste:
+```{r}
+ggplot(auto, aes(x=Weight, y=Mpg)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method=lm, col="red") +
+  theme_light()
+```
+
+Y vemos sus coeficientes:
+```{r}
+confint(fit)
+```
+Aunque los valores del intervalo del coeficiente de Weight sea bajo, vemos que no incluye el cero (y con el p-valor obtenido anteriormente, lo podemos asegurar con bastante certeza).
+Probablemente la razón de estos coeficientes tan pequeños es que los datos no están estandarizados (se podría hacer perfectamente, se han dejado con sus rangos normales para interpretarlos mejor) y los valores de las unidades de medida son bastante diferentes (hablamos de rangos de [9.0,46.6] en Mpg frente a [1613,5140] en Weight)
+
+Ya con esto podemos intentan interpretar un poco los datos, tendríamos por ahora la fórmula de regresión lineal:
+(poner fórmula)
+(INTERPRETAR ?)
+
+## Ajustes de regresión lineal multivariable
+
+Aplicamos un método descendente
+
+```{r}
+lm(Mpg ~ ., data=auto) %>% summary()
+```
+El p-valor del F estadístico nos dice que al menos hay una variable (realmente ya lo sabíamos de los ajustes univariables) con dependencia linea.
+
+Vemos que hay 3 variables con mal p-valor, empezamos quitando la que lo tiene más alto, Horse_power
+
+```{r}
+lm(Mpg ~ . - Horse_power, data=auto) %>% summary()
+```
+El F estadístico está correcto, y seguimos teniendo variables con mal p-valor, quitamos Displacement
+
+```{r}
+lm(Mpg ~ . - Horse_power - Displacement, data=auto) %>% summary()
+```
+
+idem. a lo anterior, quitamos Acceleration.
+
+```{r}
+lm(Mpg ~ . - Horse_power - Displacement - Acceleration, data=auto) %>% summary()
+```
+
+El estadístico F sigue bien, y los p-valores de las variables son extremadamente bajos.
+Nos fijamos en el R2 y vemos que ha subido considerablemente (un 10%), por lo que este sería nuestro modelo aditivo por ahora.
+
+(Poner fórmula ?)
+
+A partir de ahora hay que tener cuidado si el R2 sigue aumentando, hay que evitar el overfitting en el modelo.
+
+<!-- Debemos notar que este método nos ha confirmado que las variables  -->
+
+## Inserción de interacciones
+
+Del modelo aditivo solo nos han quedado dos interacciones, así que probamos a incluirlas como interacción.
+
+```{r}
+lm(Mpg ~ + Weight * Model_year, data=auto) %>% summary()
+```
+El F estadístico sigue bien y los p-valores son bajos, el nuevo R2 ha mejorado un 3%, así que no es demasiado para considerar un overfitting. Probablemente más de un 90% sería preocupante, pero también tenemos que tener en cuenta que las variables están fuertemente correladas con la salida.
+
+Podríamos probar a añadir alguna interacción más con alguna variable que no hubiera entrado en el modelo aditivo, pero no se espera que mejore:
+```{r}
+lm(Mpg ~ + Weight * Model_year + Acceleration * Displacement, data=auto) %>% summary()
+```
+A pesar de nuestra suposición los p-valores son válidos y el R2 aumenta un 1%.
+Es cuestionable si el aumento de la complejidad del modelo merece con este incremento de R2.
+Las gráficas nos mostraron una posible dependencia logarítmica, así que por simplificar vamos a quedarnos con el modelo aditivo anterior.
+
+Podemos probar combinando la variable Acceleration con una de que teníamos (Weight y Model_year)
+```{r}
+lm(Mpg ~ + Weight * Model_year + Acceleration * Weight, data=auto) %>% summary()
+```
+
+```{r}
+lm(Mpg ~ + Weight * Model_year + Acceleration * Model_year, data=auto) %>% summary()
+```
+
+Y entre los dos nos podríamos quedar con el primero por tener mejores p-valores y un mejor R2
+De la misma manera, el incremento es pequeño respecto.
+
+```{r}
+fit <- lm(Mpg ~ + Weight * Model_year + Acceleration * Weight, data=auto)
+```
+
+La fórmula del modelo aditivo que llevamos por ahora es:
+<!-- formula con coeficientes -->
+
+## Ajustes de regresión no lineal
+
+Habíamos dicho que las gráficas nos mostraban una tendencia logarítmica, vamos a incluír la de Weight en nuestro modelo aditivo
+
+```{r}
+lm(Mpg ~ + Weight * Model_year + Acceleration * Weight + I(log(Weight)), data=auto) %>% 
+  summary()
+```
+El estadístico F está bien y los p-valores también, aunque el de la intercacción Weight-Acceleration es alto comparado con el resto.
+Como el R2 ha subido, por ver si mejora, vamos a quitar esta interacción.
+
+```{r}
+lm(Mpg ~ + Weight * Model_year + I(log(Weight)), data=auto) %>% 
+  summary()
+```
+Hemos empeorado un 0.5%, bastante poco y el modelo es más simple
+
+Podemos mostrarlo en un gráfico:
+```{r}
+fit <- lm(Mpg ~ + Weight * Model_year + I(log(Weight)), data=auto)
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
+
+# this is the predicted line of multiple linear regression
+ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+```
+Esta gráfica nos indica que con casi toda probabilidad se está generando sobreajuste, se ve necesario simplificar el modelo.
+
+Si quitamos la otra interacción:
+```{r}
+lm(Mpg ~ Weight + Model_year + I(log(Weight)), data=auto) %>% summary()
+```
+
+No hemos perdido apenas R2, mostramos la gráfica:
+
+```{r}
+fit <- lm(Mpg ~ Weight + Model_year+ I(log(Weight)), data=auto)
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
+
+# this is the predicted line of multiple linear regression
+ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+```
+
+Seguimos con el mismo problema, probablemente se deba a una de las variables.
+Quitamos Model_year por tener poca correlación con la variable de salida:
+
+```{r}
+lm(Mpg ~ Weight + I(log(Weight)), data=auto) %>% summary()
+```
+
+ESTO NO ESTOY SEGURO DE QUE SE PUEDA, PREGUNTAR!!!!
+<!-- El p-valor de Weight nos indica que hay que quitarla, y al no estar incluída ninguna interacción, no es un término de jerarquía, por lo que podemos hacerlo. -->
+
+```{r}
+lm(Mpg ~ I(log(Weight)), data=auto) %>% summary()
+```
+
+```{r}
+fit <- lm(Mpg ~ I(log(Weight)), data=auto)
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
+
+# this is the predicted line of multiple linear regression
+ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Acceleration)
+
+ggplot(data = auto, aes(x = Mpg, y = Acceleration)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Displacement)
+
+ggplot(data = auto, aes(x = Mpg, y = Displacement)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+```
+
+Vemos un empeoramiento respecto al modelo multivariable, pero la mejora del overfitting es meritoria para mantenerlo así
+
+
+Para resumir, tras hacer múltiples pruebas con diferentes modelos no lineales, nos quedamos con este:
+
+```{r}
+lm(Mpg ~ Acceleration + I(log(Weight)) + I(log(Horse_power)) + I(log(Displacement)), data=auto) %>% 
+  summary()
+```
+
+
+```{r}
+fit <- lm(Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), data=auto)
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
+
+# this is the predicted line of multiple linear regression
+ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Acceleration)
+
+ggplot(data = auto, aes(x = Mpg, y = Acceleration)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Displacement)
+
+ggplot(data = auto, aes(x = Mpg, y = Displacement)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  theme_light()
+```
+
+Pensando en el problema, y tras el análisis hecho en el apartado de EDA, pensamos que usar Model_year para predecir Mpg no parece buena idea. Las gráficas nos muestran mucha dispersión en los datos y, aunque sí se ve un cierta tendencia lineal, no parece suficiente.
+Claramente nos ajusta mejor los datos pero parece que nos estamos pegando a ellos.
+De cara a comprobar este razonamiento en el cross-validation, vamos a guardar ambos modelos.
+
+Por tanto los modelos resultantes son:
+- Modelo con mejor R2
+
+- Modelo intentando evitar el overfitting
+
+## Ajustes con KNN
+
+## Comparativa de los ajustes anteriores con cross-validation
+
+## Comparativa de tests
+(copiar el código y analizar los resultados)
