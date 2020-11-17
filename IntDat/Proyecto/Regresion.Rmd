@@ -197,14 +197,14 @@ Habíamos dicho que las gráficas nos mostraban una tendencia logarítmica, vamo
 lm(Mpg ~ + Weight * Model_year + Acceleration * Weight + I(log(Weight)), data=auto) %>% 
   summary()
 ```
-El estadístico F está bien y los p-valores también, aunque el de la intercacción Weight-Acceleration es alto comparado con el resto.
+El estadístico F está bien y los p-valores también, aunque el de la interacción Weight-Acceleration es alto comparado con el resto.
 Como el R2 ha subido, por ver si mejora, vamos a quitar esta interacción.
 
 ```{r}
 lm(Mpg ~ + Weight * Model_year + I(log(Weight)), data=auto) %>% 
   summary()
 ```
-Hemos empeorado un 0.5%, bastante poco y el modelo es más simple
+Hemos empeorado un 0.5%, bastante poco, y el modelo es más simple
 
 Podemos mostrarlo en un gráfico:
 ```{r}
@@ -320,6 +320,8 @@ Pensando en el problema, y tras el análisis hecho en el apartado de EDA, pensam
 Claramente nos ajusta mejor los datos pero parece que nos estamos pegando a ellos.
 De cara a comprobar este razonamiento en el cross-validation, vamos a guardar ambos modelos.
 
+--------------------------------------------------------------------------------
+
 Por tanto los modelos resultantes son:
 - Modelo con mejor R2
 
@@ -327,7 +329,260 @@ Por tanto los modelos resultantes son:
 
 ## Ajustes con KNN
 
+Vamos a probar con diferentes modelos, primero el multivariable con todas
+```{r}
+fitknn <- kknn(Mpg~., auto, auto)
+
+yprime <- fitknn$fitted.values
+sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
+```
+
+Ahora el obtenido en los pasos anteriores (mejor R2)
+```{r}
+fitknn <- kknn(Mpg ~ + Weight * Model_year + I(log(Weight)), auto, auto)
+
+yprime <- fitknn$fitted.values
+sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
+```
+
+Y el modelo en el que intemos resolver el overfitting
+```{r}
+fitknn <- kknn(Mpg ~ Acceleration + I(log(Weight)), auto, auto)
+
+yprime <- fitknn$fitted.values
+sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
+```
+
+(EXPLICAR RSME y lo que se está haciendo)
+
+Vemos que el primero es con el que obtenemos mejor valor.
+Podemos guardar alguno más con la esperanza de que evite mejor el overfitting
+
+
 ## Comparativa de los ajustes anteriores con cross-validation
 
+```{r}
+nombre <- "Data/autoMPG6/auto"
+```
+
+
+Modelo de regresión con mejor R2
+```{r}
+#------------- 5-fold cross-validation LM todas las variables
+run_lm_fold <- function(i, x, tt = "test") {
+    file <- paste(x, "-5-", i, "tra.dat", sep="")
+    x_tra <- read.csv(file, comment.char="@", header=FALSE)
+    file <- paste(x, "-5-", i, "tst.dat", sep="")
+    x_tst <- read.csv(file, comment.char="@", header=FALSE)
+    In <- length(names(x_tra)) - 1
+    
+    names(x_tra)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tra)[In+1] <- "Y"
+    names(x_tst)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tst)[In+1] <- "Y"
+    
+    if (tt == "train") {
+        test <- x_tra
+    }
+    else {
+        test <- x_tst
+    }
+    
+    fitMulti=lm(Y~.,x_tra)  # Poner la fórmula aquí
+    
+    yprime=predict(fitMulti,test)
+    sum(abs(test$Y-yprime)^2)/length(yprime) ## RMSE
+}
+
+lmMSEtrain1 <- mean(sapply(1:5,run_lm_fold,nombre,"train"))
+lmMSEtest1 <- mean(sapply(1:5,run_lm_fold,nombre,"test"))
+```
+
+Modelo de regresión evitando overfitting
+```{r}
+#------------- 5-fold cross-validation LM todas las variables
+run_lm_fold <- function(i, x, tt = "test") {
+    file <- paste(x, "-5-", i, "tra.dat", sep="")
+    x_tra <- read.csv(file, comment.char="@", header=FALSE)
+    file <- paste(x, "-5-", i, "tst.dat", sep="")
+    x_tst <- read.csv(file, comment.char="@", header=FALSE)
+    In <- length(names(x_tra)) - 1
+    
+    names(x_tra)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tra)[In+1] <- "Y"
+    names(x_tst)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tst)[In+1] <- "Y"
+    
+    if (tt == "train") {
+        test <- x_tra
+    }
+    else {
+        test <- x_tst
+    }
+    
+    fitMulti=lm(Y~.,x_tra)  # Poner la fórmula aquí
+    
+    yprime=predict(fitMulti,test)
+    sum(abs(test$Y-yprime)^2)/length(yprime) ## RMSE
+}
+
+lmMSEtrain2 <- mean(sapply(1:5,run_lm_fold,nombre,"train"))
+lmMSEtest2 <- mean(sapply(1:5,run_lm_fold,nombre,"test"))
+```
+
+
+Modelo KNN con menor RSME
+```{r}
+#------------- 5-fold cross-validation KNN todas las variables
+run_knn_fold <- function(i, x, tt = "test") {
+    file <- paste(x, "-5-", i, "tra.dat", sep="")
+    x_tra <- read.csv(file, comment.char="@", header=FALSE)
+    file <- paste(x, "-5-", i, "tst.dat", sep="")
+    x_tst <- read.csv(file, comment.char="@", header=FALSE)
+    In <- length(names(x_tra)) - 1
+    
+    names(x_tra)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tra)[In+1] <- "Y"
+    names(x_tst)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tst)[In+1] <- "Y"
+    
+    if (tt == "train") {
+        test <- x_tra
+    }
+    else {
+        test <- x_tst
+    }
+    
+    fitMulti=kknn(Y~.,x_tra,test)  # Poner la fórmula aquí
+    
+    yprime=fitMulti$fitted.values
+    sum(abs(test$Y-yprime)^2)/length(yprime) ##RMSE
+}
+
+knnMSEtrain1 <- mean(sapply(1:5,run_knn_fold,nombre,"train"))
+knnMSEtest1 <- mean(sapply(1:5,run_knn_fold,nombre,"test"))
+```
+
+
+Modelo KNN evitando overfitting
+```{r}
+#------------- 5-fold cross-validation KNN todas las variables
+run_knn_fold <- function(i, x, tt = "test") {
+    file <- paste(x, "-5-", i, "tra.dat", sep="")
+    x_tra <- read.csv(file, comment.char="@", header=FALSE)
+    file <- paste(x, "-5-", i, "tst.dat", sep="")
+    x_tst <- read.csv(file, comment.char="@", header=FALSE)
+    In <- length(names(x_tra)) - 1
+    
+    names(x_tra)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tra)[In+1] <- "Y"
+    names(x_tst)[1:In] <- paste ("X", 1:In, sep="")
+    names(x_tst)[In+1] <- "Y"
+    
+    if (tt == "train") {
+        test <- x_tra
+    }
+    else {
+        test <- x_tst
+    }
+    
+    fitMulti=kknn(Y~.,x_tra,test)  # Poner la fórmula aquí
+    
+    yprime=fitMulti$fitted.values
+    sum(abs(test$Y-yprime)^2)/length(yprime) ##RMSE
+}
+
+knnMSEtrain2 <- mean(sapply(1:5,run_knn_fold,nombre,"train"))
+knnMSEtest2 <- mean(sapply(1:5,run_knn_fold,nombre,"test"))
+```
+
+
+Resultados obtenidos
+```{r}
+cat("Regresión 1: ")
+lmMSEtest1
+cat("Regresión 1: ")
+lmMSEtest2
+cat("KNN 1: ")
+knnMSEtest1
+cat("KNN 2: ")
+knnMSEtest2
+```
+
+(ANALIZAR RESULTADOS, EXPLICAR UN POCO CROSS-VALIDATION)
+
+Por completitud, mostramos también los resultados en training
+```{r}
+cat("Regresión 1: ")
+lmMSEtest1
+cat("Regresión 1: ")
+lmMSEtest2
+cat("KNN 1: ")
+knnMSEtest1
+cat("KNN 2: ")
+knnMSEtest2
+```
+
+(ANALIZAR)
+
 ## Comparativa de tests
-(copiar el código y analizar los resultados)
+
+(DETALLAR MÁS LAS COSAS, EXPLICAR LO QUE SE HACE)
+
+```{r}
+# Leemos la tabla con los errores medios de test
+resultados <- read.csv("Data/regr_test_alumnos.csv")
+tablatst <- cbind(resultados[,2:dim(resultados)[2]])
+colnames(tablatst) <- names(resultados)[2:dim(resultados)[2]]
+rownames(tablatst) <- resultados[,1]
+
+# Leemos la tabla con los errores medios de entrenamiento
+resultados <- read.csv("Data/regr_train_alumnos.csv")
+tablatra <- cbind(resultados[,2:dim(resultados)[2]])
+colnames(tablatra) <- names(resultados)[2:dim(resultados)[2]]
+rownames(tablatra) <- resultados[,1]
+
+# TABLA NORMALIZADA - lm (other) vs knn (ref) para WILCOXON
+# + 0.1 porque wilcox R falla para valores == 0 en la tabla
+
+difs <- (tablatst[,1] - tablatst[,2]) / tablatst[,1]
+wilc_1_2 <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+colnames(wilc_1_2) <- c(colnames(tablatst)[1], colnames(tablatst)[2])
+head(wilc_1_2)
+```
+
+
+```{r}
+# Aplicación del test de WILCOXON
+LMvsKNNtst <- wilcox.test(wilc_1_2[,1], wilc_1_2[,2], alternative = "two.sided", paired=TRUE)
+Rmas <- LMvsKNNtst$statistic
+
+pvalue <- LMvsKNNtst$p.value
+
+LMvsKNNtst <- wilcox.test(wilc_1_2[,2], wilc_1_2[,1], alternative = "two.sided", paired=TRUE)
+Rmenos <- LMvsKNNtst$statistic
+
+Rmas
+Rmenos
+pvalue
+```
+
+Nos dice que gana KNN pero el p-value no es suficiente para tomar esta afirmación como cierta.
+
+
+```{r}
+# Aplicación del test de Friedman
+test_friedman <- friedman.test(as.matrix(tablatst))
+test_friedman
+```
+El p-value es <0.05 por lo que podemos concluir que al menos hay un par de algoritmos de calidad diferente.
+
+
+```{r}
+# Aplicación del test post-hoc de HOLM
+tam <- dim(tablatst)
+groups <- rep(1:tam[2], each=tam[1])
+pairwise.wilcox.test(as.matrix(tablatst), groups, p.adjust = "holm", paired = TRUE)
+```
+
+Con el test post-hoc de HOLM podemos asegurar que 3-1 son diferentes, pero no del resto no podemos afirmar nada
