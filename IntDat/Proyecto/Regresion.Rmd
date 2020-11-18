@@ -19,20 +19,10 @@ knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center",
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)
-library(cowplot)  # plot_grid
 library(corrplot) # corr y corrplot
 library(reshape2) # melt
-library(dlookr) # normality
-library(caret)  # preprocess
-library(moments)  # skewness
-library(car)  # scatterplotMatrix
 library(MASS) # fit
 library(kknn) # kknn
-# library(ISLR)
-# library(HSAUR2)
-# library(vcdExtra)
-# library(cepp)
-# library("dslabs")
 ```
 
 

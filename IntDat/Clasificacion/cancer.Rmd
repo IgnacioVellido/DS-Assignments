@@ -1,0 +1,62 @@
+---
+title: "Untitled"
+author: "Ignacio Vellido"
+date: "11/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(philentropy)
+```
+
+
+```{r}
+wbcd <- read.csv("https://resources.oreilly.com/examples/9781784393908/raw/ac9fe41596dd42fc3877cfa8ed410dd346c43548/Machine%20Learning%20with%20R,%20Second%20Edition_Code/Chapter%2003/wisc_bc_data.csv")
+```
+
+```{r}
+wbcd <- na.omit(wbcd)
+classes <- wbcd[, ncol(wbcd)]
+wbcd <- wbcd[, -1]
+```
+
+```{r}
+# PREPROCESS ?
+
+my_knn <- function(train, test, k, mth) {
+  # Calculamos la distancia a cada elemento del conjunto de train
+  min <- Inf
+  
+  for (i in seq(1:length(train))) {
+    bind_rows(wbcd[i,1:ncol(train)], test) %>% 
+      distance(method = mth) -> dist
+    
+    if (dist < min) {
+      min <- dist
+      y <- train[i, ncol(train)]
+    }
+  }
+  
+  # Ordenamos
+  
+  # Devolvemos la más pequeña
+  y
+}
+
+
+# philentropy::avg(wbcd[1], wbcd[2], testNA = FALSE)
+# philentropy::distance(wbcd[1,],)
+# avg(wbcd[1],wbcd[2],F)
+
+# x <- bind_rows(wbcd[1,], wbcd[2,])
+# x
+# distance(x)
+
+t <- wbcd[nrow(wbcd), -1]
+
+my_knn(wbcd[-nrow(wbcd)], t, 1, "euclidean")
+summary(t)
+```
+
