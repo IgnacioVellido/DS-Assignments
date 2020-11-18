@@ -51,7 +51,7 @@ Como se comentó en el apartado de EDA:
 
 "Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable.
 Aún así, hemos visto que tenemos algunas variables más interesentas que otras.
-Varibles correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad."
+Varibles correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad. Sería conveniente evitarla para aumentar la interpretabilidad del modelo, pero la potencia en sí de este no cambia."
 
 Graficamos la relación de cada variable respecto a la salida
 ```{r}
@@ -71,6 +71,10 @@ corrplot.mixed(cor(auto, method="kendall"), tl.pos="lt", upper="color", title="K
 
 Por tando, si las ordenáramos por cuáles parecen ser más prometedoras, tendríamos:
 Weight > Displacement > Horse_power > Model_year > Acceleration
+
+También tenemos que tener en cuenta que las tres primeras variables están correladas entre sí.
+
+--------------------------------------------------------------------------------
 
 ## Ajustes de regresión lineal univariables
 
@@ -116,7 +120,11 @@ Probablemente la razón de estos coeficientes tan pequeños es que los datos no 
 
 Ya con esto podemos intentan interpretar un poco los datos, tendríamos por ahora la fórmula de regresión lineal:
 (poner fórmula)
+
 (INTERPRETAR ?)
+La fórmula nos indica que por cada unidad de peso el Mpg decrementa ?
+
+--------------------------------------------------------------------------------
 
 ## Ajustes de regresión lineal multivariable
 
@@ -128,47 +136,43 @@ lm(Mpg ~ ., data=auto) %>% summary()
 El p-valor del F estadístico nos dice que al menos hay una variable (realmente ya lo sabíamos de los ajustes univariables) con dependencia linea.
 
 Vemos que hay 3 variables con mal p-valor, empezamos quitando la que lo tiene más alto, Horse_power
-
 ```{r}
 lm(Mpg ~ . - Horse_power, data=auto) %>% summary()
 ```
-El F estadístico está correcto, y seguimos teniendo variables con mal p-valor, quitamos Displacement
-
+El F estadístico está correcto, y seguimos teniendo variables con p-valor grande, quitamos Displacement
 ```{r}
 lm(Mpg ~ . - Horse_power - Displacement, data=auto) %>% summary()
 ```
 
 idem. a lo anterior, quitamos Acceleration.
-
 ```{r}
 lm(Mpg ~ . - Horse_power - Displacement - Acceleration, data=auto) %>% summary()
 ```
 
 El estadístico F sigue bien, y los p-valores de las variables son extremadamente bajos.
-Nos fijamos en el R2 y vemos que ha subido considerablemente (un 10%), por lo que este sería nuestro modelo aditivo por ahora.
+Nos fijamos en el R<sup>2</sup> y vemos que ha subido considerablemente (un 10%) respecto al univariable, por lo que este sería nuestro modelo aditivo por ahora.
 
-(Poner fórmula ?)
+<!-- (Poner fórmula) -->
 
-A partir de ahora hay que tener cuidado si el R2 sigue aumentando, hay que evitar el overfitting en el modelo.
+A partir de ahora hay que tener cuidado si el R<sup>2</sup> sigue aumentando, hay que evitar el overfitting en el modelo.
 
-<!-- Debemos notar que este método nos ha confirmado que las variables  -->
+--------------------------------------------------------------------------------
 
 ## Inserción de interacciones
 
-Del modelo aditivo solo nos han quedado dos interacciones, así que probamos a incluirlas como interacción.
-
+Del modelo aditivo solo nos han quedado dos regresores, así que probamos a incluirlos como interacción.
 ```{r}
 lm(Mpg ~ + Weight * Model_year, data=auto) %>% summary()
 ```
-El F estadístico sigue bien y los p-valores son bajos, el nuevo R2 ha mejorado un 3%, así que no es demasiado para considerar un overfitting. Probablemente más de un 90% sería preocupante, pero también tenemos que tener en cuenta que las variables están fuertemente correladas con la salida.
+El F estadístico sigue bien y los p-valores son bajos, el nuevo R<sup>2</sup> ha mejorado un 3%, así que no es demasiado para considerar un overfitting. Probablemente más de un 90% sería preocupante, pero también tenemos que tener en cuenta que las variables están fuertemente correladas con la salida.
 
 Podríamos probar a añadir alguna interacción más con alguna variable que no hubiera entrado en el modelo aditivo, pero no se espera que mejore:
 ```{r}
 lm(Mpg ~ + Weight * Model_year + Acceleration * Displacement, data=auto) %>% summary()
 ```
-A pesar de nuestra suposición los p-valores son válidos y el R2 aumenta un 1%.
-Es cuestionable si el aumento de la complejidad del modelo merece con este incremento de R2.
-Las gráficas nos mostraron una posible dependencia logarítmica, así que por simplificar vamos a quedarnos con el modelo aditivo anterior.
+A pesar de nuestra suposición los p-valores son válidos y el R<sup>2</sup> aumenta un 1%.
+Es cuestionable si el aumento de la complejidad del modelo merece con este incremento de R<sup>2</sup>.
+Por simplificar vamos a quedarnos con el modelo aditivo anterior y probar con otra interacción.
 
 Podemos probar combinando la variable Acceleration con una de que teníamos (Weight y Model_year)
 ```{r}
@@ -179,32 +183,44 @@ lm(Mpg ~ + Weight * Model_year + Acceleration * Weight, data=auto) %>% summary()
 lm(Mpg ~ + Weight * Model_year + Acceleration * Model_year, data=auto) %>% summary()
 ```
 
-Y entre los dos nos podríamos quedar con el primero por tener mejores p-valores y un mejor R2
-De la misma manera, el incremento es pequeño respecto.
-
-```{r}
-fit <- lm(Mpg ~ + Weight * Model_year + Acceleration * Weight, data=auto)
-```
+Y entre los dos nos podríamos quedar con el primero por tener mejores p-valores y un mejor R<sup>2</sup>.
+Aun así, el incremento es pequeño respecto a nuestro modelo aditivo.
 
 La fórmula del modelo aditivo que llevamos por ahora es:
 <!-- formula con coeficientes -->
 
+Y la graficamos:
+```{r}
+fit <- lm(Mpg ~ Weight * Model_year + Acceleration * Weight, data=auto)
+
+predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
+
+# this is the predicted line of multiple linear regression
+ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
+  geom_point() +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
+  theme_light()
+```
+
+Se aprecia posible overfitting en el modelo, vamos a dejarlo por ahora e intentar solucionarlo con el modelo no lineal.
+
+--------------------------------------------------------------------------------
+
 ## Ajustes de regresión no lineal
 
 Habíamos dicho que las gráficas nos mostraban una tendencia logarítmica, vamos a incluír la de Weight en nuestro modelo aditivo
-
 ```{r}
 lm(Mpg ~ + Weight * Model_year + Acceleration * Weight + I(log(Weight)), data=auto) %>% 
   summary()
 ```
-El estadístico F está bien y los p-valores también, aunque el de la interacción Weight-Acceleration es alto comparado con el resto.
-Como el R2 ha subido, por ver si mejora, vamos a quitar esta interacción.
+El estadístico F está bien y los p-valores también, aunque el de la interacción Weight-Acceleration es alto comparado con el resto (aún así sigue siendo aceptable).
 
+Como el R<sup>2</sup> ha subido, por ver si mejora, vamos a quitar esta interacción.
 ```{r}
 lm(Mpg ~ + Weight * Model_year + I(log(Weight)), data=auto) %>% 
   summary()
 ```
-Hemos empeorado un 0.5%, bastante poco, y el modelo es más simple
+Hemos empeorado un 0.5%, bastante poco, y el modelo es más simple. La dejamos quitada.
 
 Podemos mostrarlo en un gráfico:
 ```{r}
@@ -213,9 +229,9 @@ fit <- lm(Mpg ~ + Weight * Model_year + I(log(Weight)), data=auto)
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
 # this is the predicted line of multiple linear regression
-ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 ```
 Esta gráfica nos indica que con casi toda probabilidad se está generando sobreajuste, se ve necesario simplificar el modelo.
@@ -225,30 +241,27 @@ Si quitamos la otra interacción:
 lm(Mpg ~ Weight + Model_year + I(log(Weight)), data=auto) %>% summary()
 ```
 
-No hemos perdido apenas R2, mostramos la gráfica:
-
+No hemos perdido apenas R<sup>2</sup>, mostramos la gráfica:
 ```{r}
 fit <- lm(Mpg ~ Weight + Model_year+ I(log(Weight)), data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
 # this is the predicted line of multiple linear regression
-ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 ```
 
 Seguimos con el mismo problema, probablemente se deba a una de las variables.
 Quitamos Model_year por tener poca correlación con la variable de salida:
-
 ```{r}
 lm(Mpg ~ Weight + I(log(Weight)), data=auto) %>% summary()
 ```
 
-ESTO NO ESTOY SEGURO DE QUE SE PUEDA, PREGUNTAR!!!!
-<!-- El p-valor de Weight nos indica que hay que quitarla, y al no estar incluída ninguna interacción, no es un término de jerarquía, por lo que podemos hacerlo. -->
-
+El p-valor de Weight nos indica que hay que quitarla, y al no estar incluída ninguna interacción, no es un término de jerarquía, por lo que podemos hacerlo.
+Se puede porque la variable sigue siendo independiente, solamente no está modelada de forma lineal, sino logarítmicamente.
 ```{r}
 lm(Mpg ~ I(log(Weight)), data=auto) %>% summary()
 ```
@@ -259,75 +272,80 @@ fit <- lm(Mpg ~ I(log(Weight)), data=auto)
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
 # this is the predicted line of multiple linear regression
-ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Acceleration)
 
-ggplot(data = auto, aes(x = Mpg, y = Acceleration)) + 
+ggplot(data = auto, aes(y = Mpg, x = Acceleration)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Displacement)
 
-ggplot(data = auto, aes(x = Mpg, y = Displacement)) + 
+ggplot(data = auto, aes(y = Mpg, x = Displacement)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 ```
 
-Vemos un empeoramiento respecto al modelo multivariable, pero la mejora del overfitting es meritoria para mantenerlo así
+Vemos un empeoramiento significativo en la calidad de R<sup>2</sup> respecto al modelo multivariable, pero la forma del modelo no está tan ajustada a los datos y parece sensato mantenerlo así.
 
+Aún así, no resulta lógico intentar predecir el Mpg de un coche únicamente en base al peso, alguna de las otras variables deberían ayudarnos en la predección. Por ejemplo, alguna característica del motor, como la cilindrada o los caballos de vapor.
 
-Para resumir, tras hacer múltiples pruebas con diferentes modelos no lineales, nos quedamos con este:
-
+Para resumir, mostramos el modelo con mejor R<sup>2</sup> tras hacer múltiples pruebas, e intentando evitar un overfitting:
 ```{r}
-lm(Mpg ~ Acceleration + I(log(Weight)) + I(log(Horse_power)) + I(log(Displacement)), data=auto) %>% 
+lm(Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), data=auto) %>% 
   summary()
 ```
 
-
+Los p-valores no son muy fuertes, pero siguen siendo aceptables, y gráficamente el modelo se ve un poco mejor:
 ```{r}
 fit <- lm(Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
 # this is the predicted line of multiple linear regression
-ggplot(data = auto, aes(x = Mpg, y = Weight)) + 
+ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Acceleration)
 
-ggplot(data = auto, aes(x = Mpg, y = Acceleration)) + 
+ggplot(data = auto, aes(y = Mpg, x = Acceleration)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Displacement)
 
-ggplot(data = auto, aes(x = Mpg, y = Displacement)) + 
+ggplot(data = auto, aes(y = Mpg, x = Displacement)) + 
   geom_point() +
-  geom_line(color='red', data = predicted_df, aes(x=mpg_pred, y=hp)) +
+  geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
   theme_light()
 ```
 
-Pensando en el problema, y tras el análisis hecho en el apartado de EDA, pensamos que usar Model_year para predecir Mpg no parece buena idea. Las gráficas nos muestran mucha dispersión en los datos y, aunque sí se ve un cierta tendencia lineal, no parece suficiente.
+Pensando en el problema, y tras el análisis hecho en el apartado de EDA, creemos que usar Model_year para predecir Mpg no parece buena idea. La gráfica de la variable nos muestran mucha dispersión en los datos y, aunque sí se ve un cierta tendencia lineal, no parece suficiente para usarla.
 Claramente nos ajusta mejor los datos pero parece que nos estamos pegando a ellos.
-De cara a comprobar este razonamiento en el cross-validation, vamos a guardar ambos modelos.
+
+De cara a comprobar este razonamiento en el cross-validation, vamos a guardar dos modelos:
+- Modelo con mejor R<sup>2</sup>
+Mpg ~ Weight + Model_year + I(log(Weight)
+
+- Modelo intentando evitar el overfitting
+Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement))
 
 --------------------------------------------------------------------------------
 
-Por tanto los modelos resultantes son:
-- Modelo con mejor R2
-
-- Modelo intentando evitar el overfitting
-
 ## Ajustes con KNN
+
+Sabemos que la función por defecto usa la distancia de Minkowski y escala los datos a igual rango.
+También usa un k de 7, y sería recomendable probar con varios.
+
 
 Vamos a probar con diferentes modelos, primero el multivariable con todas
 ```{r}
@@ -337,36 +355,105 @@ yprime <- fitknn$fitted.values
 sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
 ```
 
-Ahora el obtenido en los pasos anteriores (mejor R2)
+Y probando con varios obtenemos el menor error con este
 ```{r}
-fitknn <- kknn(Mpg ~ + Weight * Model_year + I(log(Weight)), auto, auto)
+fitknn <- kknn(Mpg~.-Acceleration, auto, auto)
+
+yprime <- fitknn$fitted.values
+sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
+```
+Que visualmente nos quedaría
+```{r}
+plot(auto$Mpg~auto$Weight)
+points(auto$Weight,fitknn$fitted.values,col="blue",pch=20)
+
+plot(auto$Mpg~auto$Acceleration)
+points(auto$Acceleration,fitknn$fitted.values,col="blue",pch=20)
+```
+
+Si probamos el modelo no lineal obtenido en los pasos anteriores (con mejor R<sup>2</sup>)
+```{r}
+fitknn <- kknn(Mpg ~ Weight + Model_year + I(log(Weight)), auto, auto)
 
 yprime <- fitknn$fitted.values
 sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
 ```
 
-Y el modelo en el que intemos resolver el overfitting
-```{r}
-fitknn <- kknn(Mpg ~ Acceleration + I(log(Weight)), auto, auto)
+Nos da peor error.
 
-yprime <- fitknn$fitted.values
+Y si probamos el modelo no lineal en el que intemos resolver el overfitting
+```{r}
+fitknn2 <- kknn(Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), auto, auto)
+
+yprime <- fitknn2$fitted.values
 sqrt(sum((auto$Mpg - yprime)^2)/length(yprime)) #RMSE
 ```
 
-(EXPLICAR RSME y lo que se está haciendo)
+Obtenemos aún mayor empeoramiento.
+Gráficamente:
+```{r}
+plot(auto$Mpg~auto$Weight)
+points(auto$Weight,fitknn$fitted.values,col="red",pch=20)
 
-Vemos que el primero es con el que obtenemos mejor valor.
-Podemos guardar alguno más con la esperanza de que evite mejor el overfitting
+plot(auto$Mpg~auto$Acceleration)
+points(auto$Acceleration,fitknn2$fitted.values,col="blue",pch=20)
+```
 
+El RMSE (Root Mean Square Error) o raíz del error cuadrático medio nos permite calcular el error en nuestro conjunto de test o training producido en las predicciones, definido por la fórmula:
+<!-- formula -->
+
+El método para evitar el overfitting que usamos en el apartado anterior probablemente no funcione con KNN por seguir una metodología totalmente diferente. El ajuste de KNN para regresión no tiene nada que ver con los modelos LM. 
+Podemos aún así guardarlo para comprobarlo.
+
+Tendríamos por tanto los siguientes modelos para KNN:
+Mpg ~ . - Acceleration
+Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement))
+
+Comparandolos gráficamente, vemos que son similares
+```{r}
+fitknn <- kknn(Mpg ~ . - Acceleration, auto, auto)
+fitknn2 <- kknn(Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), auto, auto)
+
+plot(auto$Mpg~auto$Weight)
+points(auto$Weight,fitknn$fitted.values,col="red",pch=20)
+points(auto$Weight,fitknn2$fitted.values,col="blue",pch=20)
+
+plot(auto$Mpg~auto$Acceleration)
+points(auto$Acceleration,fitknn$fitted.values,col="red",pch=20)
+points(auto$Acceleration,fitknn2$fitted.values,col="blue",pch=20)
+```
+
+Aunque el que intenta evitar el overfitting (en color azul en la gráfica), tiene menor dispersión.
+
+--------------------------------------------------------------------------------
 
 ## Comparativa de los ajustes anteriores con cross-validation
 
+Recordamos los modelos obtenidos:
+LM:
+Mpg ~ Weight + Model_year + I(log(Weight)
+Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement))
+
+KNN:
+Mpg ~ . - Acceleration
+Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement))
+
+c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
+      X1                X2          X3            X4            X5         Y    
+      
+LM:
+Y ~ X3 + X5 + I(log(X3))
+Y ~ X4 + I(log(X3)) + I(log(X1))
+
+KNN:
+Y ~ . - X4
+Y ~ X4 + I(log(X3)) + I(log(X1))
+
 ```{r}
-nombre <- "Data/autoMPG6/auto"
+nombre <- "Data/autoMPG6/autoMPG6"
 ```
 
-
-Modelo de regresión con mejor R2
+Modelo de regresión con mejor R<sup>2</sup>
 ```{r}
 #------------- 5-fold cross-validation LM todas las variables
 run_lm_fold <- function(i, x, tt = "test") {
@@ -388,7 +475,7 @@ run_lm_fold <- function(i, x, tt = "test") {
         test <- x_tst
     }
     
-    fitMulti=lm(Y~.,x_tra)  # Poner la fórmula aquí
+    fitMulti=lm(Y ~ X3 + X5 + I(log(X3)),x_tra)  # Poner la fórmula aquí
     
     yprime=predict(fitMulti,test)
     sum(abs(test$Y-yprime)^2)/length(yprime) ## RMSE
@@ -420,7 +507,7 @@ run_lm_fold <- function(i, x, tt = "test") {
         test <- x_tst
     }
     
-    fitMulti=lm(Y~.,x_tra)  # Poner la fórmula aquí
+    fitMulti=lm(Y ~ X4 + I(log(X3)) + I(log(X1)),x_tra)  # Poner la fórmula aquí
     
     yprime=predict(fitMulti,test)
     sum(abs(test$Y-yprime)^2)/length(yprime) ## RMSE
@@ -453,7 +540,7 @@ run_knn_fold <- function(i, x, tt = "test") {
         test <- x_tst
     }
     
-    fitMulti=kknn(Y~.,x_tra,test)  # Poner la fórmula aquí
+    fitMulti=kknn(Y ~ . - X4,x_tra,test)  # Poner la fórmula aquí
     
     yprime=fitMulti$fitted.values
     sum(abs(test$Y-yprime)^2)/length(yprime) ##RMSE
@@ -486,7 +573,7 @@ run_knn_fold <- function(i, x, tt = "test") {
         test <- x_tst
     }
     
-    fitMulti=kknn(Y~.,x_tra,test)  # Poner la fórmula aquí
+    fitMulti=kknn(Y ~ X4 + I(log(X3)) + I(log(X1)),x_tra,test)  # Poner la fórmula aquí
     
     yprime=fitMulti$fitted.values
     sum(abs(test$Y-yprime)^2)/length(yprime) ##RMSE
@@ -501,7 +588,7 @@ Resultados obtenidos
 ```{r}
 cat("Regresión 1: ")
 lmMSEtest1
-cat("Regresión 1: ")
+cat("Regresión 2: ")
 lmMSEtest2
 cat("KNN 1: ")
 knnMSEtest1
@@ -509,26 +596,39 @@ cat("KNN 2: ")
 knnMSEtest2
 ```
 
-(ANALIZAR RESULTADOS, EXPLICAR UN POCO CROSS-VALIDATION)
+Con el proceso de cross-validation dividimos el dataset en N subconjuntos (folds) y repetimos el entrenamiento N veces.
+Cada entrenamiento se aplica reservando uno de los subconjuntos como test y entrenando con el resto.
+Al final, el error obtenido para el modelo es la media de los errores en cada fold.
+La elección del número de folds es importante y si el problema lo permite (en términos de gasto computacional), se debería probar con varios. En este caso hemos utilizado 5 folds.
+
+Con esto conseguimos no desperdiciar el conocimiento del conjunto de test y no guiarnos por una única evaluación del modelo.
+
+
+Como resultados, nos muestra que los modelos con los que obtuvimos mejores resultados de R2 y RSME en sus apartados han acabado con mejor RSME tras el cross-validation.
+También apreciamos que con KNN conseguimos ligeramente mejores resultados.
 
 Por completitud, mostramos también los resultados en training
 ```{r}
 cat("Regresión 1: ")
-lmMSEtest1
-cat("Regresión 1: ")
-lmMSEtest2
+lmMSEtrain1
+cat("Regresión 2: ")
+lmMSEtrain2
 cat("KNN 1: ")
-knnMSEtest1
+knnMSEtrain1
 cat("KNN 2: ")
-knnMSEtest2
+knnMSEtrain2
 ```
 
-(ANALIZAR)
+Que nos muestran que ninguno de los modelos LM estaban haciendo overfitting, pero en cambio en KNN si existe una diferencia significativa entre training y test.
+
+--------------------------------------------------------------------------------
 
 ## Comparativa de tests
 
-(DETALLAR MÁS LAS COSAS, EXPLICAR LO QUE SE HACE)
+Para comparar los algoritmos vamos a aplicar test estadísticos en base a los resultados obtenidos en múltiples datasets.
+Para asegurar la igualdad de condiciones los algoritmos hacen uso de parámetros genéricos y utilizan las mismas particiones de cross-validation.
 
+Estas son las tablas de resultados que tenemos:
 ```{r}
 # Leemos la tabla con los errores medios de test
 resultados <- read.csv("Data/regr_test_alumnos.csv")
@@ -548,10 +648,10 @@ rownames(tablatra) <- resultados[,1]
 difs <- (tablatst[,1] - tablatst[,2]) / tablatst[,1]
 wilc_1_2 <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
 colnames(wilc_1_2) <- c(colnames(tablatst)[1], colnames(tablatst)[2])
-head(wilc_1_2)
+head(wilc_1_2 %>% as.data.frame())
 ```
 
-
+Aplicamos el test de Wilconxon a LM y KNN
 ```{r}
 # Aplicación del test de WILCOXON
 LMvsKNNtst <- wilcox.test(wilc_1_2[,1], wilc_1_2[,2], alternative = "two.sided", paired=TRUE)
@@ -564,12 +664,16 @@ Rmenos <- LMvsKNNtst$statistic
 
 Rmas
 Rmenos
+cat("p-value: ")
 pvalue
 ```
 
-Nos dice que gana KNN pero el p-value no es suficiente para tomar esta afirmación como cierta.
+Obtenemos un ranking de 78 para LM y 93 para KNN, con un p-valor de 0.77 (o nivel de confianza del 33%).
+
+Esto nos dice que gana KNN pero puesto que el p-value no es lo suficientemente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias.
 
 
+Ahora aplicamos en test de Friedman a los dos algoritmos anterios junto al algoritmo M5:
 ```{r}
 # Aplicación del test de Friedman
 test_friedman <- friedman.test(as.matrix(tablatst))
@@ -577,7 +681,7 @@ test_friedman
 ```
 El p-value es <0.05 por lo que podemos concluir que al menos hay un par de algoritmos de calidad diferente.
 
-
+Vemos cuáles de ellos lo son haciendo el test post-hoc de HOLM
 ```{r}
 # Aplicación del test post-hoc de HOLM
 tam <- dim(tablatst)
@@ -585,4 +689,6 @@ groups <- rep(1:tam[2], each=tam[1])
 pairwise.wilcox.test(as.matrix(tablatst), groups, p.adjust = "holm", paired = TRUE)
 ```
 
-Con el test post-hoc de HOLM podemos asegurar que 3-1 son diferentes, pero no del resto no podemos afirmar nada
+Con el test post-hoc de HOLM podemos asegurar que 3-1 (M5 vs LM) son diferentes. También podemos afirmar M5 respecto de KNN pero con un nivel de confianza menor.
+
+De KNN y LM no podemos afirmar nada puesto que el p-valor es extremadamente grande.
