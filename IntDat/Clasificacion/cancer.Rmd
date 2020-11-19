@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Ejercicios"
 author: "Ignacio Vellido"
 date: "11/18/2020"
 output: html_document
@@ -9,14 +9,23 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(philentropy)
+library(ggplot2)
+library(caret)
 ```
 
+# Exercise 1: KNN
+
+Create a function my_knn that accepts any measure from the philentropy package and performs basic knn. A possible function interface could be:
+
+my_knn <- function(train, train_labels, test=NA, k=1, metric=“euclidean”)
+
+The function will output the predictions over the test set (if given) or using the train set also as test set.
+
+Select two distance/similarity measures and apply the my_knn function to each of them with different k choices for the breast cancer data and do a comparison of the results (try using a plot).
 
 ```{r}
 wbcd <- read.csv("https://resources.oreilly.com/examples/9781784393908/raw/ac9fe41596dd42fc3877cfa8ed410dd346c43548/Machine%20Learning%20with%20R,%20Second%20Edition_Code/Chapter%2003/wisc_bc_data.csv")
-```
 
-```{r}
 wbcd %>% str()
 ```
 
@@ -24,13 +33,19 @@ wbcd %>% str()
 ```{r}
 wbcd <- na.omit(wbcd)
 classes <- wbcd[, 2]
-wbcd <- wbcd[, -(1:2)]
+wbcd <- wbcd[, -(1:2)] %>% scale()
 ```
 
 
 ```{r}
-# PREPROCESS ?
+philentropy::getDistMethods()
+```
 
+
+NOTA: Los datos se deben estandarizar antes
+NOTA: La función de philentropy no permite suprimir los mensajes
+NOTA: El algoritmo es exageradamente lento, no usarlo con muchos datos de test
+```{r include=FALSE}
 # From Github
 # En caso de empate, devuelve una cualquiera
 Mode <- function(x) {
@@ -67,15 +82,93 @@ my_knn <- function(train, train_labels, test=NA, k=1, metric="euclidean") {
   x %>% apply(1, knn, train, train_labels, k, metric)
 }
 
+train <- wbcd[-c(1,22,112,121,75),]
+test <- wbcd[c(1,22,112,121,75),]
 
-# philentropy::avg(wbcd[1], wbcd[2], testNA = FALSE)
-# philentropy::distance(wbcd[1,],)
-# avg(wbcd[1],wbcd[2],F)
+c1 <- my_knn(train, classes, test, 3, "euclidean")
+c2 <- my_knn(train, classes, test, 3, "avg")
+c3 <- my_knn(train, classes, test, 3, "pearson")
+```
 
-test <- wbcd[nrow(wbcd),]
-train <- wbcd[-nrow(wbcd),]
-metric <- "euclidean"
+```{r}
+c1
+c2
+c3
+```
 
-my_knn(train, classes, test = NA, 1, "euclidean")
+```{r}
+test %>% as.data.frame() %>% 
+  ggplot(aes(x=perimeter_mean, y=texture_mean, color=c1)) +
+    geom_point(size=4) +
+    labs(title="Euclidean") +
+    theme_light()
+
+test %>% as.data.frame() %>% 
+  ggplot(aes(x=perimeter_mean, y=texture_mean, color=c2)) +
+    geom_point(size=4) +
+    labs(title="Avg") +
+    theme_light()
+
+test %>% as.data.frame() %>% 
+  ggplot(aes(x=perimeter_mean, y=texture_mean, color=c3)) +
+    geom_point(size=4) +
+    labs(title="Pearson") +
+    theme_light()
+```
+
+```{r}
+test %>% as.data.frame() %>% 
+  ggplot(aes(x=area_mean, y=radius_mean, color=c1)) +
+    geom_point(size=4) +
+    labs(title="Euclidean") +
+    theme_light()
+
+test %>% as.data.frame() %>% 
+  ggplot(aes(x=area_mean, y=radius_mean, color=c2)) +
+    geom_point(size=4) +
+    labs(title="Avg") +
+    theme_light()
+
+test %>% as.data.frame() %>% 
+  ggplot(aes(x=area_mean, y=radius_mean, color=c3)) +
+    geom_point(size=4) +
+    labs(title="Pearson") +
+    theme_light()
+```
+
+# Exercise 2: Logistic regression
+
+Using the breast cancer dataset (all data, not only training) perform 10 fold-cv with logistic regression.
+
+```{r}
+wbcd <- read.csv("https://resources.oreilly.com/examples/9781784393908/raw/ac9fe41596dd42fc3877cfa8ed410dd346c43548/Machine%20Learning%20with%20R,%20Second%20Edition_Code/Chapter%2003/wisc_bc_data.csv")
+
+wbcd <- na.omit(wbcd)
+classes <- wbcd[, 2]
+# wbcd <- wbcd[, -(1:2)]
+```
+
+```{r}
+glmFit <- train(wbcd, y = classes, method = "glm", preProcess = c("center", "scale"),
+                tuneLength = 10, control=glm.control(maxit=500), trControl = trainControl(method = "cv"))
+glmFit
+```
+
+```{r}
+train <- wbcd[-c(1,22,112,121,75),]
+classes <- classes[-c(1,22,112,121,75)]
+test <- wbcd[c(1,22,112,121,75),]
+```
+
+```{r}
+glmFit <- train(train[,-2], y = train[,2], method = "glm", preProcess = c("center", "scale"),
+                tuneLength = 10, control=glm.control(maxit=500), trControl = trainControl(method = "cv"))
+glmFit
+```
+
+```{r}
+glm.probs <- predict(glmFit, newdata=test[,-2], type="prob")
+glm.pred <- ifelse(glm.probs > 0.5,"B","M")
+glm.pred
 ```
 
