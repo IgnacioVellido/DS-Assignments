@@ -17,32 +17,55 @@ wbcd <- read.csv("https://resources.oreilly.com/examples/9781784393908/raw/ac9fe
 ```
 
 ```{r}
-wbcd <- na.omit(wbcd)
-classes <- wbcd[, ncol(wbcd)]
-wbcd <- wbcd[, -1]
+wbcd %>% str()
 ```
+
+
+```{r}
+wbcd <- na.omit(wbcd)
+classes <- wbcd[, 2]
+wbcd <- wbcd[, -(1:2)]
+```
+
 
 ```{r}
 # PREPROCESS ?
 
-my_knn <- function(train, test, k, mth) {
-  # Calculamos la distancia a cada elemento del conjunto de train
-  min <- Inf
+# From Github
+# En caso de empate, devuelve una cualquiera
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+# The function will output the predictions over the test set (if given) or using the train set also as test set.
+my_knn <- function(train, train_labels, test=NA, k=1, metric="euclidean") {
   
-  for (i in seq(1:length(train))) {
-    bind_rows(wbcd[i,1:ncol(train)], test) %>% 
-      distance(method = mth) -> dist
+  # Aplica knn a una fila
+  knn <- function(test, train, train_labels, k=1, metric="euclidean") {
     
-    if (dist < min) {
-      min <- dist
-      y <- train[i, ncol(train)]
+    # Calcula distancia entre dos filas
+    dist <- function(v1, v2, m="euclidean") {
+      bind_rows(data.frame(t(v1)) , v2) %>% 
+        distance(method = m)
     }
+    
+    y <- train %>% apply(1, dist, v2=test, m=metric)
+    
+    # Ordenamos
+    z <- y %>% sort() %>% head(k)
+    
+    # Cogemos los índices
+    z <- z %>% names() %>% as.integer()
+    
+    # Cogemos la clase mayoritaria (o desempatamos)
+    train_labels[z] %>% Mode()
   }
   
-  # Ordenamos
-  
-  # Devolvemos la más pequeña
-  y
+  # x <- ifelse(is.na(test), train, test) %>% as.data.frame()
+
+  # x %>%  print()
+  # x %>% apply(1, knn, train, train_labels, k, metric)
 }
 
 
@@ -50,13 +73,10 @@ my_knn <- function(train, test, k, mth) {
 # philentropy::distance(wbcd[1,],)
 # avg(wbcd[1],wbcd[2],F)
 
-# x <- bind_rows(wbcd[1,], wbcd[2,])
-# x
-# distance(x)
+t <- wbcd[nrow(wbcd),]
+train <- wbcd[-nrow(wbcd),]
+metric <- "euclidean"
 
-t <- wbcd[nrow(wbcd), -1]
-
-my_knn(wbcd[-nrow(wbcd)], t, 1, "euclidean")
-summary(t)
+my_knn(train, classes, t, 5, "euclidean")
 ```
 
