@@ -228,6 +228,8 @@ normality(auto) %>% filter(p_value < 0.05)
 ```
 El test de Shapiro nos dice que ninguna variable sigue una distribución normal, con bastante certeza excepto en Acceleration.
 
+(PONER POR AQUÍ QUE AL SER REGRESIÓN NO HACE FALTA QUE LA DISTRIBUCIÓN SEA NORMAL)
+
 Se muestra aquí como no hay que dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
 El p-value de Acceleration está muy cerca del umbral (0.03 vs 0.05). Es bastante probable de que la parte central derecha de la distribución sea la causante de no asegurar la normalidad.
 

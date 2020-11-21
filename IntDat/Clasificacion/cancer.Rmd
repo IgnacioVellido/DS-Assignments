@@ -11,6 +11,11 @@ library(tidyverse)
 library(philentropy)
 library(ggplot2)
 library(caret)
+library(MASS)
+library(ISLR)
+library(dlookr)
+
+set.seed(5)
 ```
 
 # Exercise 1: KNN
@@ -172,3 +177,190 @@ glm.pred <- ifelse(glm.probs > 0.5,"B","M")
 glm.pred
 ```
 
+# Exercise 3: LDA/QDA
+
+## 1
+* Try lda with all Lag variables.
+
+```{r}
+Smarket %>% str()
+```
+
+Con Shapiro-test
+```{r}
+normality(Smarket) %>% filter(p_value < 0.05)
+```
+
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+names <- names(Smarket)
+bins <- c(10,10,15,15,14,18)
+plt <- list(length = length(names))
+
+x<-rnorm(100, mean=0, sd=1)
+
+for (i in 1:length(names)) {
+  ggplot(Smarket, aes_string(sample=names[i])) + 
+    stat_qq(alpha=.3, fill=colors[i], size=1) +
+    stat_qq_line() +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+}
+```
+
+
+No se cumplen los requisitos de LDA, lo hacemos de todas maneras:
+```{r}
+train <- Smarket %>% dplyr::select(Lag1, Lag2, Lag3, Lag4, Lag5)
+classes <- Smarket %>% dplyr::select(Direction) %>% unlist()
+```
+
+
+```{r}
+ldaFit <- train(train, classes,
+                method = "lda",
+                preProcess = c("center", "scale"),
+                tuneLength = 10,
+                trControl = trainControl(method = "cv"))
+
+ldaFit$finalModel
+
+confusionMatrix(ldaFit)
+```
+Resultados malísimos
+
+```{r}
+ctable <- as.table(matrix(c(9.2, 10.0, 39.0, 41.8), nrow = 2, byrow = TRUE))
+fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix LDA")
+```
+
+* Make a quick comparison between logistic regression and lda.
+
+```{r}
+glmFit <- train(train, classes,
+                method = "glm",
+                preProcess = c("center", "scale"),
+                tuneLength = 10,
+                trControl = trainControl(method = "cv"))
+
+glmFit$finalModel
+confusionMatrix(glmFit)
+```
+
+
+```{r}
+ctable <- as.table(matrix(c(8.2, 10.2, 39.9, 41.6), nrow = 2, byrow = TRUE))
+fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix GLM")
+```
+
+* Try with qda and compare all three methods. Plot the results.
+
+```{r}
+qdaFit <- train(train, classes,
+                method = "qda",
+                preProcess = c("center", "scale"),
+                tuneLength = 10,
+                trControl = trainControl(method = "cv"))
+
+qdaFit$finalModel
+
+confusionMatrix(qdaFit)
+```
+
+```{r}
+ctable <- as.table(matrix(c(13.3, 13.0, 34.9, 38.9), nrow = 2, byrow = TRUE))
+fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix QDA")
+```
+
+```{r}
+# x <- seq(min(Smarket.2005$Lag1), max(Smarket.2005$Lag1), length.out=dim(Smarket.2005)[1])
+# y <- seq(min(Smarket.2005$Lag2), max(Smarket.2005$Lag2), length.out=dim(Smarket.2005)[1])
+# 
+# Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),,2) #Set all possible pairs of x and y on a grid
+# 
+# out <- predict(lda.fit, data.frame(Lag1=Xcon[,1], Lag2=Xcon[,2]))$post    #posterior probabilities of a point belonging to each class 
+# 
+# pr <- data.frame(x=rep(x, length(y)), y=rep(y, each=length(x)), z=as.vector(out))
+# 
+# ggplot(Smarket.2005, aes(x=Lag1, y=Lag2)) + 
+#     geom_point(size = 3, aes(pch = Direction,  col=Direction)) + 
+#     geom_contour(data = pr, aes(x=x, y=y, z=z), breaks=c(0,.5))
+```
+
+```{r}
+# out <- predict(qda.fit, data.frame(Lag1=Xcon[,1], Lag2=Xcon[,2]))$post    #posterior probabilities of a point belonging to each class 
+# 
+# pr <- data.frame(x=rep(x, length(y)), y=rep(y, each=length(x)), z=as.vector(out))
+# 
+# ggplot(Smarket.2005, aes(x=Lag1, y=Lag2)) + 
+#     geom_point(size = 3, aes(pch = Direction,  col=Direction)) + 
+#     geom_contour(data = pr, aes(x=x, y=y, z=z), breaks=c(0,.5))
+```
+
+
+## Exercise 2
+Using only the information in file clasif_train_alumnos.csv:
+
+```{r}
+results <- read_csv("E:/Nacho/Desktop/GitHub/DATCOM/IntDat/Clasificacion/clasif_train_alumnos.csv")
+results
+```
+
+```{r}
+# TABLA NORMALIZADA - lda (other) vs qda (ref) para WILCOXON
+# + 0.1 porque wilcox R falla para valores == 0 en la tabla
+
+difs <- (results[,3] - results[,4]) / results[,3]
+res_norm <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+```
+
+
+* Compare lda and qda using Wilcoxon.
+```{r}
+# Aplicación del test de WILCOXON
+# wilcoxon <- wilcox.test(res_norm[,1] %>% unlist(), res_norm[,2] %>% unlist(), alternative = "two.sided", paired=TRUE)
+wilcoxon <- wilcox.test(results[,3] %>% unlist(), results[,4] %>% unlist(),
+                        alternative = "two.sided", paired=TRUE)
+Rmas <- wilcoxon$statistic
+
+pvalue <- wilcoxon$p.value
+
+wilcoxon <- wilcox.test(results[,4] %>% unlist(), results[,3] %>% unlist(), 
+                        alternative = "two.sided", paired=TRUE)
+Rmenos <- wilcoxon$statistic
+
+Rmas
+Rmenos
+cat("p-value: ")
+pvalue
+```
+
+<!-- Obtenemos un ranking de 78 para LM y 93 para KNN, con un p-valor de 0.77 (o nivel de confianza del 33%). -->
+
+<!-- Esto nos dice que gana KNN pero puesto que el p-value no es lo suficientemente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias. -->
+
+
+* Perform a multiple comparison using Friedman.
+```{r}
+# Aplicación del test de Friedman
+test_friedman <- friedman.test(as.matrix(tablatst))
+test_friedman
+```
+<!-- El p-value es <0.05 por lo que podemos concluir que al menos hay un par de algoritmos de calidad diferente. -->
+
+* Using Holm see if there is a winning algorithm (even if Friedman says there is no chance…).
+```{r}
+# Aplicación del test post-hoc de HOLM
+tam <- dim(tablatst)
+groups <- rep(1:tam[2], each=tam[1])
+pairwise.wilcox.test(as.matrix(tablatst), groups, p.adjust = "holm", paired = TRUE)
+```
+
+<!-- Con el test post-hoc de HOLM podemos asegurar que 3-1 (M5 vs LM) son diferentes. También podemos afirmar M5 respecto de KNN pero con un nivel de confianza menor. -->
+
+<!-- De KNN y LM no podemos afirmar nada puesto que el p-valor es extremadamente grande. -->
