@@ -46,7 +46,6 @@ wbcd <- wbcd[, -(1:2)] %>% scale()
 philentropy::getDistMethods()
 ```
 
-
 NOTA: Los datos se deben estandarizar antes
 NOTA: La función de philentropy no permite suprimir los mensajes
 NOTA: El algoritmo es exageradamente lento, no usarlo con muchos datos de test
@@ -91,7 +90,7 @@ train <- wbcd[-c(1,22,112,121,75),]
 test <- wbcd[c(1,22,112,121,75),]
 
 c1 <- my_knn(train, classes, test, 3, "euclidean")
-c2 <- my_knn(train, classes, test, 3, "avg")
+c2 <- my_knn(train, classes, test, 3, "motyka")
 c3 <- my_knn(train, classes, test, 3, "pearson")
 ```
 
@@ -141,6 +140,8 @@ test %>% as.data.frame() %>%
     theme_light()
 ```
 
+--------------------------------------------------------------------------------
+
 # Exercise 2: Logistic regression
 
 Using the breast cancer dataset (all data, not only training) perform 10 fold-cv with logistic regression.
@@ -150,19 +151,16 @@ wbcd <- read.csv("https://resources.oreilly.com/examples/9781784393908/raw/ac9fe
 
 wbcd <- na.omit(wbcd)
 classes <- wbcd[, 2]
-# wbcd <- wbcd[, -(1:2)]
-```
 
-```{r}
-glmFit <- train(wbcd, y = classes, method = "glm", preProcess = c("center", "scale"),
-                tuneLength = 10, control=glm.control(maxit=500), trControl = trainControl(method = "cv"))
-glmFit
+wbcd %>% head()
 ```
 
 ```{r}
 train <- wbcd[-c(1,22,112,121,75),]
 classes <- classes[-c(1,22,112,121,75)]
 test <- wbcd[c(1,22,112,121,75),]
+
+test %>% head()
 ```
 
 ```{r}
@@ -174,8 +172,12 @@ glmFit
 ```{r}
 glm.probs <- predict(glmFit, newdata=test[,-2], type="prob")
 glm.pred <- ifelse(glm.probs > 0.5,"B","M")
-glm.pred
+
+print("Probabilities: ")
+glm.probs %>% as.matrix()
 ```
+
+--------------------------------------------------------------------------------
 
 # Exercise 3: LDA/QDA
 
@@ -186,7 +188,7 @@ glm.pred
 Smarket %>% str()
 ```
 
-Con Shapiro-test
+Hacemos test de normalidad con Shapiro-test:
 ```{r}
 normality(Smarket) %>% filter(p_value < 0.05)
 ```
@@ -211,7 +213,8 @@ for (i in 1:length(names)) {
 ```
 
 
-No se cumplen los requisitos de LDA, lo hacemos de todas maneras:
+No se cumplen los requisitos de LDA para las variables Lag. 
+Lo hacemos de todas maneras:
 ```{r}
 train <- Smarket %>% dplyr::select(Lag1, Lag2, Lag3, Lag4, Lag5)
 classes <- Smarket %>% dplyr::select(Direction) %>% unlist()
@@ -229,10 +232,10 @@ ldaFit$finalModel
 
 confusionMatrix(ldaFit)
 ```
-Resultados malísimos
+Obtenemos resultados muy malos.
 
 ```{r}
-ctable <- as.table(matrix(c(9.2, 10.0, 39.0, 41.8), nrow = 2, byrow = TRUE))
+ctable <- confusionMatrix(ldaFit)$table
 fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
              conf.level = 0, margin = 1, main = "Confusion Matrix LDA")
 ```
@@ -252,8 +255,8 @@ confusionMatrix(glmFit)
 
 
 ```{r}
-ctable <- as.table(matrix(c(8.2, 10.2, 39.9, 41.6), nrow = 2, byrow = TRUE))
-fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
+ctable <- confusionMatrix(glmFit)$table
+fourfoldplot(ctable, color = c("#CC6666","#99CC99"), std = "all.max",
              conf.level = 0, margin = 1, main = "Confusion Matrix GLM")
 ```
 
@@ -272,38 +275,22 @@ confusionMatrix(qdaFit)
 ```
 
 ```{r}
-ctable <- as.table(matrix(c(13.3, 13.0, 34.9, 38.9), nrow = 2, byrow = TRUE))
+ctable <- confusionMatrix(qdaFit)$table
 fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
              conf.level = 0, margin = 1, main = "Confusion Matrix QDA")
 ```
 
 ```{r}
-# x <- seq(min(Smarket.2005$Lag1), max(Smarket.2005$Lag1), length.out=dim(Smarket.2005)[1])
-# y <- seq(min(Smarket.2005$Lag2), max(Smarket.2005$Lag2), length.out=dim(Smarket.2005)[1])
-# 
-# Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),,2) #Set all possible pairs of x and y on a grid
-# 
-# out <- predict(lda.fit, data.frame(Lag1=Xcon[,1], Lag2=Xcon[,2]))$post    #posterior probabilities of a point belonging to each class 
-# 
-# pr <- data.frame(x=rep(x, length(y)), y=rep(y, each=length(x)), z=as.vector(out))
-# 
-# ggplot(Smarket.2005, aes(x=Lag1, y=Lag2)) + 
-#     geom_point(size = 3, aes(pch = Direction,  col=Direction)) + 
-#     geom_contour(data = pr, aes(x=x, y=y, z=z), breaks=c(0,.5))
+lda.fit <- lda(Direction~Lag1+Lag2+Lag3+Lag4+Lag5, data=Smarket)
+plot(lda.fit, type="both")
+
+qda.fit <- qda(Direction~Lag1+Lag2+Lag3+Lag4+Lag5, data=Smarket)
+plot(qda.fit, type="both")
 ```
 
-```{r}
-# out <- predict(qda.fit, data.frame(Lag1=Xcon[,1], Lag2=Xcon[,2]))$post    #posterior probabilities of a point belonging to each class 
-# 
-# pr <- data.frame(x=rep(x, length(y)), y=rep(y, each=length(x)), z=as.vector(out))
-# 
-# ggplot(Smarket.2005, aes(x=Lag1, y=Lag2)) + 
-#     geom_point(size = 3, aes(pch = Direction,  col=Direction)) + 
-#     geom_contour(data = pr, aes(x=x, y=y, z=z), breaks=c(0,.5))
-```
+--------------------------------------------------------------------------------
 
-
-## Exercise 2
+## 2
 Using only the information in file clasif_train_alumnos.csv:
 
 ```{r}
@@ -316,51 +303,60 @@ results
 # + 0.1 porque wilcox R falla para valores == 0 en la tabla
 
 difs <- (results[,3] - results[,4]) / results[,3]
+difs <- difs %>% as.matrix()
 res_norm <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+colnames(res_norm) <- c(colnames(results)[3], colnames(results)[4])
 ```
 
 
 * Compare lda and qda using Wilcoxon.
 ```{r}
 # Aplicación del test de WILCOXON
-# wilcoxon <- wilcox.test(res_norm[,1] %>% unlist(), res_norm[,2] %>% unlist(), alternative = "two.sided", paired=TRUE)
-wilcoxon <- wilcox.test(results[,3] %>% unlist(), results[,4] %>% unlist(),
-                        alternative = "two.sided", paired=TRUE)
+wilcoxon <- wilcox.test(res_norm[,1], res_norm[,2], alternative = "two.sided", paired=TRUE)
+# wilcoxon <- wilcox.test(results[,3] %>% unlist(), results[,4] %>% unlist(),
+#                         alternative = "two.sided", paired=TRUE)
 Rmas <- wilcoxon$statistic
 
 pvalue <- wilcoxon$p.value
 
-wilcoxon <- wilcox.test(results[,4] %>% unlist(), results[,3] %>% unlist(), 
-                        alternative = "two.sided", paired=TRUE)
+wilcoxon <- wilcox.test(res_norm[,2], res_norm[,1], alternative = "two.sided", paired=TRUE)
+# wilcoxon <- wilcox.test(results[,4] %>% unlist(), results[,3] %>% unlist(),
+#                         alternative = "two.sided", paired=TRUE)
 Rmenos <- wilcoxon$statistic
 
+wilcoxon
+cat("R+: ")
 Rmas
+cat("R-: ")
 Rmenos
 cat("p-value: ")
 pvalue
 ```
 
-<!-- Obtenemos un ranking de 78 para LM y 93 para KNN, con un p-valor de 0.77 (o nivel de confianza del 33%). -->
+Obtenemos un ranking de 144 para LDA y 66 para QDA, con un p-valor de 0.15 (o nivel de confianza del 85%).
 
-<!-- Esto nos dice que gana KNN pero puesto que el p-value no es lo suficientemente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias. -->
+Esto nos dice que LDA obtiene mejores resultados pero puesto que el p-value no es lo suficientemente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias.
+Podemos afirmar al 85% que sí lo son, pero para afirmarlo con exactitud buscaríamos al menos un 95% de confianza.
 
 
 * Perform a multiple comparison using Friedman.
 ```{r}
 # Aplicación del test de Friedman
-test_friedman <- friedman.test(as.matrix(tablatst))
+test_friedman <- friedman.test(as.matrix(results[,2:4]))
 test_friedman
 ```
-<!-- El p-value es <0.05 por lo que podemos concluir que al menos hay un par de algoritmos de calidad diferente. -->
+El p-value es >0.05 por lo que no podemos concluir que haya al menos un par de algoritmos de calidad diferente.
 
 * Using Holm see if there is a winning algorithm (even if Friedman says there is no chance…).
 ```{r}
 # Aplicación del test post-hoc de HOLM
-tam <- dim(tablatst)
+tam <- dim(results[,2:4])
 groups <- rep(1:tam[2], each=tam[1])
-pairwise.wilcox.test(as.matrix(tablatst), groups, p.adjust = "holm", paired = TRUE)
+
+cat("1 = KNN, 2 = LDA, 3 = QDA")
+pairwise.wilcox.test(as.matrix(results[,2:4]), groups, p.adjust = "holm", paired = TRUE)
 ```
 
-<!-- Con el test post-hoc de HOLM podemos asegurar que 3-1 (M5 vs LM) son diferentes. También podemos afirmar M5 respecto de KNN pero con un nivel de confianza menor. -->
+Todos los p-values son mayores que 0.05 por lo que tal y como nos había dicho el test de Friedman no podemos asegurar para ningún par de test que sean de calidad diferente.
 
-<!-- De KNN y LM no podemos afirmar nada puesto que el p-valor es extremadamente grande. -->
+Notamos que el p-value de LDA vs QDA (3-2) es menor que el devuelto por el test de Wilcoxon. Esto probablemente se deba a que el test de Wilcoxon es más potente que Holm.
