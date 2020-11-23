@@ -165,7 +165,7 @@ names <- colnames(haberman)
 Vamos a sacar plots de cada variable para verlo mejor
 ```{r}
 ggplot(gather(haberman), aes(value)) +
-  geom_histogram(bins = 15, color="white") +
+  geom_histogram(bins = 13, color="white") +
   facet_wrap(~key, scales = 'free_x') +
   theme_light() +
   theme(strip.background = element_rect(fill="grey", size=2))+
@@ -175,14 +175,14 @@ ggplot(gather(haberman), aes(value)) +
 Una a una
 <!-- MODIFICAR LOS BINS -->
 ```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(10,10,15,15,14,18)
+colors <- c("chocolate", "deepskyblue1", "plum1")
+bins <- c(15,10,20)
 plt <- list(length = length(names))
 
 for (i in 1:length(names)) {
   ggplot(haberman, aes_string(x=names[i])) + 
-    geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
-    geom_density(alpha=.3, fill="black", size=1) +
+    geom_histogram(aes(y=..density..), size=1, bins=bins[i], color="black", fill=colors[i]) +
+    geom_density(alpha=.3, fill="black", color="green", size=.5) +
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
@@ -193,7 +193,77 @@ plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
 ```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+colors <- c("chocolate", "deepskyblue1", "plum1")
+plt <- list(length = length(names))
+
+for (i in 1:length(names)) {
+  ggplot(haberman, aes_string(x=names[i])) + 
+    geom_boxplot(fill = colors[i]) +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("Boxplot %s", names[i]), x=""))
+}
+
+plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+```{r}
+ggplot(melt(haberman), aes(x=variable, y=value)) + 
+  geom_boxplot() +
+  labs(title="Boxplot con mismo rango") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+---------------------------------------------------------------------------
+
+## Missing values
+
+Nos cuestionamos la ocurrencia de instancias con cero en el número de positivos.
+Creemos que se trata de una codificación de missing values porque los datos provienen de operaciones de cáncer que como ya hemos comentado probablemente consistan en eliminar estos nodos positivos.
+
+Tenemos que ver cómo tratar estas instancias:
+```{r}
+haberman %>% filter(Positive == 0) %>% count()
+```
+
+Vemos que contamos con un gran número de elas, por lo que directamente descartamos eliminarlas del dataset.
+Podemos ahora aplicar interpolación, o insertar un valor fijo (ES LO MISMO, NO ?)
+
+---------------------------------------------------------------------------
+
+Repetimos los plots anteriores, ya que tenemos los datos tratados:
+```{r}
+ggplot(gather(haberman), aes(value)) +
+  geom_histogram(bins = 13, color="white") +
+  facet_wrap(~key, scales = 'free_x') +
+  theme_light() +
+  theme(strip.background = element_rect(fill="grey", size=2))+
+  theme(strip.text = element_text(colour = 'black')) +
+  labs(title="Histogramas de cada variable", x = "")
+```
+
+Una a una
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1")
+bins <- c(15,10,20)
+plt <- list(length = length(names))
+
+for (i in 1:length(names)) {
+  ggplot(haberman, aes_string(x=names[i])) + 
+    geom_histogram(aes(y=..density..), size=1, bins=bins[i], color="black", fill=colors[i]) +
+    geom_density(alpha=.3, fill="black", color="green", size=.5) +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))
+}
+
+plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1")
 plt <- list(length = length(names))
 
 for (i in 1:length(names)) {
@@ -237,6 +307,7 @@ scale(haberman) %>% apply(2, range) %>% apply(2, dist)
 Vemos que no contamos con valores de todos los años:
 ```{r}
 table(haberman$Age)
+table(haberman$Age) %>% length
 
 (83-30+1) == table(haberman$Age) %>% length
 ```
@@ -252,24 +323,19 @@ table(haberman$Year)
 
 La variable Positive parece llevar una distribución exponencial, y problablemente por ello aparezcan tantos posibles outliers.
 
+SEGURAMENTE TRAS QUITAR LOS MISSING VALUES YA NO SIGA UNA EXP
+
 --------------------------------------------------------------------------------
 
 ### Análisis sobre las distribuciones
 
-GGPAIRS
-TEST ANOVA EN REGRESIÓN
-CORRELACIÓN DE 3 VARIABLES EN REGRESIÓN
-
-Hemos comentado antes que no apreciamos semejanzas con una distribución normal en algunas de las variables, lo comprobamos con un test estadístico (Shapiro-Wilk test):
+Ninguna variable parece seguir una distribución semejante a una distribución normal, lo comprobamos con un test estadístico (Shapiro-Wilk test):
 ```{r}
 normality(haberman) %>% filter(p_value < 0.05)
 ```
-El test de Shapiro nos dice que ninguna variable sigue una distribución normal, con bastante certeza excepto en Acceleration.
+El test de Shapiro nos dice claramente que ninguna variable sigue una distribución normal.
 
-Se muestra aquí como no hay que dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
-El p-value de Acceleration está muy cerca del umbral (0.03 vs 0.05). Es bastante probable de que la parte central derecha de la distribución sea la causante de no asegurar la normalidad.
-
-Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
+Lo mostramos gráficamente con plots Q-Q:
 ```{r}
 plt <- list(length = length(names))
 
@@ -288,10 +354,9 @@ for (i in 1:length(names)) {
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
-Estos gráficos Q-Q nos muestran más claramente que las variables no siguen distribuciones normales.
-La distribución de Acceleration es la que más se asemeja y eso lo vemos en el estadístico de Shapiro, pero en la cola superior existe una diferencia significativa que hace que el test rechace.
+Se ve que las distribuciones no siguen los cuartiles normales, mayormente en las colas.
 
-Antes habíamos mencionado que la variable Positive parece seguir una distribución exponencial, hacemos un test de Kolmogorov-Smirnov para corroborarlo:
+La variable Positive parece seguir una distribución exponencial, hacemos un test de Kolmogorov-Smirnov para corroborarlo:
 <!-- HABRÍA QUE DEJARLO UNIQUE - PROBABLEMENTE NO SE PUEDA -->
 ```{r}
 # data generation
@@ -313,6 +378,10 @@ curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
 # control
 ```
 
+Al ser el p-valor <0.05 el test nos lo rechaza.
+El plot también nos lo muestra más claramente, la forma de la cola de la distribución probablemente sea la causante de que no siga ese tipo de distribución
+
+Podemos hacer un gráfico QQ con los cuartiles de una distribución exponencial
 ```{r}
 # From https://stats.stackexchange.com/questions/76994/how-do-i-check-if-my-data-fits-an-exponential-distribution/76998
 qqexp <-  function(y, line=FALSE, ...) { 
@@ -330,17 +399,12 @@ qqexp <-  function(y, line=FALSE, ...) {
 qqexp(haberman$Positive, line=TRUE)
 ```
 
-
-Al ser el p-valor <0.05 el test nos lo rechaza.
-El plot también nos lo muestra más claramente, la forma de la cola de la distribución probablemente sea la causante de que no siga ese tipo de distribución
-
-Skewness:
+Solo vemos skewness en la variable Positive, lo comprobamos:
 ```{r}
 skewCols <- find_skewness(haberman)
 colnames(haberman)[skewCols]
 ```
-Era de esperar que la variable Positive nos saliera con skewness
-
+Calculamos el grado que tienen:
 ```{r}
 cat("Positive: ")
 skewness(haberman$Positive)
@@ -349,131 +413,43 @@ skewness(haberman$Year)
 cat("Age: ")
 skewness(haberman$Age)
 ```
-Sobre la skewness, tal y como se había visto en las gráficas, algunas de las variables la tienen, en los 3 casos positivas (hacia la izquierda).
-
-Los plots nos han dado idea de que Mpg tiene cierta skewness, pero cae por debajo del umbral de 0.5.
+Positive tiene skewness positiva en un alto grado, las demás tienen tan poco como para poder considerarlo.
 
 -------------------------------------------------------------
 
 ### Transformaciones
 
-Las transformaciones necesarias para normalizar una distribución dependen de la variable en cuestion.
-Primero debemos averiguar que tipo de distribución siguen.
-
-Algunas parecen tener una distribución exponencial
-
-<!-- Para normalizarlas podemos usar el paqueta carret, de forma que nos ajuste las variables a una distribución normal de media cero y desviación típica 1 -->
-
-<!-- (Scale + center es estandarizar) -->
+Dejamos que el paquete caret nos proponga metodos de preprocesado
 ```{r}
-# haberman_transform <- preProcess(haberman[,skewCols], method=c("YeoJohnson"))
-# haberman_norm <- predict(haberman_transform, haberman[,skewCols])
-
-# haberman_transform <- preProcess(haberman[,1:6], method=c("scale", "center"))
-haberman_transform <- preProcess(haberman[,1:6], method=c("YeoJohnson","scale", "center"))
-# transform the dataset using the parameters
-haberman_norm <- predict(haberman_transform, haberman[,1:6])
-
-summary(haberman_norm)
+preProcess(haberman)
 ```
 
-Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente.
+Nos sugiere una estandarización a media cero y desviación típica 1.
+Para un problema de clasificación esto es totalmente necesario puesto que no queremos que los diferentes rangos de las variables hagan que haya información de más peso que otra.
 
-Aunque para regresión no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no va a variar, por lo que es conveniente hacerlo.
-Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de la regresión para no confundirnos.
+Según el método utilizado la necesitad de normalidad puede ser o no necesaria. (CORROBORAR)
+Aplicar métodos de reducción de skewness en Positive no parece interesante puesto que está demasiado ladeado.
 
-------------------------------
-
-<!-- Algunas variables parecen seguir una distribución exponencial, lo comprobamos: -->
 ```{r}
-# haberman %>% apply(2, function(c) {
-#   fit <- fitdistr(c, "exponential") 
-# 
-#   # goodness of fit test
-#   ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
-# })
-# 
-# haberman %>% apply(2, function(c) {
-#   fit <- fitdistr(c, "chi-squared", start=list(df=3),method="Brent",lower=0.1,upper=100) 
-# 
-#   # goodness of fit test
-#   # ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
-#   ks.test(c,pchisq,df=10)
-# })
-
-
-# hist(haberman$Displacement, freq = FALSE, breaks = 100, xlim = c(0, quantile(haberman$Displacement, 0.99)))
-# curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
+haberman_transform <- preProcess(haberman, method=c("scale", "center"))
+# haberman_transform <- preProcess(haberman, method=c("YeoJohnson","scale", "center"))
+haberman_norm <- predict(haberman_transform, haberman)
 ```
 
-
-
-<!-- Vamos a demostrar que las variables están normalizadas: -->
+<!-- Por ver lo mal que queda con YeoJohnson -->
 ```{r}
-# normality(haberman_norm) %>% filter(p_value < 0.05)
-```
-
-
-```{r}
-# colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-# bins <- c(10,10,15,15,14,18)
-# plt <- list(length = length(names))
-# 
-# x<-rnorm(100, mean=0, sd=1)
-# 
-# for (i in 1:length(names)) {
-#   ggplot(haberman_norm, aes_string(sample=names[i])) + 
-#     stat_qq(alpha=.3, fill=colors[i], size=1) +
-#     stat_qq_line() +
-#     labs(title="", x="", y="") +
-#     theme_light() -> plt[[i]]
-#   
-#   print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
-# }
-# 
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-```
-
-
-```{r}
-# shapiro.test(haberman_norm$Acceleration)
-# 
-# ggplot(haberman_norm, aes(sample=Acceleration)) +
-#     stat_qq(alpha=.3, size=1) +
-#     stat_qq_line() +
-#     labs(title="", x="", y="") +
-#     theme_light()
-
-# colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-# bins <- c(10,10,15,15,14,18)
+# colors <- c("chocolate", "deepskyblue1", "plum1")
+# bins <- c(15,10,20)
 # plt <- list(length = length(names))
 # 
 # for (i in 1:length(names)) {
-#   ggplot(haberman, aes_string(x=names[i])) + 
-#     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
-#     geom_density(alpha=.3, fill="black", size=1) +
-#     # labs(title=sprintf("%s", names[i]), x="") +
+#   ggplot(haberman_norm, aes_string(x=names[i])) + 
+#     geom_histogram(aes(y=..density..), size=1, bins=bins[i], color="black", fill=colors[i]) +
+#     geom_density(alpha=.3, fill="black", color="green", size=.5) +
 #     labs(title="", x="", y="") +
 #     theme_light() -> plt[[i]]
 #   
-#   print(plt[i])
-# }
-# 
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-# 
-# 
-# # QQ-plots
-# 
-# x<-rnorm(100, mean=0, sd=1)
-# 
-# for (i in 1:length(names)) {
-#   ggplot(haberman_norm, aes_string(sample=names[i])) + 
-#     stat_qq(alpha=.3, fill=colors[i], size=1) +
-#     stat_qq_line() +
-#     labs(title="", x="", y="") +
-#     theme_light() -> plt[[i]]
-#   
-#   print(plt[i])
+#   print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))
 # }
 # 
 # plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
@@ -483,17 +459,28 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 
 ### Outliers
 
-Como hemos visto anteriormente en los boxplots, las únicas variables con valores muy alejados del centro de la distribución son Acceleration y Horse_power.
+La única variable en la que podríamos considerar outliers es Positive. Tanto para la edad como para los años no tiene sentido, además de que hemos visto en los boxplots que en ellas todos los valores caen en el 95% de la distribución.
 
-Por el significado del problema, probablemente estos posibles outliers correspondan a coches de alta gama o potentes en la época. Esto tampoco lo podemos asegurar puesto que contamos con pocas características, pero se considera un razonamiento coherente. Además, puesto que los valores caen dentro de los rangos posibles para coches de la época, podemos descartar que sean errores de medida.
+A la hora de considerar los outliers en Positive, tal y como habíamos mencionado en la descripción del problema, un alto número de nodos detectados complica la operación y el pronóstico para el paciente. 
 
-Deberíamos decidir si mantener o no estas instancias. Como en nuestro caso se nos ha pedido predecir el consumo Mpg, sin darnos consideraciones sobre los tipos/gamas de coches a los que se enfoca, proseguimos dejándo estas filas.
+Podemos mostrar para aquellos valores outliers la cantidad de sobrevivientes:
+```{r}
+haberman %>% 
+  bind_cols(labels) %>% 
+  filter(Positive>10) %>%
+  summarise(Survival) %>% 
+  table()
+```
+
+Vemos que realmente está equilibrado.
+Aún así, si hubiera una tendencia negativa por un alto número en Positive queríamos que nuestro clasificador fuera capaz de aprenderlo, por lo que proseguimos sin eliminar outliers.
 
 -----------------------------------------------------------
 
 ### Análisis de correlación
 
-Como este es un problema de clasificación, necesitamos aquellas variables correladas para que la información se aporte de manera equitativa.
+Como este es un problema de clasificación, necesitamos eliminar aquellas variables correladas para que la información se aporte de manera equitativa.
+Las gráficas no nos han dado ninguna señal de una posible correlación, pero debemos asegurarnos de forma estadística.
 
 Tenemos que tener en cuenta que las variables no siguen distribuciones normales.
 Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos usar el coeficiente de Kendall para los cálculos.
@@ -506,79 +493,38 @@ corrplot.mixed(cor(haberman), tl.pos="lt", upper="color", title="Pearson")
 corrplot.mixed(cor(haberman, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
 ```
 
-Estas gráficas nos dicen que existe una alta correlación en el dataset, generalmente entre todas las variables (a excepción de Model_year), pero extremadamente fuerte en las parejas:
-
-1. Horse_power & Displacement
-2. Weight & Displacement
-3. Weight & Horse_power
-4. Acceleration & Horse_power
-5. Mpg & Horse_power
-6. Mpg & Displacement
-7. Mpg & Weight
+Nos muestra que no existe correlación alguna entre las variables.
 
 ```{r}
 scatterplotMatrix(haberman, pch=20, col="deepskyblue")
 ```
-El scatterplot anterior nos muestra mejor la forma de estas correlaciones.
-Vemos que en todos los casos en los que se da una correlación positiva existe una tendencia lineal entre los datos de ambas variables, y en las negativas una tendencia logarítmica.
+El scatterplot anterior nos muestra mejor la forma de las relaciones entre variables, vemos que no existe tendencia alguna.
 
-Vamos a mostrar algunas
-Positivas
+Miramos la distribución de las variables con su clasificación
 ```{r}
-ggplot(haberman, aes(x=Horse_power, y=Displacement)) +
-  geom_point() +
-  geom_smooth(formula = y~x, method=glm) +
-  theme_light()
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Age, y=Year, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Year con su Survival") +
+    theme_light()
 
-ggplot(haberman, aes(x=Weight, y=Displacement)) +
-  geom_point() +
-  geom_smooth(formula = y~x, method=glm) +
-  theme_light()
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(y=Age, x=Positive, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Year con su Survival") +
+    theme_light()
+
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Year, y=Positive, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Year con su Survival") +
+    theme_light()
 ```
 
-Negativas
-```{r}
-ggplot(haberman, aes(x=Displacement, y=Mpg)) +
-  geom_point() +
-  geom_smooth(formula = y~log(x), method=glm) +
-  theme_light()
-
-ggplot(haberman, aes(x=Weight, y=Mpg)) +
-  geom_point() +
-  geom_smooth(formula = y~log(x), method=glm) +
-  theme_light()
-```
-
-Previsualicación de las variables respecto a la salida
-```{r}
-ggplot(melt(haberman, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
-  geom_point(alpha=0.3) +
-  facet_wrap(.~variable, scale="free") +
-  theme_light()
-```
-Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida.
-
-Como habíamos supuesto en la hipótesis H.9, Horse_power podría depender de Displacement y Weight.
-Esta claro que la potencia de un motor va a depender de la cilindrada y el peso que tenga.
-
-```{r}
-haberman %>%
-  dplyr::select(Displacement, Horse_power, Weight) %>%  
-  scatterplotMatrix(pch=20, col="deepskyblue")
-```
-Podemos apreciar como la función de densidad de Horse_power parece una ("MEDIANIZACIÓN") de las otras dos.
-
-Vamos a intentar comprobarlo
-```{r}
-scale(haberman) %>%
-  as.data.frame() %>% 
-  mutate(hp = (Displacement+Weight) / 2) %>% 
-  dplyr::select(Horse_power, hp) %>%  
-  scatterplotMatrix(pch=20, col="deepskyblue")
-```
-Viendo que no son tan similares como creíamos, buscamos diferentes fórmulas para el cálculo de los caballos de vapor, y vemos que las fórmulas son un poco más complejas y no tenemos exactamente los datos necesarios para utilizarlas (no se descarta que no se puedan deducir, pero no sería un cálculo evidente)
-
-(poner fórmulas https://www.ajdesigner.com/phphorsepower/horsepower_equation_trap_speed_method_increase_horsepower.php#:~:text=Solving%20for%20the%20change%20in,the%20vehicle%2C%20driver%20and%20passenger.)
+No se aprecia ninguna relación visual que nos ayude a clasificar el Survival.
 
 ---------------------------------------------------------------------------
 
