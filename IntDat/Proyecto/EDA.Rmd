@@ -100,7 +100,7 @@ Antes de comenzar a analizar las variables nos plantemos una cuestión:
 ¿Debemos considerar Model_year como una variable numérica o como un factor categórico?
 Aunque por la hipótesis H.7 podríamos acabar no eligiendo la variable para el problema, es necesario plantearse esta cuestión antes de comenzar.
 
-Sabemos que las observaciones para esta variable cuenta con valores entre 72 y 82, por lo que sabemos que tenemos información exacta del año (en comparación, por ejemplo, con la década).
+Sabemos que las observaciones para esta variable cuenta con valores entre 72 y 82, por lo que tenemos información exacta del año (en comparación, por ejemplo, con agrupaciones mayores como la década o el siglo).
 El hecho de tratarla como categórica o quantitativa depende mucho del problema.
 En este caso, tenemos interés en cuestionarnos por valores entre años, por ejemplo, el consumo entre los años 75 y 76 (por otro lado, no tenemos información más precisa para los meses dentro del año)
 
@@ -154,7 +154,7 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
@@ -162,7 +162,6 @@ plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 for (i in 1:length(names)) {
@@ -171,11 +170,26 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("Boxplot %s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
+
+```{r}
+ggplot(melt(auto), aes(x=variable, y=value)) + 
+  geom_boxplot() +
+  labs(title="Boxplot con mismo rango") +
+  theme(axis.text.x = element_text(angle = 90))
+
+auto %>% dplyr::select(-Weight) %>% 
+  melt() %>% 
+  ggplot(aes(x=variable, y=value)) + 
+    geom_boxplot() +
+    labs(title="Boxplot sin Weight") +
+    theme(axis.text.x = element_text(angle = 90))
+```
+Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes dependiendo de la variable. Se pueden estandarizar los datos para solucionar este problema, aunque para regresión lineal no es necesario (sí lo es para KNN)
 
 Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
 ```{r}
@@ -212,7 +226,7 @@ Parece seguir una distribución normal.
 
 #### Model_year
 
-Aunque no se vea bien en las gráficas, contammos con valores de todos los años, más o menos equitativamente
+Aunque no se vea bien en las gráficas, contamos con valores de todos los años, más o menos equitativamente
 ```{r}
 table(auto$Model_year)
 ```
@@ -228,15 +242,13 @@ normality(auto) %>% filter(p_value < 0.05)
 ```
 El test de Shapiro nos dice que ninguna variable sigue una distribución normal, con bastante certeza excepto en Acceleration.
 
-(PONER POR AQUÍ QUE AL SER REGRESIÓN NO HACE FALTA QUE LA DISTRIBUCIÓN SEA NORMAL)
+Para regresión aún así no es necesario.
 
 Se muestra aquí como no hay que dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla.
 El p-value de Acceleration está muy cerca del umbral (0.03 vs 0.05). Es bastante probable de que la parte central derecha de la distribución sea la causante de no asegurar la normalidad.
 
 Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
 ```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 x<-rnorm(100, mean=0, sd=1)
@@ -248,7 +260,7 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("QQ-plot %s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
@@ -257,21 +269,11 @@ plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 Estos gráficos Q-Q nos muestran más claramente que las variables no siguen distribuciones normales.
 La distribución de Acceleration es la que más se asemeja y eso lo vemos en el estadístico de Shapiro, pero en la cola superior existe una diferencia significativa que hace que el test rechace.
 
-La variable Mpg parece seguir una distribución "exponencial" ??
-```{r}
-# ggplot(auto, aes(sample=Mpg)) + 
-#     stat_qq(alpha=.3, size=1) +
-#     stat_qq_line(distribution = stats::qchisq, dparams=(df=1)) +
-#     labs(title="", x="", y="") +
-#     theme_light()
-```
-
 Skewness:
 ```{r}
 skewCols <- find_skewness(auto)
 colnames(auto)[skewCols]
 ```
-
 
 ```{r}
 cat("Displacement: ")
@@ -291,21 +293,21 @@ Los plots nos han dado idea de que Mpg tiene cierta skewness, pero cae por debaj
 
 ### Transformaciones
 
-Las transformaciones necesarias para normalizar una distribución dependen de la variable en cuestion.
+Tampoco vemos necesario crear variables nuevas a partir de las vistas, por el conocimiento que tenemos del problema parece que las variables son coherentes.
+
+Las transformaciones necesarias para pasar a una distribución normal dependen de la variable en cuestion.
 Primero debemos averiguar que tipo de distribución siguen.
+
+De todas maneras, los métodos utilizados para regresión (regresión lineal y KNN) no asumen ninguna forma para la distribución de los datos, por lo que no es necesario aplicar nada.
 
 Algunas parecen tener una distribución exponencial
 
-<!-- Para normalizarlas podemos usar el paqueta carret, de forma que nos ajuste las variables a una distribución normal de media cero y desviación típica 1 -->
-
-<!-- (Scale + center es estandarizar) -->
 ```{r}
 # auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))
 # auto_norm <- predict(auto_transform, auto[,skewCols])
 
 # auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))
 auto_transform <- preProcess(auto[,1:6], method=c("YeoJohnson","scale", "center"))
-# transform the dataset using the parameters
 auto_norm <- predict(auto_transform, auto[,1:6])
 
 summary(auto_norm)
@@ -313,105 +315,18 @@ summary(auto_norm)
 
 Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente.
 
-Aunque para regresión no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no va a variar, por lo que es conveniente hacerlo.
+Aunque para regresión lineal no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no va a variar, por lo que es conveniente hacerlo.
 Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de la regresión para no confundirnos.
 
-------------------------------
+-----------------------------------------------------------
 
-<!-- Algunas variables parecen seguir una distribución exponencial, lo comprobamos: -->
-```{r}
-# auto %>% apply(2, function(c) {
-#   fit <- fitdistr(c, "exponential") 
-# 
-#   # goodness of fit test
-#   ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
-# })
-# 
-# auto %>% apply(2, function(c) {
-#   fit <- fitdistr(c, "chi-squared", start=list(df=3),method="Brent",lower=0.1,upper=100) 
-# 
-#   # goodness of fit test
-#   # ks.test(c, "pexp", fit$estimate) # p-value > 0.05 -> distribution not refused
-#   ks.test(c,pchisq,df=10)
-# })
+### Outliers
 
+Como hemos visto anteriormente en los boxplots, las únicas variables con valores muy alejados del centro de la distribución son Acceleration y Horse_power.
 
-# hist(auto$Displacement, freq = FALSE, breaks = 100, xlim = c(0, quantile(auto$Displacement, 0.99)))
-# curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
-```
+Por el significado del problema, probablemente estos posibles outliers correspondan a coches de alta gama o potentes en la época. Esto tampoco lo podemos asegurar puesto que contamos con pocas características, pero se considera un razonamiento coherente. Además, puesto que los valores caen dentro de los rangos posibles para coches de la época, podemos descartar que sean errores de medida.
 
-
-
-<!-- Vamos a demostrar que las variables están normalizadas: -->
-```{r}
-# normality(auto_norm) %>% filter(p_value < 0.05)
-```
-
-
-```{r}
-# colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-# bins <- c(10,10,15,15,14,18)
-# plt <- list(length = length(names))
-# 
-# x<-rnorm(100, mean=0, sd=1)
-# 
-# for (i in 1:length(names)) {
-#   ggplot(auto_norm, aes_string(sample=names[i])) + 
-#     stat_qq(alpha=.3, fill=colors[i], size=1) +
-#     stat_qq_line() +
-#     labs(title="", x="", y="") +
-#     theme_light() -> plt[[i]]
-#   
-#   print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
-# }
-# 
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-```
-
-
-```{r}
-# shapiro.test(auto_norm$Acceleration)
-# 
-# ggplot(auto_norm, aes(sample=Acceleration)) +
-#     stat_qq(alpha=.3, size=1) +
-#     stat_qq_line() +
-#     labs(title="", x="", y="") +
-#     theme_light()
-
-# colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-# bins <- c(10,10,15,15,14,18)
-# plt <- list(length = length(names))
-# 
-# for (i in 1:length(names)) {
-#   ggplot(auto, aes_string(x=names[i])) + 
-#     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
-#     geom_density(alpha=.3, fill="black", size=1) +
-#     # labs(title=sprintf("%s", names[i]), x="") +
-#     labs(title="", x="", y="") +
-#     theme_light() -> plt[[i]]
-#   
-#   print(plt[i])
-# }
-# 
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-# 
-# 
-# # QQ-plots
-# 
-# x<-rnorm(100, mean=0, sd=1)
-# 
-# for (i in 1:length(names)) {
-#   ggplot(auto_norm, aes_string(sample=names[i])) + 
-#     stat_qq(alpha=.3, fill=colors[i], size=1) +
-#     stat_qq_line() +
-#     labs(title="", x="", y="") +
-#     theme_light() -> plt[[i]]
-#   
-#   print(plt[i])
-# }
-# 
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-```
+Deberíamos decidir si mantener o no estas instancias. Como en nuestro caso se nos ha pedido predecir el consumo Mpg, sin darnos consideraciones sobre los tipos/gamas de coches a los que se enfoca, proseguimos dejándo estas filas.
 
 -----------------------------------------------------------
 
@@ -420,7 +335,10 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 Tenemos que tener en cuenta que las variables no siguen distribuciones normales.
 Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos usar el coeficiente de Kendall para los cálculos.
 Independientemente del método usado vamos a obtener las mismas correlaciones en este dataset, solo varía la fuerza con la que se dan.
+
 <!-- Las variables no siguen distribución normal, pero no pasa nada, Pearson no da problemas -->
+Para regresión la correlación en los datos no es preocupante. Al contrario, podría haber información (poca, pero alguna cantidad) que se aporte y nos ayude en el problema.
+Además, la propia metodología de selección de variables en el modelo multivariable nos ayudará a descartar aquellas variables que no sean necesarias como regresor.
 
 Corrplot
 ```{r}
@@ -445,16 +363,18 @@ El scatterplot anterior nos muestra mejor la forma de estas correlaciones.
 Vemos que en todos los casos en los que se da una correlación positiva existe una tendencia lineal entre los datos de ambas variables, y en las negativas una tendencia logarítmica.
 
 Vamos a mostrar algunas
-Positivas
+Positivas:
 ```{r}
 ggplot(auto, aes(x=Horse_power, y=Displacement)) +
   geom_point() +
   geom_smooth(formula = y~x, method=glm) +
+  labs(title="Relación Horse_power-Displacement") +
   theme_light()
 
 ggplot(auto, aes(x=Weight, y=Displacement)) +
   geom_point() +
   geom_smooth(formula = y~x, method=glm) +
+  labs(title="Relación Displacement-Weight") +
   theme_light()
 ```
 
@@ -463,11 +383,13 @@ Negativas
 ggplot(auto, aes(x=Displacement, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
+  labs(title="Relación Displacement-Mpg") +
   theme_light()
 
 ggplot(auto, aes(x=Weight, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
+  labs(title="Relación Weight-Mpg") +
   theme_light()
 ```
 
@@ -476,6 +398,7 @@ Previsualicación de las variables respecto a la salida
 ggplot(melt(auto, "Mpg"), aes(x=value, y=Mpg, color=variable)) +
   geom_point(alpha=0.3) +
   facet_wrap(.~variable, scale="free") +
+  labs(title="Relación de cada variable respecto de Mpg", x="") +
   theme_light()
 ```
 Se aprecia alta correlación entre Displacement, Horse_power, Weight respecto de la salida.
@@ -526,13 +449,6 @@ En este caso no es necesario aplicar ninguna reorganización.
 Cada variable ocupa su propia columna, y contiene un único tipo de información, con unidades de observación diferentes
 No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse).
 
-<!-- Column headers are values, not variable names. -->
-<!-- • Multiple variables are stored in one column. -->
-<!-- • Variables are stored in both rows and columns. -->
-<!-- • Multiple types of observational units are stored in the -->
-<!-- same table. -->
-<!-- • A single observational unit is stored in multiple tables. -->
-
 --------------------------------------------------------------------------
 
 #### Resolución de hipótesis
@@ -544,6 +460,7 @@ Nos habíamos planteado las siguientes hipótesis
 ggplot(auto, aes(x=Horse_power, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
+  labs(title="Relación Horse_power-Mpg") +
   theme_light()
 ```
 Con el plot y los resultados de la matriz de correlación queda claro que existe una correlación negativa entre estas dos variables.
@@ -560,6 +477,7 @@ La hemos referenciado anteriormente
 ggplot(auto, aes(x=Horse_power, y=Acceleration)) +
   geom_point() +
   geom_smooth(formula = y~log(x), method=glm) +
+  labs(title="Relación Horse_power-Acceleration") +
   theme_light()
 ```
 idem. se aprecia una correlación logarítmica entre las dos variables.
@@ -570,6 +488,7 @@ Similarmente a lo ocurrido con la hipótesis anterior, esto puede ser un problem
 ggplot(melt(auto, "Model_year"), aes(y=value, x=Model_year, color=variable)) +
   geom_point(alpha=0.3) +
   facet_wrap(.~variable, scale="free") +
+  labs(title="Plot de cada variable respecto a Model_year") +
   theme_light()
 ```
 
@@ -593,12 +512,6 @@ for (y in years) {
 }
 ```
 
-O mejor, de manera gráfica
-```{r}
-
-```
-
-
 - H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse_power y Acceleration.
 
 Ciertamente. Se ha comprobado en la hipótesis anterior.
@@ -610,6 +523,7 @@ Hemos visto que existe tendencia, lineal con gran dispersión, y positiva.
 ggplot(auto, aes(x=Model_year, y=Mpg)) +
   geom_point() +
   geom_smooth(formula = y~x, method=glm) +
+  labs(title="Relación Model_year-Mpg") +
   theme_light()
 ```
 
@@ -619,6 +533,8 @@ Podemos ver como se ubican los diferentes años en un plot Horse_power vs Mpg
 ```{r}
 ggplot(auto, aes(x=Horse_power, y=Mpg, color=Model_year)) +
   geom_point() +
+  geom_smooth(formula = y~I(log(x)), color="red", method=glm) +
+  labs(title="Relación Horse_power-Mpg") +
   theme_light()
 ```
 

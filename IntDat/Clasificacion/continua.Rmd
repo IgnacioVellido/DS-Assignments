@@ -1,12 +1,17 @@
 ---
-title: "Ejercicios"
+title: "Ejercicios clasificación"
 author: "Ignacio Vellido"
 date: "11/18/2020"
-output: html_document
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
 library(tidyverse)
 library(philentropy)
 library(ggplot2)
@@ -14,8 +19,7 @@ library(caret)
 library(MASS)
 library(ISLR)
 library(dlookr)
-
-set.seed(5)
+library(cowplot)  # plot_grid
 ```
 
 # Exercise 1: KNN
@@ -46,11 +50,11 @@ wbcd <- wbcd[, -(1:2)] %>% scale()
 philentropy::getDistMethods()
 ```
 
-NOTA: Los datos se deben estandarizar antes
-NOTA: La función de philentropy no permite suprimir los mensajes
-NOTA: El algoritmo es exageradamente lento, no usarlo con muchos datos de test
-```{r include=FALSE}
-# From Github
+- NOTA: Los datos se deben estandarizar antes
+- NOTA: La función de philentropy no permite suprimir los mensajes
+- NOTA: El algoritmo es exageradamente lento, no usarlo con muchos datos de test
+```{r waring=FALSE, results='hide', message=FALSE}
+# Mode function from Github
 # En caso de empate, devuelve una cualquiera
 Mode <- function(x) {
   ux <- unique(x)
@@ -77,7 +81,7 @@ my_knn <- function(train, train_labels, test=NA, k=1, metric="euclidean") {
     # Cogemos los índices
     z <- z %>% names() %>% as.integer()
     
-    # Cogemos la clase mayoritaria (o desempatamos)
+    # Cogemos la clase mayoritaria
     train_labels[z] %>% Mode()
   }
   
@@ -95,9 +99,9 @@ c3 <- my_knn(train, classes, test, 3, "pearson")
 ```
 
 ```{r}
-c1
-c2
-c3
+cat("Euclidean: "); c1
+cat("Motyka:    "); c2
+cat("Pearson:   "); c3
 ```
 
 ```{r}
@@ -164,8 +168,11 @@ test %>% head()
 ```
 
 ```{r}
-glmFit <- train(train[,-2], y = train[,2], method = "glm", preProcess = c("center", "scale"),
-                tuneLength = 10, control=glm.control(maxit=500), trControl = trainControl(method = "cv"))
+glmFit <- train(train[,-2], y = train[,2], 
+                method = "glm", 
+                preProcess = c("center", "scale"),
+                tuneLength = 10, control=glm.control(maxit=500), 
+                trControl = trainControl(method = "cv"))
 glmFit
 ```
 
@@ -194,16 +201,15 @@ normality(Smarket) %>% filter(p_value < 0.05)
 ```
 
 ```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
 names <- names(Smarket)
 bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 x<-rnorm(100, mean=0, sd=1)
 
-for (i in 1:length(names)) {
+for (i in 2:6) {
   ggplot(Smarket, aes_string(sample=names[i])) + 
-    stat_qq(alpha=.3, fill=colors[i], size=1) +
+    stat_qq(size=1) +
     stat_qq_line() +
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
@@ -228,11 +234,26 @@ ldaFit <- train(train, classes,
                 tuneLength = 10,
                 trControl = trainControl(method = "cv"))
 
+ldaFit
 ldaFit$finalModel
-
 confusionMatrix(ldaFit)
 ```
 Obtenemos resultados muy malos.
+
+```{r}
+ggplot(train, aes(x = Lag1, y = Lag2, color=predict(ldaFit))) +
+  geom_point(show.legend = F) +
+  labs(title="Prediction LDA") +
+  theme_light() -> ldaplot
+
+ggplot(train, aes(x = Lag1, y = Lag2, color=classes)) +
+  geom_point() +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+plot_grid(plotlist=list(ldaplot,trueplot), ncol=2, label_size = 1)
+```
+
 
 ```{r}
 ctable <- confusionMatrix(ldaFit)$table
@@ -247,9 +268,10 @@ glmFit <- train(train, classes,
                 method = "glm",
                 preProcess = c("center", "scale"),
                 tuneLength = 10,
+                control=glm.control(maxit=1500),
                 trControl = trainControl(method = "cv"))
 
-glmFit$finalModel
+glmFit
 confusionMatrix(glmFit)
 ```
 
@@ -258,6 +280,15 @@ confusionMatrix(glmFit)
 ctable <- confusionMatrix(glmFit)$table
 fourfoldplot(ctable, color = c("#CC6666","#99CC99"), std = "all.max",
              conf.level = 0, margin = 1, main = "Confusion Matrix GLM")
+```
+
+```{r}
+ggplot(train, aes(x = Lag1, y = Lag2, color=predict(glmFit))) +
+  geom_point(show.legend = F) +
+  labs(title="Prediction GLM") +
+  theme_light() -> glmplot
+
+plot_grid(plotlist=list(ldaplot,glmplot,trueplot), ncol=2, label_size = 1)
 ```
 
 * Try with qda and compare all three methods. Plot the results.
@@ -269,6 +300,7 @@ qdaFit <- train(train, classes,
                 tuneLength = 10,
                 trControl = trainControl(method = "cv"))
 
+qdaFit
 qdaFit$finalModel
 
 confusionMatrix(qdaFit)
@@ -281,27 +313,29 @@ fourfoldplot(ctable, color = c("#99CC99", "#CC6666"), std = "all.max",
 ```
 
 ```{r}
-lda.fit <- lda(Direction~Lag1+Lag2+Lag3+Lag4+Lag5, data=Smarket)
-plot(lda.fit, type="both")
+ggplot(train, aes(x = Lag1, y = Lag2, color=predict(qdaFit))) +
+  geom_point(show.legend = F) +
+  labs(title="Prediction QDA") +
+  theme_light() -> qdaplot
 
-qda.fit <- qda(Direction~Lag1+Lag2+Lag3+Lag4+Lag5, data=Smarket)
-plot(qda.fit, type="both")
+plot_grid(plotlist=list(ldaplot,glmplot,qdaplot,trueplot), ncol=2, label_size = 1)
 ```
 
 --------------------------------------------------------------------------------
 
 ## 2
-Using only the information in file clasif_train_alumnos.csv:
 
+Using only the information in file clasif_train_alumnos.csv:
 ```{r}
 results <- read_csv("E:/Nacho/Desktop/GitHub/DATCOM/IntDat/Clasificacion/clasif_train_alumnos.csv")
 results
 ```
 
-```{r}
-# TABLA NORMALIZADA - lda (other) vs qda (ref) para WILCOXON
-# + 0.1 porque wilcox R falla para valores == 0 en la tabla
+* Compare lda and qda using Wilcoxon.
 
+TABLA NORMALIZADA - lda (other) vs qda (ref) para WILCOXON
++ 0.1 porque wilcox R falla para valores == 0 en la tabla
+```{r}
 difs <- (results[,3] - results[,4]) / results[,3]
 difs <- difs %>% as.matrix()
 res_norm <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
@@ -309,19 +343,14 @@ colnames(res_norm) <- c(colnames(results)[3], colnames(results)[4])
 ```
 
 
-* Compare lda and qda using Wilcoxon.
 ```{r}
 # Aplicación del test de WILCOXON
 wilcoxon <- wilcox.test(res_norm[,1], res_norm[,2], alternative = "two.sided", paired=TRUE)
-# wilcoxon <- wilcox.test(results[,3] %>% unlist(), results[,4] %>% unlist(),
-#                         alternative = "two.sided", paired=TRUE)
 Rmas <- wilcoxon$statistic
 
 pvalue <- wilcoxon$p.value
 
 wilcoxon <- wilcox.test(res_norm[,2], res_norm[,1], alternative = "two.sided", paired=TRUE)
-# wilcoxon <- wilcox.test(results[,4] %>% unlist(), results[,3] %>% unlist(),
-#                         alternative = "two.sided", paired=TRUE)
 Rmenos <- wilcoxon$statistic
 
 wilcoxon
@@ -336,7 +365,7 @@ pvalue
 Obtenemos un ranking de 144 para LDA y 66 para QDA, con un p-valor de 0.15 (o nivel de confianza del 85%).
 
 Esto nos dice que LDA obtiene mejores resultados pero puesto que el p-value no es lo suficientemente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias.
-Podemos afirmar al 85% que sí lo son, pero para afirmarlo con exactitud buscaríamos al menos un 95% de confianza.
+Podemos afirmar al 85% que sí lo son, pero para hacerlo con seguridad buscaríamos al menos un 95% de confianza.
 
 
 * Perform a multiple comparison using Friedman.

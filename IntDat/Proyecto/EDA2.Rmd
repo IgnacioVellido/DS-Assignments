@@ -27,6 +27,7 @@ library(caret)  # preprocess
 library(moments)  # skewness
 library(car)  # scatterplotMatrix
 library(MASS) # fit
+# require(vcd)
 # library(ISLR)
 # library(HSAUR2)
 # library(vcdExtra)
@@ -98,7 +99,7 @@ names <- c("Age", "Year", "Positive", "Survival")
 haberman <- read_csv("Data/haberman/haberman.dat", comment = "@", col_names = names)
 ```
 
-R por defecto nos carga las variables Age, Year y Positive como numéricas y Survival
+R por defecto nos carga las variables Age, Year y Positive como numéricas y Survival como carácter.
 
 Vamos a transformar Survival a Factor
 ```{r}
@@ -106,13 +107,12 @@ haberman$Survival <- haberman$Survival %>% factor(levels = c("negative", "positi
 ```
 
 
-Y como estamos orientados a clasificación, vamos a convertir ... ?=?=?=?
+El resto de variables las mantenemos como numéricas
 
 
 #### Análisis univariable
 
-ANALIZAR Nº POSITIVOS VS Nº NEGATIVOS
-
+Los datos nos quedan por tanto de la siguiente manera:
 ```{r}
 head(haberman)
 ```
@@ -122,12 +122,15 @@ Hacemos summary para sacar datos de relevancia
 summary(haberman)
 ```
 
+En las distribuciones de los clasificadores nos fijaremos más adelante. Aquí hacemos notar que los valores de salida en nuestros datos están bastante desbalanceados, solo un 26.5% de los paciente sobrevivieron a los 5 años.
+
+
 El dataset cuenta con valores repetidos
 ```{r}
 sum(duplicated(haberman))
 ```
 
-Mostramos las columnas
+Mostramos estas ocurrencias:
 ```{r}
 ind <- duplicated(haberman) | duplicated(haberman, fromLast = TRUE)
 haberman[ind,] %>% arrange(Age)
@@ -150,6 +153,15 @@ No contamos con missing values
 sum(is.na(haberman))
 ```
 
+
+Separamos los datos de las etiquetas
+```{r}
+labels <- haberman[4]
+haberman <- haberman[-4]
+names <- colnames(haberman)
+```
+
+
 Vamos a sacar plots de cada variable para verlo mejor
 ```{r}
 ggplot(gather(haberman), aes(value)) +
@@ -161,6 +173,7 @@ ggplot(gather(haberman), aes(value)) +
   labs(title="Histogramas de cada variable", x = "")
 ```
 Una a una
+<!-- MODIFICAR LOS BINS -->
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
 bins <- c(10,10,15,15,14,18)
@@ -173,7 +186,7 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
@@ -181,7 +194,6 @@ plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 for (i in 1:length(names)) {
@@ -190,11 +202,20 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("Boxplot %s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
+
+```{r}
+ggplot(melt(haberman), aes(x=variable, y=value)) + 
+  geom_boxplot() +
+  labs(title="Boxplot con mismo rango") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes dependiendo de la variable. Es necesario aplicar un proceso de estandarización para clasificación.
 
 Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
 ```{r}
@@ -206,36 +227,30 @@ También podemos ver la distancia entre mínimos y máximos
 scale(haberman) %>% apply(2, range) %>% apply(2, dist)
 ```
 
-##### Displacement:
 
-(coger los plots de la variable sola)
+<!-- library(vcd) -->
+<!-- mosaic(Titanic -->
+<!-- ,shade=TRUE) -->
 
-La cilindrada vemos con una desviación grande y una gran concentración en los valores inferiores.
-Desviado a la izquierda, no parece seguir una distribución normal.
-Existe una alta concentración en torno al valor 125, muy por encima del recuento que alcanzan el resto de valores 
+#### Age
 
-#### Horse_power
-
-Similar a Displacement pero cuenta con una mayor dispersión y algunos valores muya altos. A día de hoy los coches suelen rondar los 120 en turismos y los 200 en SUVs. Aquí contamos con predominancia en el rango aproximado [70, 125] con algunas instancias por encima de los 200.
-Desviado a la izquierda, no parece seguir una distribución normal.
-
-#### Weight
-
-Una distribución más achatada que las anteriores, también ladeada hacia la izquierda.
-Un rango mayor 
-
-#### Acceleration
-
-Valores altamentes concentrados pero en general con un rango alto.
-Parece seguir una distribución normal.
-
-#### Model_year
-
-Aunque no se vea bien en las gráficas, contammos con valores de todos los años, más o menos equitativamente
+Vemos que no contamos con valores de todos los años:
 ```{r}
-table(haberman$Model_year)
+table(haberman$Age)
+
+(83-30+1) == table(haberman$Age) %>% length
 ```
 
+#### Year
+
+Aunque no se vea bien en las gráficas, contamos con valores de todos los años, con mayor cantidad en los iniciales:
+```{r}
+table(haberman$Year)
+```
+
+##### Positive
+
+La variable Positive parece llevar una distribución exponencial, y problablemente por ello aparezcan tantos posibles outliers.
 
 --------------------------------------------------------------------------------
 
@@ -256,8 +271,6 @@ El p-value de Acceleration está muy cerca del umbral (0.03 vs 0.05). Es bastant
 
 Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
 ```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(10,10,15,15,14,18)
 plt <- list(length = length(names))
 
 x<-rnorm(100, mean=0, sd=1)
@@ -269,7 +282,7 @@ for (i in 1:length(names)) {
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("%s", names[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("QQ-plot %s", names[i]), x=""))
 }
 
 plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
@@ -278,31 +291,63 @@ plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 Estos gráficos Q-Q nos muestran más claramente que las variables no siguen distribuciones normales.
 La distribución de Acceleration es la que más se asemeja y eso lo vemos en el estadístico de Shapiro, pero en la cola superior existe una diferencia significativa que hace que el test rechace.
 
-La variable Mpg parece seguir una distribución "exponencial" ??
+Antes habíamos mencionado que la variable Positive parece seguir una distribución exponencial, hacemos un test de Kolmogorov-Smirnov para corroborarlo:
+<!-- HABRÍA QUE DEJARLO UNIQUE - PROBABLEMENTE NO SE PUEDA -->
 ```{r}
-# ggplot(haberman, aes(sample=Mpg)) + 
-#     stat_qq(alpha=.3, size=1) +
-#     stat_qq_line(distribution = stats::qchisq, dparams=(df=1)) +
-#     labs(title="", x="", y="") +
-#     theme_light()
+# data generation
+ex <- rexp(10000, rate = 1.85) # generate some exponential distribution
+control <- abs(rnorm(10000)) # generate some other distribution
+
+# estimate the parameters
+fit1 <- fitdistr(ex, "exponential") 
+fit2 <- fitdistr(haberman$Positive %>% unique(), "exponential")
+
+# goodness of fit test
+ks.test(ex, "pexp", fit1$estimate) # p-value > 0.05 -> distribution not refused
+ks.test(haberman$Positive, "pexp", fit2$estimate) #  significant p-value -> distribution refused
+
+# plot a graph
+hist(haberman$Positive, freq = FALSE, breaks = 100, xlim = c(0, quantile(haberman$Positive, 0.99)))
+curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
+
+# control
 ```
+
+```{r}
+# From https://stats.stackexchange.com/questions/76994/how-do-i-check-if-my-data-fits-an-exponential-distribution/76998
+qqexp <-  function(y, line=FALSE, ...) { 
+    y <- y[!is.na(y)]
+    n <- length(y)
+    x <- qexp(c(1:n)/(n+1))
+    m <- mean(y)
+    if (any(range(y)<0)) stop("Data contains negative values")
+    ylim <- c(0,max(y))
+    qqplot(x, y, xlab="Exponential plotting position",ylim=ylim,ylab="Ordered sample", ...)
+    if (line) abline(0,m,lty=2)
+    invisible()
+}
+
+qqexp(haberman$Positive, line=TRUE)
+```
+
+
+Al ser el p-valor <0.05 el test nos lo rechaza.
+El plot también nos lo muestra más claramente, la forma de la cola de la distribución probablemente sea la causante de que no siga ese tipo de distribución
 
 Skewness:
 ```{r}
 skewCols <- find_skewness(haberman)
 colnames(haberman)[skewCols]
 ```
-
+Era de esperar que la variable Positive nos saliera con skewness
 
 ```{r}
-cat("Displacement: ")
-skewness(haberman$Displacement)
-cat("Horse_power: ")
-skewness(haberman$Horse_power)
-cat("Weight: ")
-skewness(haberman$Weight)
-cat("Mpg: ")
-skewness(haberman$Mpg)
+cat("Positive: ")
+skewness(haberman$Positive)
+cat("Year: ")
+skewness(haberman$Year)
+cat("Age: ")
+skewness(haberman$Age)
 ```
 Sobre la skewness, tal y como se había visto en las gráficas, algunas de las variables la tienen, en los 3 casos positivas (hacia la izquierda).
 
@@ -436,7 +481,19 @@ Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de l
 
 -----------------------------------------------------------
 
+### Outliers
+
+Como hemos visto anteriormente en los boxplots, las únicas variables con valores muy alejados del centro de la distribución son Acceleration y Horse_power.
+
+Por el significado del problema, probablemente estos posibles outliers correspondan a coches de alta gama o potentes en la época. Esto tampoco lo podemos asegurar puesto que contamos con pocas características, pero se considera un razonamiento coherente. Además, puesto que los valores caen dentro de los rangos posibles para coches de la época, podemos descartar que sean errores de medida.
+
+Deberíamos decidir si mantener o no estas instancias. Como en nuestro caso se nos ha pedido predecir el consumo Mpg, sin darnos consideraciones sobre los tipos/gamas de coches a los que se enfoca, proseguimos dejándo estas filas.
+
+-----------------------------------------------------------
+
 ### Análisis de correlación
+
+Como este es un problema de clasificación, necesitamos aquellas variables correladas para que la información se aporte de manera equitativa.
 
 Tenemos que tener en cuenta que las variables no siguen distribuciones normales.
 Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos usar el coeficiente de Kendall para los cálculos.
