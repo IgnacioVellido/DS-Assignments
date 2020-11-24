@@ -1,0 +1,83 @@
+---
+title: "Clasificacion"
+author: "Ignacio Vellido"
+date: "11/24/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Para PDF output
+# pdf_document: 
+#     keep_tex: yes
+#     df_print: kable
+
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)  # plot_grid
+library(corrplot) # corr y corrplot
+library(reshape2) # melt
+library(dlookr) # normality
+library(caret)  # preprocess
+library(moments)  # skewness
+library(car)  # scatterplotMatrix
+library(MASS) # fit
+# require(vcd)
+# library(ISLR)
+# library(HSAUR2)
+# library(vcdExtra)
+# library(cepp)
+# library("dslabs")
+```
+
+
+Cargamos los datos
+```{r}
+names <- c("Age", "Year", "Positive", "Survival")
+
+haberman <- read_csv("Data/haberman/haberman.dat", comment = "@", col_names = names)
+haberman$Survival <- haberman$Survival %>% factor(levels = c("negative", "positive"), labels = c("No", "Yes"))
+```
+
+Separamos los datos de las etiquetas
+```{r}
+labels <- haberman[4]
+haberman <- haberman[-4]
+names <- colnames(haberman)
+```
+
+Los preprocesamos (estandarización)
+```{r}
+haberman_transform <- preProcess(haberman, method=c("scale", "center"))
+haberman_norm <- predict(haberman_transform, haberman)
+```
+
+
+## Utilizar el algoritmo k-NN probando con diferentes valores de k. Elegir el que considere más adecuado para su conjunto de datos. Analice qué ocurre en los valores de precisión en training y test con los diferentes valores de k.
+
+```{r}
+
+```
+
+## Utilizar el algoritmo LDA para clasificar. No olvide comprobar las asunciones.
+
+```{r}
+
+```
+
+## Utilizar el algoritmo QDA para clasificar. No olvide comprobar las asunciones.
+
+```{r}
+
+```
+
+## Comparar los resultados de los tres algoritmos
+
+```{r}
+
+```
