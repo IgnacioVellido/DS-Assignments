@@ -53,8 +53,8 @@ Este dataset codifica el ratio de supervivencia de pacientes operados de cáncer
 Aunque normalmente la primera zona de propagación del cáncer son estos nodos, no es la única medida de la seriedad, pues este puede propagarse a otras zonas del cuerpo.
 En principio deberíamos suponer la posibilidad de que puede haber cosas de no supervivencia con bajo número de positivos, pero la bibliografía nos asegura que la probabilidad es baja.
 
-Viendo que solo tenemos esta medida del cáncer en el dataset es posible que la operación que recivieron los pacientes sea algún tipo de cirugía de ganglios linfáticos, donde el cirujano intenta extraer los nodos afectados por el tumor.
-Por consiguiente, cuanto mayor es la cantidad de nodos detectados, más complicaciones pueden acarrear de la operación.
+Viendo que solo tenemos esta medida del cáncer en el dataset es posible que la operación que recibieron los pacientes sea algún tipo de cirugía de ganglios linfáticos, donde el cirujano intenta extraer los nodos afectados por el tumor.
+Por consiguiente, cuanto mayor es la cantidad de nodos detectados, más complicaciones pueden acarrearse de la operación.
 (poner referencias)
 
 https://www.cancer.org/cancer/breast-cancer/treatment/surgery-for-breast-cancer/lymph-node-surgery-for-breast-cancer.html
@@ -88,7 +88,7 @@ La descripción del problema nos da alguna información adicional sobre las vari
 - H.3: El rango de Year es pequeño. La influencia de esta variable creemos que podría darse solo si durante ese período se hubieran descubierto técnicas mejores de cirugía. Este razonamiento va orientado de cara a la población y no a la muestra.
 Puesto que contamos con datos de un solo hospital durante pocos años, es posible que el equipo de cirugía hubiera sido el mismo para la mayoría de pacientes.
 - H.4: Podría haber relación entre la edad y el número de positivos, posiblemente indicando lo tardío que se descubre el cáncer.
-- H.5: La bibliografía nos dice que el cáncer puede aparecer a diferentes edades con diferentes factores de riesgo (alcoholismo, herencia genética...). Podría ser que el número de variables con las que contamos sea insuficiente para la clasificación.
+- H.5: La bibliografía nos dice que el cáncer puede aparecer a diferentes edades con diferentes factores de riesgo (alcoholismo, herencia genética...). Podría ser que el número de variables con las que contamos sea insuficiente para la clasificación. (Hipótesis no correspondiente al EDA).
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -215,77 +215,20 @@ ggplot(melt(haberman), aes(x=variable, y=value)) +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
+Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes dependiendo de la variable. Es necesario aplicar un proceso de estandarización para clasificación.
+
 ---------------------------------------------------------------------------
 
 ## Missing values
 
 Nos cuestionamos la ocurrencia de instancias con cero en el número de positivos.
-Creemos que se trata de una codificación de missing values porque los datos provienen de operaciones de cáncer que como ya hemos comentado probablemente consistan en eliminar estos nodos positivos.
+Podríamos pensar que se trata de una codificación de missing values si nos aseguramos que la operación consistan en eliminar estos nodos positivos.
 
-Tenemos que ver cómo tratar estas instancias:
-```{r}
-haberman %>% filter(Positive == 0) %>% count()
-```
+Si revisamos la información que tenemos, estos nodos positivos se denominan auxiliares, y una mayor investigación del problema por internet nos asegura de que estos valores de cero no se corresponden a missing values.
 
-Vemos que contamos con un gran número de elas, por lo que directamente descartamos eliminarlas del dataset.
-Podemos ahora aplicar interpolación, o insertar un valor fijo (ES LO MISMO, NO ?)
+Si hubiéramos descubierto que sí lo son, y tras ver que una gran parte de las instancias contienen este valor, habríamos tenido que buscar algún tipo de imputación para rellenar estos valores. Teniendo un número pequeño de valores reales, probablemente habríamos optado por KNN o interpolación lineal.
 
 ---------------------------------------------------------------------------
-
-Repetimos los plots anteriores, ya que tenemos los datos tratados:
-```{r}
-ggplot(gather(haberman), aes(value)) +
-  geom_histogram(bins = 13, color="white") +
-  facet_wrap(~key, scales = 'free_x') +
-  theme_light() +
-  theme(strip.background = element_rect(fill="grey", size=2))+
-  theme(strip.text = element_text(colour = 'black')) +
-  labs(title="Histogramas de cada variable", x = "")
-```
-
-Una a una
-```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1")
-bins <- c(15,10,20)
-plt <- list(length = length(names))
-
-for (i in 1:length(names)) {
-  ggplot(haberman, aes_string(x=names[i])) + 
-    geom_histogram(aes(y=..density..), size=1, bins=bins[i], color="black", fill=colors[i]) +
-    geom_density(alpha=.3, fill="black", color="green", size=.5) +
-    labs(title="", x="", y="") +
-    theme_light() -> plt[[i]]
-  
-  print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))
-}
-
-plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-```
-
-```{r}
-colors <- c("chocolate", "deepskyblue1", "plum1")
-plt <- list(length = length(names))
-
-for (i in 1:length(names)) {
-  ggplot(haberman, aes_string(x=names[i])) + 
-    geom_boxplot(fill = colors[i]) +
-    labs(title="", x="", y="") +
-    theme_light() -> plt[[i]]
-  
-  print(plt[[i]] + labs(title=sprintf("Boxplot %s", names[i]), x=""))
-}
-
-plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-```
-
-```{r}
-ggplot(melt(haberman), aes(x=variable, y=value)) + 
-  geom_boxplot() +
-  labs(title="Boxplot con mismo rango") +
-  theme(axis.text.x = element_text(angle = 90))
-```
-
-Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes dependiendo de la variable. Es necesario aplicar un proceso de estandarización para clasificación.
 
 Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
 ```{r}
@@ -296,11 +239,6 @@ También podemos ver la distancia entre mínimos y máximos
 ```{r}
 scale(haberman) %>% apply(2, range) %>% apply(2, dist)
 ```
-
-
-<!-- library(vcd) -->
-<!-- mosaic(Titanic -->
-<!-- ,shade=TRUE) -->
 
 #### Age
 
@@ -322,8 +260,6 @@ table(haberman$Year)
 ##### Positive
 
 La variable Positive parece llevar una distribución exponencial, y problablemente por ello aparezcan tantos posibles outliers.
-
-SEGURAMENTE TRAS QUITAR LOS MISSING VALUES YA NO SIGA UNA EXP
 
 --------------------------------------------------------------------------------
 
@@ -473,7 +409,7 @@ haberman %>%
 ```
 
 Vemos que realmente está equilibrado.
-Aún así, si hubiera una tendencia negativa por un alto número en Positive queríamos que nuestro clasificador fuera capaz de aprenderlo, por lo que proseguimos sin eliminar outliers.
+Aún así, si hubiera una tendencia negativa por un alto número en Positive querríamos que nuestro clasificador fuera capaz de aprenderlo, por lo que proseguimos sin eliminar outliers.
 
 -----------------------------------------------------------
 
@@ -489,8 +425,8 @@ Independientemente del método usado vamos a obtener las mismas correlaciones en
 
 Corrplot
 ```{r}
-corrplot.mixed(cor(haberman), tl.pos="lt", upper="color", title="Pearson")
-corrplot.mixed(cor(haberman, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
+corrplot.mixed(cor(haberman), tl.pos="lt", upper="color", lower.col="black", title="Pearson")
+corrplot.mixed(cor(haberman, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
 ```
 
 Nos muestra que no existe correlación alguna entre las variables.
@@ -528,34 +464,17 @@ No se aprecia ninguna relación visual que nos ayude a clasificar el Survival.
 
 ---------------------------------------------------------------------------
 
-### Tratamiento de variables
-
-Para este dataset, al ser casi todas las variables numéricas continuas, existen pocos tratamientos que aplicar.
-
-No tenemos variables categóricas que transformar.
-
-
-Para añadir interpretabilidad, podríamos agrupar la variable Weight en intervalos, pero puesto que vamos a aplicar regresión sería más conveniente realizarlo con los resultados finales.
-
---------------------------------------------------------------------------
-
-### Ordenaciones
+### Tratamiento de variables y ordenaciones
 
 Volvemos a mostrar la cabecera de los datos:
 ```{r}
 head(haberman)
 ```
 
-En este caso no es necesario aplicar ninguna reorganización.
-Cada variable ocupa su propia columna, y contiene un único tipo de información, con unidades de observación diferentes
+Para este dataset contamos con tres clasificadores con información de distinto tipo y bien organizada, por lo que no necesitamos hacer ningún tipo de ordenación/tratamiento.
 No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse).
 
-<!-- Column headers are values, not variable names. -->
-<!-- • Multiple variables are stored in one column. -->
-<!-- • Variables are stored in both rows and columns. -->
-<!-- • Multiple types of observational units are stored in the -->
-<!-- same table. -->
-<!-- • A single observational unit is stored in multiple tables. -->
+La variable Year solo indica las dos últimas cifras del año de operación, pero como todas las instancias son del mismo siglo nos resulta más conveniente tenerla así
 
 --------------------------------------------------------------------------
 
@@ -563,102 +482,90 @@ No existe ninguna relación entre variables sobre la información que codifican 
 
 Nos habíamos planteado las siguientes hipótesis
 
-- H.1: Horse_power puede influir en Mpg: A más potencia, más consumo.
+- H.1: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados: Por los razonamientos explicados en la introducción del problema.
+
 ```{r}
-ggplot(haberman, aes(x=Horse_power, y=Mpg)) +
-  geom_point() +
-  geom_smooth(formula = y~log(x), method=glm) +
-  theme_light()
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Positive, fill=Survival)) +
+    geom_bar() +
+    facet_wrap(~ Survival) +
+    theme_light()
 ```
-Con el plot y los resultados de la matriz de correlación queda claro que existe una correlación negativa entre estas dos variables.
-Por tanto, podemos considerar Horse_power como un buen candidato para la regresión
-
-- H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir más
-idem. a la hipótesis anterior, lo hemos visto anteriormente en la figura X
-
-- H.3: Debería haber correlación entre displacement (cilindrada) con horse y acceleration
-La hemos referenciado anteriormente
-
-- H.4: Horse y acceleration podrían estar relacionadas
 ```{r}
-ggplot(haberman, aes(x=Horse_power, y=Acceleration)) +
-  geom_point() +
-  geom_smooth(formula = y~log(x), method=glm) +
-  theme_light()
-```
-idem. se aprecia una correlación logarítmica entre las dos variables.
-Similarmente a lo ocurrido con la hipótesis anterior, esto puede ser un problema para nuestro problema de regresión.
-
-- H.5: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años.
-```{r}
-ggplot(melt(haberman, "Model_year"), aes(y=value, x=Model_year, color=variable)) +
-  geom_point(alpha=0.3) +
-  facet_wrap(.~variable, scale="free") +
-  theme_light()
+haberman %>% 
+  bind_cols(labels) %>% 
+  filter(Positive>10) %>%
+  summarise(Survival) %>% 
+  table()
 ```
 
-Existe una alta dispersión de los datos en cada una de las variables, pero aún así se aprecia tendencias en las variables.
-Acceleartion y Mpg tienden a aumentar, y Displacement, Horse_power y Weight tienden a disminuir.
-También vemos que la dispersión en las prestaciones de los coches disminuyen ligeramente.
+Vemos que la hipótesis no es cierta
 
-Podemos creer en principio que puede deberse a un decremento del número de instancias con el paso de los años, pero recordamos que en general los datos están repartidos equitativamente
+- H.2: Habrá mayor ratio de supervivencia cuanto más joven sea el paciente.
+
 ```{r}
-table(haberman$Model_year)
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Age, fill=Survival)) +
+    geom_bar() +
+    facet_wrap(~ Survival) +
+    theme_light()
 ```
 
-Podemos ver cómo varían los rangos para cada año
+Si miramos los pacientes <40
 ```{r}
-years <- haberman %>% group_split(Model_year)
-
-for (y in years) {
-  cat("Year: ")
-  y$Model_year[1] %>% cat()
-  y %>% apply(2, range) %>% as.data.frame() %>% print()
-}
+haberman %>% 
+  bind_cols(labels) %>% 
+  filter(Age<40) %>%
+  summarise(Survival) %>% 
+  table()
 ```
 
-O mejor, de manera gráfica
-```{r}
+Nos sale todo lo contrario.
 
+- H.3: El rango de Year es pequeño. La influencia de esta variable creemos que podría darse solo si durante ese período se hubieran descubierto técnicas mejores de cirugía. Este razonamiento va orientado de cara a la población y no a la muestra.
+Puesto que contamos con datos de un solo hospital durante pocos años, es posible que el equipo de cirugía hubiera sido el mismo para la mayoría de pacientes.
+
+```{r}
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Year, fill=Survival)) +
+    geom_bar() +
+    labs(title="Survival en base a Year") +
+    theme_light()
 ```
 
-
-- H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse_power y Acceleration.
-
-Ciertamente. Se ha comprobado en la hipótesis anterior.
-
-- H.7: Model_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos...) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas del siglo XX, podría ir el consumo hacia abajo)
-
-Hemos visto que existe tendencia, lineal con gran dispersión, y positiva.
+Decrementa el número de datos en años superiores, aunque las proporciones parecen aumentar.
+Lo mostramos:
 ```{r}
-ggplot(haberman, aes(x=Model_year, y=Mpg)) +
-  geom_point() +
-  geom_smooth(formula = y~x, method=glm) +
-  theme_light()
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Year, fill=Survival)) +
+    geom_bar(position="fill") +
+    labs(title="Proporciones Surival en base a Year") +
+    theme_light()
 ```
+A excepción de algunos años, la porporción es bastante similar con los datos que tenemos, por lo que no podemos confirmar la hipótesis.
 
-Por desgracia no contamos información sobre los modelos de los coches
+- H.4: Podría haber relación entre la edad y el número de positivos, posiblemente indicando lo tardío que se descubre el cáncer.
 
-Podemos ver como se ubican los diferentes años en un plot Horse_power vs Mpg
 ```{r}
-ggplot(haberman, aes(x=Horse_power, y=Mpg, color=Model_year)) +
-  geom_point() +
-  theme_light()
+haberman %>% 
+  bind_cols(labels) %>% 
+  ggplot(aes(x=Age, y=Positive, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Positive con su Survival") +
+    theme_light()
 ```
-
-Y vemos que no se puede afirmar la hipótesis, los coches están entremezclados por diferentes años
-
-- H.8: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model_year no debería tener relevancia para este problema de regresión.
-
-No podemos afirmar la hipótesis anterior y por consiguiente esta tampoco.
-
-- H.9: Horse_power podría depender de las variables Displacement y Weight
-
-Lo hemos comentado anteriormente
 
 --------------------------------------------------------------------------
 
 #### Conclusiones
+
+<!-- library(vcd) -->
+<!-- mosaic(Titanic -->
+<!-- ,shade=TRUE) -->
 
 Como conclusiones podemos decir que tenemos un dataset altamente correlacionado, distribuído de forma no normal pero con la información bien representada.
 Existen relaciones fuertes entre las variables de entrada y de las de salida para la regresión que probablemente nos ayuden a solucionar con facilidad el problema.
