@@ -563,17 +563,9 @@ haberman %>%
 
 #### Conclusiones
 
-<!-- library(vcd) -->
-<!-- mosaic(Titanic -->
-<!-- ,shade=TRUE) -->
+En resumen concluímos diciendo que tenemos un dataset con pocas variables, pero con ninguna correlación entre ellas, lo que nos favorece en el problema de clasificación que nos atañe.
+También hemos visto ausencia de normalidad en los clasificadores (PONER CONSECUENCIAS DE ESTO) ...
 
-Como conclusiones podemos decir que tenemos un dataset altamente correlacionado, distribuído de forma no normal pero con la información bien representada.
-Existen relaciones fuertes entre las variables de entrada y de las de salida para la regresión que probablemente nos ayuden a solucionar con facilidad el problema.
+Además, contamos con más instancias de no supervivientes, algo que probablemente no nos resulte favorable para regresión logística y LDA (SEGURO?)
 
-A falta de descubrir las distribuciones que siguen las variables para ver si merece la pena transformarlas a una distribución normal, podemos sin ninguna duda aplicar una estandarización de los datos (puesto que sabemos que no afecta negativamente al problema de regresión), siempre y cuando lo tengamos en cuenta a la hora de analizar los resultados.
-
-Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable.
-Aún así, hemos visto que tenemos algunas variables más interesentas que otras.
-Varibles correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad.
-(https://statisticsbyjim.com/regression/multicollinearity-in-regression-analysis/#:~:text=Multicollinearity%20occurs%20when%20independent%20variables,model%20and%20interpret%20the%20results.)
-(referenciar esta frase en el apartado de regresión)
+Únicamente hemos preprocesado los datos aplicando una estandarización, preparando el dataset a los algoritmos que se van a utilizar.

@@ -559,7 +559,7 @@ Lo hemos comentado anteriormente
 Como conclusiones podemos decir que tenemos un dataset altamente correlacionado, distribuído de forma no normal pero con la información bien representada.
 Existen relaciones fuertes entre las variables de entrada y de las de salida para la regresión que probablemente nos ayuden a solucionar con facilidad el problema.
 
-A falta de descubrir las distribuciones que siguen las variables para ver si merece la pena transformarlas a una distribución normal, podemos sin ninguna duda aplicar una estandarización de los datos (puesto que sabemos que no afecta negativamente al problema de regresión), siempre y cuando lo tengamos en cuenta a la hora de analizar los resultados.
+Aunque no hemos descubierto los tipos de distribución que siguen nuestras variables, por si quisiéramos transformarlas a una normal, podemos sin ninguna duda aplicar una estandarización de los datos (puesto que sabemos que no afecta negativamente al problema de regresión) siempre y cuando lo tengamos en cuenta a la hora de analizar los resultados.
 
 Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable.
 Aún así, hemos visto que tenemos algunas variables más interesentas que otras.
