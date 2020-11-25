@@ -27,6 +27,8 @@ library(caret)  # preprocess
 library(moments)  # skewness
 library(car)  # scatterplotMatrix
 library(MASS) # fit
+library(scatterplot3d)
+# library(stats)  # barlett
 # require(vcd)
 # library(ISLR)
 # library(HSAUR2)
@@ -44,13 +46,6 @@ haberman <- read_csv("Data/haberman/haberman.dat", comment = "@", col_names = na
 haberman$Survival <- haberman$Survival %>% factor(levels = c("negative", "positive"), labels = c("No", "Yes"))
 ```
 
-Separamos los datos de las etiquetas
-```{r}
-labels <- haberman[4]
-haberman <- haberman[-4]
-names <- colnames(haberman)
-```
-
 Los preprocesamos (estandarización)
 ```{r}
 haberman_transform <- preProcess(haberman, method=c("scale", "center"))
@@ -58,25 +53,246 @@ haberman_norm <- predict(haberman_transform, haberman)
 ```
 
 
+Creamos holdout del 90%
+```{r}
+# Create training and test data (holdout 90%-10%)
+shuffle_ds <- sample(dim(haberman_norm)[1])
+
+pct90 <- (dim(haberman_norm)[1] * 90) %/% 100
+
+train <- haberman_norm[shuffle_ds[1:pct90], -4] %>% as.data.frame()
+test <- haberman_norm[shuffle_ds[(pct90+1):dim(haberman_norm)[1]], -4] %>% as.data.frame()
+```
+
+
+Separamos los datos de las etiquetas
+```{r}
+train_labels <- haberman[shuffle_ds[1:pct90], 4] %>% unlist()
+test_labels <- haberman[shuffle_ds[(pct90+1):dim(haberman)[1]], 4] %>% unlist()
+```
+
+--------------------------------------------------------------------------------
+
 ## Utilizar el algoritmo k-NN probando con diferentes valores de k. Elegir el que considere más adecuado para su conjunto de datos. Analice qué ocurre en los valores de precisión en training y test con los diferentes valores de k.
 
+Recordamos los gráficos 1-1 con las clasificaciones, vistos en el EDA.
 ```{r}
+haberman_orig %>%
+  ggplot(aes(x=Age, y=Year, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Year con su Survival") +
+    theme_light()
 
+haberman_orig %>%
+  ggplot(aes(y=Age, x=Positive, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Year con su Survival") +
+    theme_light()
+
+haberman_orig %>%
+  ggplot(aes(x=Year, y=Positive, color=Survival)) +
+    geom_point() +
+    labs(title="Plot Age-Year con su Survival") +
+    theme_light()
 ```
+
+```{r}
+colors <- c("coral2", "deepskyblue")
+colors <- colors[haberman_orig$Survival]
+
+scatterplot3d(haberman, angle = 290,
+              main = "3D plot",
+              pch=20, color = colors)
+
+scatterplot3d(haberman, angle = 50,
+              main = "3D plot",
+              pch=20, color = colors)
+```
+
+De cara a un algoritmo KNN, apreciamos los datos muy entremezclados, con mayor tendencia a agruparse los no supervivientes que los que sí, pero nada que nos llame la atención.
+
+Debido a esto vamos a empezar con un valor de K relativamente bajo y vamos a ir aumentándolo poco a poco.
+Tenemos que tener cuidado con el overfitting, eso sí.
+
+```{r}
+knnModel <- train(train, y = train_labels,
+                  method = "knn", 
+                  trControl = trainControl(method = "cv"), 
+                  tuneGrid = data.frame(.k=3:15))
+
+knnModel
+```
+
+Recordamos que los datos ya estaban previamente preprocesados (estandarizados, concretamente)
+
+```{r}
+knnPred <- predict(knnModel, newdata = test)
+ctable <- table(knnPred, test_labels)
+
+ctable
+postResample(pred = knnPred, obs = test_labels)
+```
+
+```{r}
+fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix KNN")
+```
+Vemos que al estar los datos tan entremezclados ni siquiera con un K pequeño sobreaprende, es ya con un K medianamente alto (= 13) donde obtiene mayor accuracy en train.
+
+(HABLAR MÁS, DESCRIBIR KNN, ALGO)
+
+--------------------------------------------------------------------------------
 
 ## Utilizar el algoritmo LDA para clasificar. No olvide comprobar las asunciones.
 
-```{r}
+Comprobamos asunciones:
 
+1- Distribución aleatoria: No nos queda más remedio que creer que sí
+
+2- Cada predictor sigue una distribución normal: Ya vimos en el EDA que esto no era cierto. El test de Shapiro nos demostraba que no y los QQ-plots nos lo hacían ver claramente.
+Técnicamente sabiendo esto no deberíamos usar LDA, pero puesto que esto es un proyecto seguimos igualmente.
+
+3- Las clases siguen la misma matriz de covarianza:
+```{r}
+yes <- train %>% bind_cols(train_labels) %>% setNames(names) %>% filter(Survival == "Yes") %>% dplyr::select(-Survival)
+no  <- train %>% bind_cols(train_labels) %>% setNames(names) %>% filter(Survival == "No") %>% dplyr::select(-Survival)
+# 
+# covariance <- as.data.frame(matrix(c(var(yes$Age), var(no$Age), 
+#                                      var(yes$Year), var(no$Year)), 
+#                                    nrow=2, byrow = TRUE))
+# colnames(covariance) <- c("Yes", "No")
+# rownames(covariance) <- c("Age", "Year")
+# 
+# covariance
+
+# corrplot.mixed(cov(yes, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
+# corrplot.mixed(cov(no, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
+
+# Solo nos interesa la diagonal ?
+cov(yes) %>% diag()
+cov(no) %>% diag()
 ```
+
+Puesto que nuestras variables no siguen distribución normal, no podemos hacer el test de homogeneidad de Barlett.
+Utilizamos por tanto el de Levene
+```{r}
+cat("Age:\n")
+leveneTest(Age ~ Survival, haberman)
+cat("Year:\n")
+leveneTest(Year ~ Survival, haberman)
+cat("Positive:\n")
+leveneTest(Positive ~ Survival, haberman)
+```
+
+Indicándonos que solo se puede asegurar que la variable Positive tiene homogeneidad entre clases diferentes.
+
+Podemos verlo más claro gráficamente
+```{r}
+ggplot(haberman, aes(x = Year, color = Survival, fill=Survival)) + 
+  geom_boxplot(color="black") + 
+  labs(title = "Varianza entre clases para Year") +
+  theme_light()
+
+ggplot(haberman, aes(x = Age, color = Survival, fill=Survival)) + 
+  geom_boxplot(color="black") + 
+  labs(title = "Varianza entre clases para Age") +
+  theme_light()
+
+ggplot(haberman, aes(x = Positive, color = Survival, fill=Survival)) + 
+  geom_boxplot(color="black") + 
+  labs(title = "Varianza entre clases para Positive") +
+  theme_light()
+```
+
+
+Podemos mostrar las varianzas en grafors de elipses:
+```{r}
+ggplot(haberman, aes(x = Year, y = Age, color = Survival)) + 
+  geom_point() + 
+  stat_ellipse() +
+  theme_light()
+
+ggplot(haberman, aes(x = Year, y = Positive, color = Survival)) + 
+  geom_point() + 
+  stat_ellipse() +
+  theme_light()
+
+ggplot(haberman, aes(x = Positive, y = Age, color = Survival)) + 
+  geom_point() + 
+  stat_ellipse() +
+  theme_light()
+```
+
+Se nota que la causa de que no se rechace el test para esta variable es la gran cantidad de datos con Positive=0
+
+<!-- http://thatdatatho.com/2018/02/19/assumption-checking-lda-vs-qda-r-tutorial-2/ -->
+
+Por tanto para LDA no podemos hacer uso de la variable Positive, pero sí de las otras dos.
+SEGURO?
+
+### Aplicando LDA
+
+```{r}
+ldaModel <- train(train %>% dplyr::select(-Positive), y = train_labels,
+                method = "lda",
+                tuneLength = 10,
+                trControl = trainControl(method = "cv"))
+
+ldaModel$finalModel
+confusionMatrix(ldaModel)
+```
+
+```{r}
+ldaPred <- predict(ldaModel, newdata = test)
+ctable <- table(ldaPred, test_labels)
+
+ctable
+postResample(pred = ldaPred, obs = test_labels)
+```
+
+```{r}
+fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix LDA")
+```
+
+
+Recordamos que teníamos muchos datos de no supervivencia antes que sí
+```{r}
+table(haberman$Survival)
+```
+
+Hacemos un plot del ajuste
+```{r}
+# x <- seq(min(Smarket.2005$Lag1), max(Smarket.2005$Lag1), length.out=dim(Smarket.2005)[1])
+# y <- seq(min(Smarket.2005$Lag2), max(Smarket.2005$Lag2), length.out=dim(Smarket.2005)[1])
+# 
+# Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),,2) #Set all possible pairs of x and y on a grid
+# 
+# out <- predict(lda.fit, data.frame(Lag1=Xcon[,1], Lag2=Xcon[,2]))$post    #posterior probabilities of a point belonging to each class 
+# 
+# pr <- data.frame(x=rep(x, length(y)), y=rep(y, each=length(x)), z=as.vector(out))
+# 
+# ggplot(Smarket.2005, aes(x=Lag1, y=Lag2)) + 
+#     geom_point(size = 3, aes(pch = Direction,  col=Direction)) + 
+#     geom_contour(data = pr, aes(x=x, y=y, z=z), breaks=c(0,.5))
+```
+
+
+
+--------------------------------------------------------------------------------
 
 ## Utilizar el algoritmo QDA para clasificar. No olvide comprobar las asunciones.
 
+Comprobamos asunciones
 ```{r}
 
 ```
 
+--------------------------------------------------------------------------------
+
 ## Comparar los resultados de los tres algoritmos
+
+NECESITAMOS LAS MISMAS PARTICIONES DE CV
 
 ```{r}
 
