@@ -455,8 +455,151 @@ ggplot(data, aes(x=Age, y=Year)) +
 
 ## Comparar los resultados de los tres algoritmos
 
-NECESITAMOS LAS MISMAS PARTICIONES DE CV
+Podríamos leer los de training pero para comparar necesitamos los de test
+```{r}
+results <- read_csv("Data/clasif_test_alumos.csv")
+# results <- results[-1]
+results
+```
+
+### Comparativas 1-1 con Wilconxon
+
+LDA vs QDA
 
 ```{r}
+# TABLA NORMALIZADA - lda (other) vs qda (ref) para WILCOXON 
+# + 0.1 porque wilcox R falla para valores == 0 en la tabla
 
+difs <- (results[,3] - results[,4]) / results[,3]
+difs <- difs %>% as.matrix()
+res_norm <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+colnames(res_norm) <- c(colnames(results)[3], colnames(results)[4])
 ```
+
+
+```{r}
+# Aplicación del test de WILCOXON
+wilcoxon <- wilcox.test(res_norm[,1], res_norm[,2], alternative = "two.sided", paired=TRUE)
+Rmas <- wilcoxon$statistic
+
+pvalue <- wilcoxon$p.value
+
+wilcoxon <- wilcox.test(res_norm[,2], res_norm[,1], alternative = "two.sided", paired=TRUE)
+Rmenos <- wilcoxon$statistic
+
+cat("LDA vs QDA: ")
+wilcoxon
+cat("R+: ")
+Rmas
+cat("R-: ")
+Rmenos
+cat("p-value: ")
+pvalue
+```
+
+Obtenemos un ranking de 144 para LDA y 96 para QDA, con un p-valor de 0.75 (o nivel de confianza del 25%).
+
+Esto nos dice que LDA obtiene mejores resultados pero puesto que el p-value es extremadamente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias.
+<!-- Podemos afirmar al 85% que sí lo son, pero para hacerlo con seguridad buscaríamos al menos un 95% de confianza. -->
+
+--------------------------------------------------------------------------------
+
+LDA vs KNN
+
+```{r}
+# TABLA NORMALIZADA +0.1 porque wilcox R falla para valores == 0 en la tabla
+difs <- (results[,3] - results[,2]) / results[,3]
+difs <- difs %>% as.matrix()
+res_norm <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+colnames(res_norm) <- c(colnames(results)[3], colnames(results)[2])
+```
+
+
+```{r}
+# Aplicación del test de WILCOXON
+wilcoxon <- wilcox.test(res_norm[,1], res_norm[,2], alternative = "two.sided", paired=TRUE)
+Rmas <- wilcoxon$statistic
+
+pvalue <- wilcoxon$p.value
+
+wilcoxon <- wilcox.test(res_norm[,2], res_norm[,1], alternative = "two.sided", paired=TRUE)
+Rmenos <- wilcoxon$statistic
+
+cat("LDA vs KNN: ")
+wilcoxon
+cat("R+: ")
+Rmas
+cat("R-: ")
+Rmenos
+cat("p-value: ")
+pvalue
+```
+
+Ahora obtenemos un ranking de 90 para LDA y 120 para QDA, con un p-valor de 0.59 (o nivel de confianza del 41%).
+
+Seguimos teniendo un p-valor demasiado grande para poder asegurar la diferencia.
+
+--------------------------------------------------------------------------------
+
+QDA vs KNN
+
+```{r}
+# TABLA NORMALIZADA +0.1 porque wilcox R falla para valores == 0 en la tabla
+difs <- (results[,4] - results[,2]) / results[,3]
+difs <- difs %>% as.matrix()
+res_norm <- cbind(ifelse (difs<0, abs(difs)+0.1, 0+0.1), ifelse (difs>0, 	abs(difs)+0.1, 0+0.1))
+colnames(res_norm) <- c(colnames(results)[4], colnames(results)[2])
+```
+
+
+```{r}
+# Aplicación del test de WILCOXON
+wilcoxon <- wilcox.test(res_norm[,1], res_norm[,2], alternative = "two.sided", paired=TRUE)
+Rmas <- wilcoxon$statistic
+
+pvalue <- wilcoxon$p.value
+
+wilcoxon <- wilcox.test(res_norm[,2], res_norm[,1], alternative = "two.sided", paired=TRUE)
+Rmenos <- wilcoxon$statistic
+
+cat("QDA vs KNN: ")
+wilcoxon
+cat("R+: ")
+Rmas
+cat("R-: ")
+Rmenos
+cat("p-value: ")
+pvalue
+```
+
+Por último tenemos un ranking de 69 para LDA y 141 para KNN, con un p-valor de 0.18 (o nivel de confianza del 82%).
+
+Ya ahora podemos afirmar al 82% que los resultados de ambos algoritmos sí son significativamente diferentes, pero para hacerlo con bastante seguridad realmente buscaríamos al menos un 95% de confianza.
+
+
+--------------------------------------------------------------------------------
+
+### Comparativa múltiple con Friedman
+```{r}
+# Aplicación del test de Friedman
+test_friedman <- friedman.test(as.matrix(results[,2:4]))
+test_friedman
+```
+El p-value es >0.05 por lo que no podemos concluir que haya al menos un par de algoritmos de calidad diferente.
+
+### Análisis post-hoc con Holm
+
+El resultado del test de Friedman ya nos indica que es post-hoc es inútil. Los resultados que se obtengan no nos van a asegurar la diferencia en la calidad de los algoritmos.
+
+Aún así, por completitud en la memoria, aplicamos el test estadístico
+```{r}
+# Aplicación del test post-hoc de HOLM
+tam <- dim(results[,2:4])
+groups <- rep(1:tam[2], each=tam[1])
+
+cat("1 = KNN, 2 = LDA, 3 = QDA")
+pairwise.wilcox.test(as.matrix(results[,2:4]), groups, p.adjust = "holm", paired = TRUE)
+```
+
+Vemos que los p-value son lo más altos posibles, carece de sentido intentar diferenciar los algoritmos.
+Aunque podemos notar, tal y como habíamos visto en los test de Wilcoxon, que la diferencia KNN-QDA probablemente sea mayor que el resto de parejas.
