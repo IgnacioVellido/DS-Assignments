@@ -3,15 +3,14 @@ title: "EDA"
 author: "Ignacio Vellido"
 date: "11/13/2020"
 output: 
-  prettydoc::html_pretty:
-    theme: hpstr
-    highlight: github
-    df_print: paged
+  pdf_document:
+    keep_tex: yes
+    df_print: kable
 ---
 
 ```{r setup, include=FALSE}
 # Para PDF output
-# pdf_document: 
+# pdf_document:
 #     keep_tex: yes
 #     df_print: kable
 

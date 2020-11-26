@@ -35,6 +35,24 @@
 % ==============================================================================
 % ==============================================================================
 
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+
+% ==============================================================================
+% ==============================================================================
+
 \begin{document}
     \pagenumbering{gobble}
     \input{portada/portada}
@@ -48,9 +66,10 @@
     % ==============================================================================
 
     % \input{secciones/intro} \newpage
-    % \input{secciones/eda} \newpage
-    % \input{secciones/regresion} \newpage
-    % \input{secciones/clasificacion} \newpage
+    \input{secciones/eda-reg} \newpage
+    \input{secciones/regresion} \newpage
+    \input{secciones/eda-clas} \newpage
+    \input{secciones/clasificacion} \newpage
     % \input{secciones/anexo_eda} \newpage
     % \input{secciones/anexo_reg} \newpage
     % \input{secciones/anexo_cla} \newpage
@@ -61,9 +80,9 @@
     % ==============================================================================
     
     \newpage
-    % \nocite{*}
-    % \bibliography{bibliografia}
-	% \bibliographystyle{plain}
+    \nocite{*}
+    \bibliography{bibliografia}
+	\bibliographystyle{plain}
 \end{document}
 
 % ==============================================================================

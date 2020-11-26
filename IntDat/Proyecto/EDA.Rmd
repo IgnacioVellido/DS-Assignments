@@ -3,17 +3,19 @@ title: "EDA"
 author: "Ignacio Vellido"
 date: "11/13/2020"
 output: 
-  prettydoc::html_pretty:
-    theme: hpstr
-    highlight: github
-    df_print: paged
+  pdf_document:
+    keep_tex: yes
+    df_print: kable
 ---
 
 ```{r setup, include=FALSE}
 # Para PDF output
-# pdf_document: 
-#     keep_tex: yes
-#     df_print: kable
+
+
+# prettydoc::html_pretty:
+#     theme: hpstr
+#     highlight: github
+#     df_print: paged
 
 knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
                       comment=NA, messages=FALSE)
@@ -54,7 +56,7 @@ Este dataset codifica el consumo de gasolina de distintos coches (en millas por 
 
 El objetivo es poder predecir, en base a los cinco atributos, el consumo Mpg de un nuevo coche:
 
-6. Mpg: Millas-por-galón, indica la cantidad de galones (1G ≈ 3,78L) de fuél que consume un vehículo al recorrer una milla (1m ≈ 1,6km).
+6. Mpg: Millas-por-galón, indica la cantidad de galones (1G +-= 3,78L) de fuél que consume un vehículo al recorrer una milla (1m +-= 1,6km).
 
 
 El dataset contiene 392 instancias codificanto esta información.

@@ -339,8 +339,6 @@ ggplot(data, aes(x=Age, y=Year)) +
   theme_light()
 ```
 
-
-
 --------------------------------------------------------------------------------
 
 ## Utilizar el algoritmo QDA para clasificar. No olvide comprobar las asunciones.
@@ -421,13 +419,12 @@ ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
 plot_grid(plotlist=list(qdaplot,trueplot,legend), ncol=2, label_size = 1)
 ```
 
-
 Hacemos un plot del ajuste
+<!-- QUITAR -->
 ```{r}
-data <- train %>% bind_cols(train_labels) %>% setNames(names) 
-qdafit <- qda(Survival~Age+Year, data = data)
-plot(qdafit)
-qdafit$post
+library(klaR)
+
+partimat(Survival ~ Age+Year, data=data, method="qda")
 ```
 
 
@@ -586,6 +583,8 @@ test_friedman <- friedman.test(as.matrix(results[,2:4]))
 test_friedman
 ```
 El p-value es >0.05 por lo que no podemos concluir que haya al menos un par de algoritmos de calidad diferente.
+
+--------------------------------------------------------------------------------
 
 ### Análisis post-hoc con Holm
 

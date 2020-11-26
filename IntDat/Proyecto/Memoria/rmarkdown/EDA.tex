@@ -1,0 +1,1311 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={EDA},
+  pdfauthor={Ignacio Vellido},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+
+\title{EDA}
+\author{Ignacio Vellido}
+\date{11/13/2020}
+
+\begin{document}
+\maketitle
+
+\hypertarget{intro}{%
+\section{Intro}\label{intro}}
+
+Para este trabajo contamos con dos datasets distintos: \textbf{autoMPG6}
+para aplicar Regresión y \textbf{haberman} para aplicar Clasificación.
+
+\hypertarget{descripciones-de-los-problemas}{%
+\subsection{Descripciones de los
+problemas}\label{descripciones-de-los-problemas}}
+
+\hypertarget{autompg6}{%
+\subsubsection{autoMPG6}\label{autompg6}}
+
+\url{http://lib.stat.cmu.edu/datasets/cars.desc}
+
+Este dataset codifica el consumo de gasolina de distintos coches (en
+millas por galón, Mpg) en base a las siguientes características:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Displacement: Indica la cilindrada del coche, la suma del volumen útil
+  de los cilindros del motor, medido en pulgadas cúbicas.
+\item
+  Horse\_power: Mide la potencia del coche.
+\item
+  Weight: Peso en libras.
+\item
+  Acceleration: Aceleración del coche de 0 a 60 millas por hora, medido
+  en segundos.
+\item
+  Model\_year: Indica las dos últimas cifras del año de producción.
+\end{enumerate}
+
+El objetivo es poder predecir, en base a los cinco atributos, el consumo
+Mpg de un nuevo coche:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{5}
+\tightlist
+\item
+  Mpg: Millas-por-galón, indica la cantidad de galones (1G +-= 3,78L) de
+  fuél que consume un vehículo al recorrer una milla (1m +-= 1,6km).
+\end{enumerate}
+
+El dataset contiene 392 instancias codificanto esta información.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{anuxe1lisis-estaduxedstico-de-datos}{%
+\section{Análisis Estadístico de
+Datos}\label{anuxe1lisis-estaduxedstico-de-datos}}
+
+\hypertarget{autompg6-1}{%
+\subsubsection{autoMPG6}\label{autompg6-1}}
+
+La descripción del problema nos da alguna información adicional sobre
+las variables:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Displacement: Variable numérica continua, contamos con valores reales
+  en el rango {[}68.0,455.0{]}.
+\item
+  Horse\_power: Variable numérica continua, contamos con valores enteros
+  en el rango {[}46,230{]}.
+\item
+  Weight: Variable numérica continua, contamos con valores enteros en el
+  rango {[}1613,5140{]}.
+\item
+  Acceleration: Variable numérica continua, contamos con valores reales
+  en el rango {[}8.0,24.8{]}.
+\item
+  Model\_year: Variable numérica discreta, contamos con valores enteros
+  en el rango {[}70,82{]}.
+\item
+  Mpg: Variable numérica continua, contamos con valores reales en el
+  rango {[}9.0,46.6{]}.
+\end{enumerate}
+
+\hypertarget{hipuxf3tesis-de-partida}{%
+\paragraph{Hipótesis de partida}\label{hipuxf3tesis-de-partida}}
+
+\begin{itemize}
+\tightlist
+\item
+  H.1: Horse\_power puede influir en Mpg: A más potencia, más consumo.
+\item
+  H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir
+  más.
+\item
+  H.3: Debería haber correlación entre displacement (cilindrada) con
+  horse y acceleration
+\item
+  H.4: Horse y acceleration podrían estar relacionadas
+\item
+  H.5: Viendo que contamos con un rango pequeño de años, no debería
+  haber un cambio significativo de prestaciones entre años
+\item
+  H.6: Pero debería existir una tendencia de mejora de prestaciones con
+  los años, incluyendo aumento de Displacement, Horse\_power y
+  Acceleration.
+\item
+  H.7: Model\_year podría no mostrar relación con Mpg: Pese al paso de
+  los años si contamos con diferentes tipos de vehículos (todoterrenos,
+  familiares, deportivos\ldots) podría haber un consumo dispar. (Si
+  existiera tendencia, viendo que los años son de las últimas décadas
+  del siglo XX, podría ir el consumo hacia abajo)
+\item
+  H.8: Esta última hipótesis se puede aplicar al resto de variables,
+  indicándonos que Model\_year no debería tener relevancia para este
+  problema de regresión.
+\item
+  H.9: Horse\_power podría depender de las variables Displacement y
+  Weight
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Cargamos los datos:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{names <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Displacement"}\NormalTok{, }\StringTok{"Horse_power"}\NormalTok{, }\StringTok{"Weight"}\NormalTok{, }\StringTok{"Acceleration"}\NormalTok{, }\StringTok{"Model_year"}\NormalTok{, }\StringTok{"Mpg"}\NormalTok{)}
+
+\NormalTok{auto <-}\StringTok{ }\KeywordTok{read_csv}\NormalTok{(}\StringTok{"Data/autoMPG6/autoMPG6.dat"}\NormalTok{, }\DataTypeTok{comment =} \StringTok{"@"}\NormalTok{, }\DataTypeTok{col_names =}\NormalTok{ names)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+-- Column specification --------------------------------------------------------
+cols(
+  Displacement = col_double(),
+  Horse_power = col_double(),
+  Weight = col_double(),
+  Acceleration = col_double(),
+  Model_year = col_double(),
+  Mpg = col_double()
+)
+\end{verbatim}
+
+Antes de comenzar a analizar las variables nos plantemos una cuestión:
+¿Debemos considerar Model\_year como una variable numérica o como un
+factor categórico? Aunque por la hipótesis H.7 podríamos acabar no
+eligiendo la variable para el problema, es necesario plantearse esta
+cuestión antes de comenzar.
+
+Sabemos que las observaciones para esta variable cuenta con valores
+entre 72 y 82, por lo que tenemos información exacta del año (en
+comparación, por ejemplo, con agrupaciones mayores como la década o el
+siglo). El hecho de tratarla como categórica o quantitativa depende
+mucho del problema. En este caso, tenemos interés en cuestionarnos por
+valores entre años, por ejemplo, el consumo entre los años 75 y 76 (por
+otro lado, no tenemos información más precisa para los meses dentro del
+año)
+
+En un principio, el dataset está planteado para regresión, por lo que
+tendríamos dos opciones: - Mantenerlo como categórico y generar
+variables dummy (Valores 0-1 para indicar si la instancia es de ese
+año). Suponiendo que tenemos al menos una instancia de cada año, esto
+nos generaría 12 variables nuevas. - Mantenerlo como numérico, pero
+teniendo cuidado de cómo interpretar el año.
+
+Proseguimos con tanto dejando Model\_year como variable numérica.
+
+\hypertarget{anuxe1lisis-univariable}{%
+\paragraph{Análisis univariable}\label{anuxe1lisis-univariable}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{head}\NormalTok{(auto)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{r|r|r|r|r|r}
+\hline
+Displacement & Horse\_power & Weight & Acceleration & Model\_year & Mpg\\
+\hline
+91 & 70 & 1955 & 20.5 & 71 & 26.0\\
+\hline
+232 & 100 & 2789 & 15.0 & 73 & 18.0\\
+\hline
+350 & 145 & 4055 & 12.0 & 76 & 13.0\\
+\hline
+318 & 140 & 4080 & 13.7 & 78 & 17.5\\
+\hline
+113 & 95 & 2372 & 15.0 & 70 & 24.0\\
+\hline
+97 & 60 & 1834 & 19.0 & 71 & 27.0\\
+\hline
+\end{tabular}
+
+Hacemos summary para sacar datos de relevancia
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(auto)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Displacement    Horse_power        Weight      Acceleration     Model_year   
+ Min.   : 68.0   Min.   : 46.0   Min.   :1613   Min.   : 8.00   Min.   :70.00  
+ 1st Qu.:105.0   1st Qu.: 75.0   1st Qu.:2225   1st Qu.:13.78   1st Qu.:73.00  
+ Median :151.0   Median : 93.5   Median :2804   Median :15.50   Median :76.00  
+ Mean   :194.4   Mean   :104.5   Mean   :2978   Mean   :15.54   Mean   :75.98  
+ 3rd Qu.:275.8   3rd Qu.:126.0   3rd Qu.:3615   3rd Qu.:17.02   3rd Qu.:79.00  
+ Max.   :455.0   Max.   :230.0   Max.   :5140   Max.   :24.80   Max.   :82.00  
+      Mpg       
+ Min.   : 9.00  
+ 1st Qu.:17.00  
+ Median :22.75  
+ Mean   :23.45  
+ 3rd Qu.:29.00  
+ Max.   :46.60  
+\end{verbatim}
+
+El dataset no cuenta con valores repetidos
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sum}\NormalTok{(}\KeywordTok{duplicated}\NormalTok{(auto))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0
+\end{verbatim}
+
+Ni missing values
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sum}\NormalTok{(}\KeywordTok{is.na}\NormalTok{(auto))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 0
+\end{verbatim}
+
+Vamos a sacar plots de cada variable para verlo mejor
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{gather}\NormalTok{(auto), }\KeywordTok{aes}\NormalTok{(value)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_histogram}\NormalTok{(}\DataTypeTok{bins =} \DecValTok{15}\NormalTok{, }\DataTypeTok{color=}\StringTok{"white"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(}\OperatorTok{~}\NormalTok{key, }\DataTypeTok{scales =} \StringTok{'free_x'}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{strip.background =} \KeywordTok{element_rect}\NormalTok{(}\DataTypeTok{fill=}\StringTok{"grey"}\NormalTok{, }\DataTypeTok{size=}\DecValTok{2}\NormalTok{))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{strip.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{colour =} \StringTok{'black'}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Histogramas de cada variable"}\NormalTok{, }\DataTypeTok{x =} \StringTok{""}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-6-1} \end{center}
+
+Una a una
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colors <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"chocolate"}\NormalTok{, }\StringTok{"deepskyblue1"}\NormalTok{, }\StringTok{"plum1"}\NormalTok{, }\StringTok{"hotpink4"}\NormalTok{, }\StringTok{"orange"}\NormalTok{, }\StringTok{"springgreen4"}\NormalTok{)}
+\NormalTok{bins <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{15}\NormalTok{,}\DecValTok{15}\NormalTok{,}\DecValTok{14}\NormalTok{,}\DecValTok{18}\NormalTok{)}
+\NormalTok{plt <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(names))}
+
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(names)) \{}
+  \KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes_string}\NormalTok{(}\DataTypeTok{x=}\NormalTok{names[i])) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_histogram}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{..density..), }\DataTypeTok{bins=}\NormalTok{bins[i], }\DataTypeTok{color=}\StringTok{"white"}\NormalTok{, }\DataTypeTok{fill=}\NormalTok{colors[i]) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_density}\NormalTok{(}\DataTypeTok{alpha=}\NormalTok{.}\DecValTok{3}\NormalTok{, }\DataTypeTok{fill=}\StringTok{"black"}\NormalTok{, }\DataTypeTok{size=}\DecValTok{1}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{""}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{, }\DataTypeTok{y=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_light}\NormalTok{() ->}\StringTok{ }\NormalTok{plt[[i]]}
+  
+  \KeywordTok{print}\NormalTok{(plt[[i]] }\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"Histograma %s"}\NormalTok{, names[i]), }\DataTypeTok{x=}\StringTok{""}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-1} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-2} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-3} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-4} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-5} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-6} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot_grid}\NormalTok{(}\DataTypeTok{plotlist=}\NormalTok{plt, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{labels =}\NormalTok{ names, }\DataTypeTok{label_size =} \DecValTok{8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-7-7} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colors <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"chocolate"}\NormalTok{, }\StringTok{"deepskyblue1"}\NormalTok{, }\StringTok{"plum1"}\NormalTok{, }\StringTok{"hotpink4"}\NormalTok{, }\StringTok{"orange"}\NormalTok{, }\StringTok{"springgreen4"}\NormalTok{)}
+\NormalTok{plt <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(names))}
+
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(names)) \{}
+  \KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes_string}\NormalTok{(}\DataTypeTok{x=}\NormalTok{names[i])) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{fill =}\NormalTok{ colors[i]) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{""}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{, }\DataTypeTok{y=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_light}\NormalTok{() ->}\StringTok{ }\NormalTok{plt[[i]]}
+  
+  \KeywordTok{print}\NormalTok{(plt[[i]] }\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"Boxplot %s"}\NormalTok{, names[i]), }\DataTypeTok{x=}\StringTok{""}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-1} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-2} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-3} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-4} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-5} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-6} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot_grid}\NormalTok{(}\DataTypeTok{plotlist=}\NormalTok{plt, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{labels =}\NormalTok{ names, }\DataTypeTok{label_size =} \DecValTok{8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-8-7} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{melt}\NormalTok{(auto), }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{variable, }\DataTypeTok{y=}\NormalTok{value)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Boxplot con mismo rango"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{90}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+No id variables; using all as measure variables
+\end{verbatim}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-9-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{auto }\OperatorTok{%>%}\StringTok{ }\NormalTok{dplyr}\OperatorTok{::}\KeywordTok{select}\NormalTok{(}\OperatorTok{-}\NormalTok{Weight) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{melt}\NormalTok{() }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{variable, }\DataTypeTok{y=}\NormalTok{value)) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{geom_boxplot}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Boxplot sin Weight"}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{90}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+No id variables; using all as measure variables
+\end{verbatim}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-9-2} \end{center}
+
+Ya la descripción del problema nos lo decía, los rangos en los que se
+distribuyen los datos son muy diferentes dependiendo de la variable. Se
+pueden estandarizar los datos para solucionar este problema, aunque para
+regresión lineal no es necesario (sí lo es para KNN)
+
+Podemos comparar los rangos intercuartiles si estandarizamos antes el
+dataset
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{scale}\NormalTok{(auto) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, IQR)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Displacement  Horse_power       Weight Acceleration   Model_year          Mpg 
+    1.631723     1.324980     1.635856     1.178021     1.628781     1.537475 
+\end{verbatim}
+
+También podemos ver la distancia entre mínimos y máximos
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{scale}\NormalTok{(auto) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, range) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, dist)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Displacement  Horse_power       Weight Acceleration   Model_year          Mpg 
+    3.698253     4.780318     4.152330     6.089463     3.257562     4.817420 
+\end{verbatim}
+
+\hypertarget{displacement}{%
+\subparagraph{Displacement:}\label{displacement}}
+
+(coger los plots de la variable sola)
+
+La cilindrada vemos con una desviación grande y una gran concentración
+en los valores inferiores. Desviado a la izquierda, no parece seguir una
+distribución normal. Existe una alta concentración en torno al valor
+125, muy por encima del recuento que alcanzan el resto de valores
+
+\hypertarget{horse_power}{%
+\paragraph{Horse\_power}\label{horse_power}}
+
+Similar a Displacement pero cuenta con una mayor dispersión y algunos
+valores muya altos. A día de hoy los coches suelen rondar los 120 en
+turismos y los 200 en SUVs. Aquí contamos con predominancia en el rango
+aproximado {[}70, 125{]} con algunas instancias por encima de los 200.
+Desviado a la izquierda, no parece seguir una distribución normal.
+
+\hypertarget{weight}{%
+\paragraph{Weight}\label{weight}}
+
+Una distribución más achatada que las anteriores, también ladeada hacia
+la izquierda. Un rango mayor
+
+\hypertarget{acceleration}{%
+\paragraph{Acceleration}\label{acceleration}}
+
+Valores altamentes concentrados pero en general con un rango alto.
+Parece seguir una distribución normal.
+
+\hypertarget{model_year}{%
+\paragraph{Model\_year}\label{model_year}}
+
+Aunque no se vea bien en las gráficas, contamos con valores de todos los
+años, más o menos equitativamente
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{table}\NormalTok{(auto}\OperatorTok{$}\NormalTok{Model_year)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+70 71 72 73 74 75 76 77 78 79 80 81 82 
+29 27 28 40 26 30 34 28 36 29 27 28 30 
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{anuxe1lisis-sobre-las-distribuciones}{%
+\subsubsection{Análisis sobre las
+distribuciones}\label{anuxe1lisis-sobre-las-distribuciones}}
+
+Hemos comentado antes que no apreciamos semejanzas con una distribución
+normal en algunas de las variables, lo comprobamos con un test
+estadístico (Shapiro-Wilk test):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{normality}\NormalTok{(auto) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(p_value }\OperatorTok{<}\StringTok{ }\FloatTok{0.05}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning: `cols` is now required when using unnest().
+Please use `cols = c(statistic)`
+\end{verbatim}
+
+\begin{tabular}{l|r|r|r}
+\hline
+vars & statistic & p\_value & sample\\
+\hline
+Displacement & 0.8818359 & 0.0000000 & 392\\
+\hline
+Horse\_power & 0.9040975 & 0.0000000 & 392\\
+\hline
+Weight & 0.9414661 & 0.0000000 & 392\\
+\hline
+Acceleration & 0.9918671 & 0.0305289 & 392\\
+\hline
+Model\_year & 0.9469666 & 0.0000000 & 392\\
+\hline
+Mpg & 0.9671696 & 0.0000001 & 392\\
+\hline
+\end{tabular}
+
+El test de Shapiro nos dice que ninguna variable sigue una distribución
+normal, con bastante certeza excepto en Acceleration.
+
+Para regresión aún así no es necesario.
+
+Se muestra aquí como no hay que dejarse engañar por los gráficos, puesto
+que Acceleration parecía seguirla. El p-value de Acceleration está muy
+cerca del umbral (0.03 vs 0.05). Es bastante probable de que la parte
+central derecha de la distribución sea la causante de no asegurar la
+normalidad.
+
+Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plt <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(names))}
+
+\NormalTok{x<-}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DataTypeTok{mean=}\DecValTok{0}\NormalTok{, }\DataTypeTok{sd=}\DecValTok{1}\NormalTok{)}
+
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(names)) \{}
+  \KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes_string}\NormalTok{(}\DataTypeTok{sample=}\NormalTok{names[i])) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{stat_qq}\NormalTok{(}\DataTypeTok{alpha=}\NormalTok{.}\DecValTok{3}\NormalTok{, }\DataTypeTok{fill=}\NormalTok{colors[i], }\DataTypeTok{size=}\DecValTok{1}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{stat_qq_line}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{""}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{, }\DataTypeTok{y=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_light}\NormalTok{() ->}\StringTok{ }\NormalTok{plt[[i]]}
+  
+  \KeywordTok{print}\NormalTok{(plt[[i]] }\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"QQ-plot %s"}\NormalTok{, names[i]), }\DataTypeTok{x=}\StringTok{""}\NormalTok{))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-1} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-2} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-3} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-4} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-5} \end{center}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-6} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot_grid}\NormalTok{(}\DataTypeTok{plotlist=}\NormalTok{plt, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{labels =}\NormalTok{ names, }\DataTypeTok{label_size =} \DecValTok{8}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-14-7} \end{center}
+
+Estos gráficos Q-Q nos muestran más claramente que las variables no
+siguen distribuciones normales. La distribución de Acceleration es la
+que más se asemeja y eso lo vemos en el estadístico de Shapiro, pero en
+la cola superior existe una diferencia significativa que hace que el
+test rechace.
+
+Skewness:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{skewCols <-}\StringTok{ }\KeywordTok{find_skewness}\NormalTok{(auto)}
+\KeywordTok{colnames}\NormalTok{(auto)[skewCols]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "Displacement" "Horse_power"  "Weight"      
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cat}\NormalTok{(}\StringTok{"Displacement: "}\NormalTok{)}
+\KeywordTok{skewness}\NormalTok{(auto}\OperatorTok{$}\NormalTok{Displacement)}
+\KeywordTok{cat}\NormalTok{(}\StringTok{"Horse_power: "}\NormalTok{)}
+\KeywordTok{skewness}\NormalTok{(auto}\OperatorTok{$}\NormalTok{Horse_power)}
+\KeywordTok{cat}\NormalTok{(}\StringTok{"Weight: "}\NormalTok{)}
+\KeywordTok{skewness}\NormalTok{(auto}\OperatorTok{$}\NormalTok{Weight)}
+\KeywordTok{cat}\NormalTok{(}\StringTok{"Mpg: "}\NormalTok{)}
+\KeywordTok{skewness}\NormalTok{(auto}\OperatorTok{$}\NormalTok{Mpg)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Displacement: [1] 0.6989813
+Horse_power: [1] 1.083161
+Weight: [1] 0.5175953
+Mpg: [1] 0.4553414
+\end{verbatim}
+
+Sobre la skewness, tal y como se había visto en las gráficas, algunas de
+las variables la tienen, en los 3 casos positivas (hacia la izquierda).
+
+Los plots nos han dado idea de que Mpg tiene cierta skewness, pero cae
+por debajo del umbral de 0.5.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{transformaciones}{%
+\subsubsection{Transformaciones}\label{transformaciones}}
+
+Tampoco vemos necesario crear variables nuevas a partir de las vistas,
+por el conocimiento que tenemos del problema parece que las variables
+son coherentes.
+
+Las transformaciones necesarias para pasar a una distribución normal
+dependen de la variable en cuestion. Primero debemos averiguar que tipo
+de distribución siguen.
+
+De todas maneras, los métodos utilizados para regresión (regresión
+lineal y KNN) no asumen ninguna forma para la distribución de los datos,
+por lo que no es necesario aplicar nada.
+
+Algunas parecen tener una distribución exponencial
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))}
+\CommentTok{# auto_norm <- predict(auto_transform, auto[,skewCols])}
+
+\CommentTok{# auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))}
+\NormalTok{auto_transform <-}\StringTok{ }\KeywordTok{preProcess}\NormalTok{(auto[,}\DecValTok{1}\OperatorTok{:}\DecValTok{6}\NormalTok{], }\DataTypeTok{method=}\KeywordTok{c}\NormalTok{(}\StringTok{"YeoJohnson"}\NormalTok{,}\StringTok{"scale"}\NormalTok{, }\StringTok{"center"}\NormalTok{))}
+\NormalTok{auto_norm <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(auto_transform, auto[,}\DecValTok{1}\OperatorTok{:}\DecValTok{6}\NormalTok{])}
+
+\KeywordTok{summary}\NormalTok{(auto_norm)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  Displacement      Horse_power           Weight          Acceleration     
+ Min.   :-1.8856   Min.   :-2.59657   Min.   :-2.19582   Min.   :-3.08413  
+ 1st Qu.:-0.8847   1st Qu.:-0.77280   1st Qu.:-0.88990   1st Qu.:-0.61672  
+ Median :-0.1367   Median :-0.07186   Median :-0.02988   Median : 0.02508  
+ Mean   : 0.0000   Mean   : 0.00000   Mean   : 0.00000   Mean   : 0.00000  
+ 3rd Qu.: 0.9411   3rd Qu.: 0.77159   3rd Qu.: 0.84752   3rd Qu.: 0.56609  
+ Max.   : 1.7103   Max.   : 2.16086   Max.   : 1.95352   Max.   : 3.03480  
+   Model_year           Mpg          
+ Min.   :-1.6431   Min.   :-2.45780  
+ 1st Qu.:-0.8047   1st Qu.:-0.79553  
+ Median : 0.0172   Median : 0.04412  
+ Mean   : 0.0000   Mean   : 0.00000  
+ 3rd Qu.: 0.8236   3rd Qu.: 0.78143  
+ Max.   : 1.6154   Max.   : 2.32155  
+\end{verbatim}
+
+Para la variable Acceleration aplicando una transformación de YeoJohnson
+es suficiente para pasarla a una normal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{normality}\NormalTok{(auto)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Warning: `cols` is now required when using unnest().
+Please use `cols = c(statistic)`
+\end{verbatim}
+
+\begin{tabular}{l|r|r|r}
+\hline
+vars & statistic & p\_value & sample\\
+\hline
+Displacement & 0.8818359 & 0.0000000 & 392\\
+\hline
+Horse\_power & 0.9040975 & 0.0000000 & 392\\
+\hline
+Weight & 0.9414661 & 0.0000000 & 392\\
+\hline
+Acceleration & 0.9918671 & 0.0305289 & 392\\
+\hline
+Model\_year & 0.9469666 & 0.0000000 & 392\\
+\hline
+Mpg & 0.9671696 & 0.0000001 & 392\\
+\hline
+\end{tabular}
+
+Aunque para regresión lineal no es absolutamente necesario, podemos
+estandarizar los datos a media 0 y dev 1, facilitando un poco los
+cálculos. La inferencia estadística de la regresión no va a variar, por
+lo que es conveniente hacerlo. Haciendo esto debemos tener cuidado a la
+hora de interpretar los resultados de la regresión para no confundirnos.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{outliers}{%
+\subsubsection{Outliers}\label{outliers}}
+
+Como hemos visto anteriormente en los boxplots, las únicas variables con
+valores muy alejados del centro de la distribución son Acceleration y
+Horse\_power.
+
+Por el significado del problema, probablemente estos posibles outliers
+correspondan a coches de alta gama o potentes en la época. Esto tampoco
+lo podemos asegurar puesto que contamos con pocas características, pero
+se considera un razonamiento coherente. Además, puesto que los valores
+caen dentro de los rangos posibles para coches de la época, podemos
+descartar que sean errores de medida.
+
+Deberíamos decidir si mantener o no estas instancias. Como en nuestro
+caso se nos ha pedido predecir el consumo Mpg, sin darnos
+consideraciones sobre los tipos/gamas de coches a los que se enfoca,
+proseguimos dejándo estas filas.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{anuxe1lisis-de-correlaciuxf3n}{%
+\subsubsection{Análisis de
+correlación}\label{anuxe1lisis-de-correlaciuxf3n}}
+
+Tenemos que tener en cuenta que las variables no siguen distribuciones
+normales. Aunque el coeficiente de Pearson no asume normalidad (si asume
+varianza y covarianza finitas), podemos usar el coeficiente de Kendall
+para los cálculos. Independientemente del método usado vamos a obtener
+las mismas correlaciones en este dataset, solo varía la fuerza con la
+que se dan.
+
+Para regresión la correlación en los datos no es preocupante. Al
+contrario, podría haber información (poca, pero alguna cantidad) que se
+aporte y nos ayude en el problema. Además, la propia metodología de
+selección de variables en el modelo multivariable nos ayudará a
+descartar aquellas variables que no sean necesarias como regresor.
+
+Corrplot
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{corrplot.mixed}\NormalTok{(}\KeywordTok{cor}\NormalTok{(auto), }\DataTypeTok{tl.pos=}\StringTok{"lt"}\NormalTok{, }\DataTypeTok{upper=}\StringTok{"color"}\NormalTok{, }\DataTypeTok{title=}\StringTok{"Pearson"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-19-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{corrplot.mixed}\NormalTok{(}\KeywordTok{cor}\NormalTok{(auto, }\DataTypeTok{method=}\StringTok{"kendall"}\NormalTok{), }\DataTypeTok{tl.pos=}\StringTok{"lt"}\NormalTok{, }\DataTypeTok{upper=}\StringTok{"color"}\NormalTok{, }\DataTypeTok{title=}\StringTok{"Kendall"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-19-2} \end{center}
+
+Estas gráficas nos dicen que existe una alta correlación en el dataset,
+generalmente entre todas las variables (a excepción de Model\_year),
+pero extremadamente fuerte en las parejas:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Horse\_power \& Displacement
+\item
+  Weight \& Displacement
+\item
+  Weight \& Horse\_power
+\item
+  Acceleration \& Horse\_power
+\item
+  Mpg \& Horse\_power
+\item
+  Mpg \& Displacement
+\item
+  Mpg \& Weight
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{scatterplotMatrix}\NormalTok{(auto, }\DataTypeTok{pch=}\DecValTok{20}\NormalTok{, }\DataTypeTok{col=}\StringTok{"deepskyblue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-20-1} \end{center}
+
+El scatterplot anterior nos muestra mejor la forma de estas
+correlaciones. Vemos que en todos los casos en los que se da una
+correlación positiva existe una tendencia lineal entre los datos de
+ambas variables, y en las negativas una tendencia logarítmica.
+
+Vamos a mostrar algunas Positivas:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Horse_power, }\DataTypeTok{y=}\NormalTok{Displacement)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\NormalTok{x, }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Horse_power-Displacement"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-21-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Weight, }\DataTypeTok{y=}\NormalTok{Displacement)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\NormalTok{x, }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Displacement-Weight"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-21-2} \end{center}
+
+Negativas
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Displacement, }\DataTypeTok{y=}\NormalTok{Mpg)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\KeywordTok{log}\NormalTok{(x), }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Displacement-Mpg"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-22-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Weight, }\DataTypeTok{y=}\NormalTok{Mpg)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\KeywordTok{log}\NormalTok{(x), }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Weight-Mpg"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-22-2} \end{center}
+
+Previsualicación de las variables respecto a la salida
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{melt}\NormalTok{(auto, }\StringTok{"Mpg"}\NormalTok{), }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{value, }\DataTypeTok{y=}\NormalTok{Mpg, }\DataTypeTok{color=}\NormalTok{variable)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{alpha=}\FloatTok{0.3}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(.}\OperatorTok{~}\NormalTok{variable, }\DataTypeTok{scale=}\StringTok{"free"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación de cada variable respecto de Mpg"}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-23-1} \end{center}
+
+Se aprecia alta correlación entre Displacement, Horse\_power, Weight
+respecto de la salida.
+
+Como habíamos supuesto en la hipótesis H.9, Horse\_power podría depender
+de Displacement y Weight. Esta claro que la potencia de un motor va a
+depender de la cilindrada y el peso que tenga.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{auto }\OperatorTok{%>%}
+\StringTok{  }\NormalTok{dplyr}\OperatorTok{::}\KeywordTok{select}\NormalTok{(Displacement, Horse_power, Weight) }\OperatorTok{%>%}\StringTok{  }
+\StringTok{  }\KeywordTok{scatterplotMatrix}\NormalTok{(}\DataTypeTok{pch=}\DecValTok{20}\NormalTok{, }\DataTypeTok{col=}\StringTok{"deepskyblue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-24-1} \end{center}
+
+Podemos apreciar como la función de densidad de Horse\_power parece una
+(``MEDIANIZACIÓN'') de las otras dos.
+
+Vamos a intentar comprobarlo
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{scale}\NormalTok{(auto) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{as.data.frame}\NormalTok{() }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{hp =}\NormalTok{ (Displacement}\OperatorTok{+}\NormalTok{Weight) }\OperatorTok{/}\StringTok{ }\DecValTok{2}\NormalTok{) }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\NormalTok{dplyr}\OperatorTok{::}\KeywordTok{select}\NormalTok{(Horse_power, hp) }\OperatorTok{%>%}\StringTok{  }
+\StringTok{  }\KeywordTok{scatterplotMatrix}\NormalTok{(}\DataTypeTok{pch=}\DecValTok{20}\NormalTok{, }\DataTypeTok{col=}\StringTok{"deepskyblue"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-25-1} \end{center}
+
+Viendo que no son tan similares como creíamos, buscamos diferentes
+fórmulas para el cálculo de los caballos de vapor, y vemos que las
+fórmulas son un poco más complejas y no tenemos exactamente los datos
+necesarios para utilizarlas (no se descarta que no se puedan deducir,
+pero no sería un cálculo evidente)
+
+(poner fórmulas
+\url{https://www.ajdesigner.com/phphorsepower/horsepower_equation_trap_speed_method_increase_horsepower.php\#}:\textasciitilde:text=Solving\%20for\%20the\%20change\%20in,the\%20vehicle\%2C\%20driver\%20and\%20passenger.)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{tratamiento-de-variables}{%
+\subsubsection{Tratamiento de
+variables}\label{tratamiento-de-variables}}
+
+Para este dataset, al ser casi todas las variables numéricas continuas,
+existen pocos tratamientos que aplicar.
+
+No tenemos variables categóricas que transformar.
+
+Para añadir interpretabilidad, podríamos agrupar la variable Weight en
+intervalos, pero puesto que vamos a aplicar regresión sería más
+conveniente realizarlo con los resultados finales.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{ordenaciones}{%
+\subsubsection{Ordenaciones}\label{ordenaciones}}
+
+Volvemos a mostrar la cabecera de los datos:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{head}\NormalTok{(auto)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{tabular}{r|r|r|r|r|r}
+\hline
+Displacement & Horse\_power & Weight & Acceleration & Model\_year & Mpg\\
+\hline
+91 & 70 & 1955 & 20.5 & 71 & 26.0\\
+\hline
+232 & 100 & 2789 & 15.0 & 73 & 18.0\\
+\hline
+350 & 145 & 4055 & 12.0 & 76 & 13.0\\
+\hline
+318 & 140 & 4080 & 13.7 & 78 & 17.5\\
+\hline
+113 & 95 & 2372 & 15.0 & 70 & 24.0\\
+\hline
+97 & 60 & 1834 & 19.0 & 71 & 27.0\\
+\hline
+\end{tabular}
+
+En este caso no es necesario aplicar ninguna reorganización. Cada
+variable ocupa su propia columna, y contiene un único tipo de
+información, con unidades de observación diferentes No existe ninguna
+relación entre variables sobre la información que codifican (en el
+sentido de que podrían agruparse).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{resoluciuxf3n-de-hipuxf3tesis}{%
+\paragraph{Resolución de
+hipótesis}\label{resoluciuxf3n-de-hipuxf3tesis}}
+
+Nos habíamos planteado las siguientes hipótesis
+
+\begin{itemize}
+\tightlist
+\item
+  H.1: Horse\_power puede influir en Mpg: A más potencia, más consumo.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Horse_power, }\DataTypeTok{y=}\NormalTok{Mpg)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\KeywordTok{log}\NormalTok{(x), }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Horse_power-Mpg"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-27-1} \end{center}
+
+Con el plot y los resultados de la matriz de correlación queda claro que
+existe una correlación negativa entre estas dos variables. Por tanto,
+podemos considerar Horse\_power como un buen candidato para la regresión
+
+\begin{itemize}
+\item
+  H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir
+  más idem. a la hipótesis anterior, lo hemos visto anteriormente en la
+  figura X
+\item
+  H.3: Debería haber correlación entre displacement (cilindrada) con
+  horse y acceleration La hemos referenciado anteriormente
+\item
+  H.4: Horse y acceleration podrían estar relacionadas
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Horse_power, }\DataTypeTok{y=}\NormalTok{Acceleration)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\KeywordTok{log}\NormalTok{(x), }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Horse_power-Acceleration"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-28-1} \end{center}
+
+idem. se aprecia una correlación logarítmica entre las dos variables.
+Similarmente a lo ocurrido con la hipótesis anterior, esto puede ser un
+problema para nuestro problema de regresión.
+
+\begin{itemize}
+\tightlist
+\item
+  H.5: Viendo que contamos con un rango pequeño de años, no debería
+  haber un cambio significativo de prestaciones entre años.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{melt}\NormalTok{(auto, }\StringTok{"Model_year"}\NormalTok{), }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{value, }\DataTypeTok{x=}\NormalTok{Model_year, }\DataTypeTok{color=}\NormalTok{variable)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{alpha=}\FloatTok{0.3}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(.}\OperatorTok{~}\NormalTok{variable, }\DataTypeTok{scale=}\StringTok{"free"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Plot de cada variable respecto a Model_year"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-29-1} \end{center}
+
+Existe una alta dispersión de los datos en cada una de las variables,
+pero aún así se aprecia tendencias en las variables. Acceleartion y Mpg
+tienden a aumentar, y Displacement, Horse\_power y Weight tienden a
+disminuir. También vemos que la dispersión en las prestaciones de los
+coches disminuyen ligeramente.
+
+Podemos creer en principio que puede deberse a un decremento del número
+de instancias con el paso de los años, pero recordamos que en general
+los datos están repartidos equitativamente
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{table}\NormalTok{(auto}\OperatorTok{$}\NormalTok{Model_year)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+70 71 72 73 74 75 76 77 78 79 80 81 82 
+29 27 28 40 26 30 34 28 36 29 27 28 30 
+\end{verbatim}
+
+Podemos ver cómo varían los rangos para cada año
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{years <-}\StringTok{ }\NormalTok{auto }\OperatorTok{%>%}\StringTok{ }\KeywordTok{group_split}\NormalTok{(Model_year)}
+
+\ControlFlowTok{for}\NormalTok{ (y }\ControlFlowTok{in}\NormalTok{ years) \{}
+  \KeywordTok{cat}\NormalTok{(}\StringTok{"Year: "}\NormalTok{)}
+\NormalTok{  y}\OperatorTok{$}\NormalTok{Model_year[}\DecValTok{1}\NormalTok{] }\OperatorTok{%>%}\StringTok{ }\KeywordTok{cat}\NormalTok{()}
+\NormalTok{  y }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, range) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{() }\OperatorTok{%>%}\StringTok{ }\KeywordTok{print}\NormalTok{()}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Year: 70  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           97          46   1835          8.0         70   9
+2          455         225   4732         20.5         70  27
+Year: 71  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           71          60   1613         11.5         71  12
+2          400         180   5140         20.5         71  35
+Year: 72  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           70          54   2100         11.0         72  11
+2          429         208   4633         23.5         72  28
+Year: 73  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           68          46   1867          9.5         73  11
+2          455         230   4997         21.0         73  29
+Year: 74  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           71          52   1649         13.5         74  13
+2          350         150   4699         21.0         74  32
+Year: 75  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           90          53   1795         11.5         75  13
+2          400         170   4668         21.0         75  33
+Year: 76  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           85          52   1795         12.0         76  13
+2          351         180   4380         22.2         76  33
+Year: 77  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           79          58   1825         11.1         77  15
+2          400         190   4335         19.0         77  36
+Year: 78  Displacement Horse_power Weight Acceleration Model_year  Mpg
+1           78          48   1800         11.2         78 16.2
+2          318         165   4080         21.5         78 43.1
+Year: 79  Displacement Horse_power Weight Acceleration Model_year  Mpg
+1           85          65   1915         11.3         79 15.5
+2          360         155   4360         24.8         79 37.3
+Year: 80  Displacement Horse_power Weight Acceleration Model_year  Mpg
+1           70          48   1845         11.4         80 19.1
+2          225         132   3381         23.7         80 46.6
+Year: 81  Displacement Horse_power Weight Acceleration Model_year  Mpg
+1           79          58   1755         12.6         81 17.6
+2          350         120   3725         20.7         81 39.1
+Year: 82  Displacement Horse_power Weight Acceleration Model_year Mpg
+1           91          52   1965         11.6         82  22
+2          262         112   3015         24.6         82  44
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  H.6: Pero debería existir una tendencia de mejora de prestaciones con
+  los años, incluyendo aumento de Displacement, Horse\_power y
+  Acceleration.
+\end{itemize}
+
+Ciertamente. Se ha comprobado en la hipótesis anterior.
+
+\begin{itemize}
+\tightlist
+\item
+  H.7: Model\_year podría no mostrar relación con Mpg: Pese al paso de
+  los años si contamos con diferentes tipos de vehículos (todoterrenos,
+  familiares, deportivos\ldots) podría haber un consumo dispar. (Si
+  existiera tendencia, viendo que los años son de las últimas décadas
+  del siglo XX, podría ir el consumo hacia abajo)
+\end{itemize}
+
+Hemos visto que existe tendencia, lineal con gran dispersión, y
+positiva.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Model_year, }\DataTypeTok{y=}\NormalTok{Mpg)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\NormalTok{x, }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Model_year-Mpg"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-32-1} \end{center}
+
+Por desgracia no contamos información sobre los modelos de los coches
+
+Podemos ver como se ubican los diferentes años en un plot Horse\_power
+vs Mpg
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(auto, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Horse_power, }\DataTypeTok{y=}\NormalTok{Mpg, }\DataTypeTok{color=}\NormalTok{Model_year)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ y}\OperatorTok{~}\KeywordTok{I}\NormalTok{(}\KeywordTok{log}\NormalTok{(x)), }\DataTypeTok{color=}\StringTok{"red"}\NormalTok{, }\DataTypeTok{method=}\NormalTok{glm) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Relación Horse_power-Mpg"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme_light}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics{EDA_files/figure-latex/unnamed-chunk-33-1} \end{center}
+
+Y vemos que no se puede afirmar la hipótesis, los coches están
+entremezclados por diferentes años
+
+\begin{itemize}
+\tightlist
+\item
+  H.8: Esta última hipótesis se puede aplicar al resto de variables,
+  indicándonos que Model\_year no debería tener relevancia para este
+  problema de regresión.
+\end{itemize}
+
+No podemos afirmar la hipótesis anterior y por consiguiente esta
+tampoco.
+
+\begin{itemize}
+\tightlist
+\item
+  H.9: Horse\_power podría depender de las variables Displacement y
+  Weight
+\end{itemize}
+
+Lo hemos comentado anteriormente
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{conclusiones}{%
+\paragraph{Conclusiones}\label{conclusiones}}
+
+Como conclusiones podemos decir que tenemos un dataset altamente
+correlacionado, distribuído de forma no normal pero con la información
+bien representada. Existen relaciones fuertes entre las variables de
+entrada y de las de salida para la regresión que probablemente nos
+ayuden a solucionar con facilidad el problema.
+
+Aunque no hemos descubierto los tipos de distribución que siguen
+nuestras variables, por si quisiéramos transformarlas a una normal,
+podemos sin ninguna duda aplicar una estandarización de los datos
+(puesto que sabemos que no afecta negativamente al problema de
+regresión) siempre y cuando lo tengamos en cuenta a la hora de analizar
+los resultados.
+
+Se nos pide elegir 5 regresores para la regresión y contamos exactamente
+con ese número, por lo que no podemos descartar ninguna variable. Aún
+así, hemos visto que tenemos algunas variables más interesentas que
+otras. Varibles correladas con la salida nos aumentan las posibilidades
+de obtener un buen regresor, pero debemos evitar usar variables
+correladas entre sí para evitar la multicolinealidad. Sería conveniente
+evitarla para aumentar la interpretabilidad del modelo, pero la potencia
+en sí de este no cambia.
+(\url{https://statisticsbyjim.com/regression/multicollinearity-in-regression-analysis/\#}:\textasciitilde:text=Multicollinearity\%20occurs\%20when\%20independent\%20variables,model\%20and\%20interpret\%20the\%20results.)
+(referenciar esta frase en el apartado de regresión)
+
+\end{document}

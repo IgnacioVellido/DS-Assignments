@@ -3,18 +3,12 @@ title: "Regresion"
 author: "Ignacio Vellido"
 date: "11/17/2020"
 output: 
-  prettydoc::html_pretty:
-    theme: hpstr
-    highlight: github
-    df_print: paged
+  pdf_document:
+    keep_tex: yes
+    df_print: kable
 ---
 
 ```{r setup, include=FALSE}
-# Para PDF output
-# pdf_document: 
-#     keep_tex: yes
-#     df_print: kable
-
 knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
                       comment=NA, messages=FALSE)
 library(tidyverse)
