@@ -35,6 +35,8 @@ library(scatterplot3d)
 # library(vcdExtra)
 # library(cepp)
 # library("dslabs")
+
+set.seed(111)
 ```
 
 
@@ -77,19 +79,19 @@ test_labels <- haberman[shuffle_ds[(pct90+1):dim(haberman)[1]], 4] %>% unlist()
 
 Recordamos los gráficos 1-1 con las clasificaciones, vistos en el EDA.
 ```{r}
-haberman_orig %>%
+haberman %>%
   ggplot(aes(x=Age, y=Year, color=Survival)) +
     geom_point() +
     labs(title="Plot Age-Year con su Survival") +
     theme_light()
 
-haberman_orig %>%
+haberman %>%
   ggplot(aes(y=Age, x=Positive, color=Survival)) +
     geom_point() +
     labs(title="Plot Age-Year con su Survival") +
     theme_light()
 
-haberman_orig %>%
+haberman %>%
   ggplot(aes(x=Year, y=Positive, color=Survival)) +
     geom_point() +
     labs(title="Plot Age-Year con su Survival") +
@@ -98,13 +100,13 @@ haberman_orig %>%
 
 ```{r}
 colors <- c("coral2", "deepskyblue")
-colors <- colors[haberman_orig$Survival]
+colors <- colors[haberman$Survival]
 
-scatterplot3d(haberman, angle = 290,
+scatterplot3d(haberman[,1:3], angle = 290,
               main = "3D plot",
               pch=20, color = colors)
 
-scatterplot3d(haberman, angle = 50,
+scatterplot3d(haberman[,1:3], angle = 50,
               main = "3D plot",
               pch=20, color = colors)
 ```
@@ -140,6 +142,30 @@ fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
 Vemos que al estar los datos tan entremezclados ni siquiera con un K pequeño sobreaprende, es ya con un K medianamente alto (= 13) donde obtiene mayor accuracy en train.
 
 (HABLAR MÁS, DESCRIBIR KNN, ALGO)
+
+```{r}
+ggplot(train, aes(x = Age, y = Year, color=predict(knnModel, newdata = train))) +
+  geom_point(show.legend = F) +
+  labs(title="Prediction KNN") +
+  theme_light() -> knnplot
+
+ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
+  geom_point() +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+# Get legend
+legend <- get_legend(trueplot)
+
+ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
+  geom_point(show.legend = F) +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+plot_grid(plotlist=list(knnplot,trueplot,legend), ncol=2, label_size = 1)
+```
+
+Vemos que el uso de un K alto hace que perdamos puntos de Yes. Probablemente al ser minoría el error cometido clasificándolos como No es menor y por eso obtiene mejor accuracy.
 
 --------------------------------------------------------------------------------
 
@@ -261,20 +287,56 @@ Recordamos que teníamos muchos datos de no supervivencia antes que sí
 table(haberman$Survival)
 ```
 
+En training
+```{r}
+ggplot(train, aes(x = Age, y = Year, color=predict(ldaModel, newdata = train))) +
+  geom_point(show.legend = F) +
+  labs(title="Prediction LDA") +
+  theme_light() -> ldaplot
+
+ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
+  geom_point() +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+# Get legend
+legend <- get_legend(trueplot)
+
+ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
+  geom_point(show.legend = F) +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+plot_grid(plotlist=list(ldaplot,trueplot,legend), ncol=2, label_size = 1)
+```
+
+
 Hacemos un plot del ajuste
 ```{r}
-# x <- seq(min(Smarket.2005$Lag1), max(Smarket.2005$Lag1), length.out=dim(Smarket.2005)[1])
-# y <- seq(min(Smarket.2005$Lag2), max(Smarket.2005$Lag2), length.out=dim(Smarket.2005)[1])
-# 
-# Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),,2) #Set all possible pairs of x and y on a grid
-# 
-# out <- predict(lda.fit, data.frame(Lag1=Xcon[,1], Lag2=Xcon[,2]))$post    #posterior probabilities of a point belonging to each class 
-# 
-# pr <- data.frame(x=rep(x, length(y)), y=rep(y, each=length(x)), z=as.vector(out))
-# 
-# ggplot(Smarket.2005, aes(x=Lag1, y=Lag2)) + 
-#     geom_point(size = 3, aes(pch = Direction,  col=Direction)) + 
-#     geom_contour(data = pr, aes(x=x, y=y, z=z), breaks=c(0,.5))
+data <- train %>% bind_cols(train_labels) %>% setNames(names) 
+ldafit <- lda(Survival~Age+Year, data = data)
+plot(ldafit)
+ldafit$post
+```
+
+
+```{r}
+x <- seq(min(train$Age), max(train$Age), length.out=dim(train)[1])
+y <- seq(min(train$Year), max(train$Year), length.out=dim(train)[1])
+
+Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),ncol=2) #Set all possible pairs of x and y on a grid
+
+#posterior probabilities of a point belonging to each class
+out <- predict(ldafit, data.frame(Age=Xcon[,1], Year=Xcon[,2]))$post
+
+pr <- data.frame(x=rep(x, length(y)), 
+                 y=rep(y, each=length(x)), 
+                 z=as.vector(out))
+
+ggplot(data, aes(x=Age, y=Year)) +
+  geom_point(size = 2, aes(pch=Survival,  col=Survival)) +
+  geom_contour(data = pr, aes(x=x, y=y, z=z)) +
+  theme_light()
 ```
 
 
@@ -283,10 +345,111 @@ Hacemos un plot del ajuste
 
 ## Utilizar el algoritmo QDA para clasificar. No olvide comprobar las asunciones.
 
-Comprobamos asunciones
-```{r}
+QDA tiene las mismas asunciones de LDA salvo que relaja la norma de que las clases tengan igual covarianza.
 
+Por tanto tenemos que:
+- Distribución aleatoria
+- Distribución normal
+
+Técnicamente el no cumplir normalidad no imposibilita que se encuentre solución, pero ya no nos lo asegura.
+
+Además tenemos que:
+- El número de predictores debe ser menor que el número de instancias de cada clase.
+Cosa que sabemos que sí por la tabla Yes/No
+- Los predictores dentro de cada clase no deben estar correlacionados.
+
+```{r}
+corrplot.mixed(cor(yes), tl.pos="lt", upper="color", lower.col="black", title="Pearson")
+corrplot.mixed(cor(yes, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
 ```
+
+
+```{r}
+corrplot.mixed(cor(no), tl.pos="lt", upper="color", lower.col="black", title="Pearson")
+corrplot.mixed(cor(no, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
+```
+
+Cosa que tampoco se da.
+
+--------------------------------------------------------------------------------
+
+### Aplicando QDA
+
+```{r}
+qdaModel <- train(train %>% dplyr::select(-Positive), y = train_labels,
+                method = "qda",
+                tuneLength = 10,
+                trControl = trainControl(method = "cv"))
+
+qdaModel$finalModel
+confusionMatrix(qdaModel)
+```
+
+```{r}
+qdaPred <- predict(qdaModel, newdata = test)
+ctable <- table(qdaPred, test_labels)
+
+ctable
+postResample(pred = qdaPred, obs = test_labels)
+```
+
+```{r}
+fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix QDA")
+```
+
+En training
+```{r}
+ggplot(train, aes(x = Age, y = Year, color=predict(qdaModel, newdata = train))) +
+  geom_point(show.legend = F) +
+  labs(title="Prediction QDA") +
+  theme_light() -> qdaplot
+
+ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
+  geom_point() +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+# Get legend
+legend <- get_legend(trueplot)
+
+ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
+  geom_point(show.legend = F) +
+  labs(title="True values") +
+  theme_light() -> trueplot
+
+plot_grid(plotlist=list(qdaplot,trueplot,legend), ncol=2, label_size = 1)
+```
+
+
+Hacemos un plot del ajuste
+```{r}
+data <- train %>% bind_cols(train_labels) %>% setNames(names) 
+qdafit <- qda(Survival~Age+Year, data = data)
+plot(qdafit)
+qdafit$post
+```
+
+
+```{r}
+x <- seq(min(train$Age), max(train$Age), length.out=dim(train)[1])
+y <- seq(min(train$Year), max(train$Year), length.out=dim(train)[1])
+
+Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),ncol=2) #Set all possible pairs of x and y on a grid
+
+#posterior probabilities of a point belonging to each class
+out <- predict(qdafit, data.frame(Age=Xcon[,1], Year=Xcon[,2]))$post
+
+pr <- data.frame(x=rep(x, length(y)), 
+                 y=rep(y, each=length(x)), 
+                 z=as.vector(out))
+
+ggplot(data, aes(x=Age, y=Year)) +
+  geom_point(size = 2, aes(pch=Survival,  col=Survival)) +
+  geom_contour(data = pr, aes(x=x, y=y, z=z)) +
+  theme_light()
+```
+
 
 --------------------------------------------------------------------------------
 
