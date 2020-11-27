@@ -2,17 +2,21 @@
 
 Recordamos que la descripción de los datos se encuentra en el apartado 1.1.
 
-Como se comentó en el apartado de EDA:
+\vspace{\baselineskip}
 
-``Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable. Aún así, hemos visto que tenemos algunas variables más interesantes que otras. Variables correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad. Sería conveniente evitarla para aumentar la interpretabilidad del modelo, pero la potencia en sí de este no cambia.''
+Como se comentó en las conclusiones del análisis estadístico:
 
-Graficamos la relación de cada variable respecto a la salida
+``Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable. Aún así, hemos visto que tenemos algunas variables más interesantes que otras. Variables correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad, y aumentar la interpretabilidad del modelo, pero la potencia en sí de este no cambia.''
+
+\vspace{\baselineskip}
+
+Primeramente, mostramos la relación de cada variable respecto a la salida:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-2-1} \caption{}\end{figure}
 
 Como dijimos, se aprecia alta correlación entre Displacement, Horse\_power, Weight respecto de la salida, probablemente de forma logarítmica.
 
-Las matrices nos correlación nos confirman esta idea (con coeficientes de Pearson y Kendall)
+Las matrices de correlación nos confirmaban esta idea (con coeficientes de Pearson y Kendall)
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-3-1} \caption{}\end{figure}
 
@@ -28,8 +32,7 @@ Vamos a analizar un ajuste con cada una de las características:
 
 \begin{verbatim}
 
-Call:
-lm(formula = Mpg ~ Weight, data = auto)
+Call: lm(formula = Mpg ~ Weight, data = auto)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
@@ -48,8 +51,7 @@ F-statistic: 878.8 on 1 and 390 DF,  p-value: < 2.2e-16
 
 "-------------------------------------------"
 
-Call:
-lm(formula = Mpg ~ Displacement, data = auto)
+Call: lm(formula = Mpg ~ Displacement, data = auto)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
@@ -68,8 +70,7 @@ F-statistic: 718.7 on 1 and 390 DF,  p-value: < 2.2e-16
 
 "-------------------------------------------"
 
-Call:
-lm(formula = Mpg ~ Horse_power, data = auto)
+Call: lm(formula = Mpg ~ Horse_power, data = auto)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
@@ -88,8 +89,7 @@ F-statistic: 599.7 on 1 and 390 DF,  p-value: < 2.2e-16
 
 "-------------------------------------------"
 
-Call:
-lm(formula = Mpg ~ Model_year, data = auto)
+Call: lm(formula = Mpg ~ Model_year, data = auto)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
@@ -108,8 +108,7 @@ F-statistic: 198.3 on 1 and 390 DF,  p-value: < 2.2e-16
 
 "-------------------------------------------"
 
-Call:
-lm(formula = Mpg ~ Acceleration, data = auto)
+Call: lm(formula = Mpg ~ Acceleration, data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -127,17 +126,17 @@ Multiple R-squared:  0.1792,    Adjusted R-squared:  0.1771
 F-statistic: 85.15 on 1 and 390 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-Al ser univariable, no es necesario fijarse en el estadístico F por ahora. Para ver el potencial de la variable, debemos darle importancia al p-valor (comprobar de que sea lo suficientemente bajo), y posteriormente ver el R2 para everiguar el porcentaje de la salida explicada.
+Al ser univariable, por ahora no es necesario fijarse en el estadístico F. Para ver el potencial de la variable, debemos darle importancia al p-valor (comprobar de que sea lo suficientemente bajo), y posteriormente ver el R\textsuperscript{2} para everiguar el porcentaje de la salida explicada.
+
+\vspace{\baselineskip}
 
 En base a los resultados vemos que el test de correlación nos había ayudado correctamente: de forma individual todas las variables tienen dependencia lineal, y el orden de calidad coincide con el orden de fuerza en las correlaciones.
 
-Guardamos el modelo aditivo hasta ahora
-
-Ya con el uso de la variable Weight vemos que podemos explicar un \textasciitilde69\% de la salida, un buen valor de partida. Graficamos el ajuste:
+Ya con el uso de la variable Weight vemos que podemos explicar un \textasciitilde69\% de la salida, un buen valor de partida. El ajuste quedaría de esta manera:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-6-1} \caption{}\end{figure}
 
-Y vemos sus coeficientes:
+Con los coeficientes:
 
 \begin{verbatim}
                    2.5 %      97.5 %
@@ -147,18 +146,20 @@ Weight      -0.008154515 -0.00714017
 
 Aunque los valores del intervalo del coeficiente de Weight sea bajo, vemos que no incluye el cero (y con el p-valor obtenido anteriormente, lo podemos asegurar con bastante certeza). Probablemente la razón de estos coeficientes tan pequeños es que los datos no están estandarizados (se podría hacer perfectamente, se han dejado con sus rangos normales para interpretarlos mejor) y los valores de las unidades de medida son bastante diferentes (hablamos de rangos de {[}9.0,46.6{]} en Mpg frente a {[}1613,5140{]} en Weight)
 
-Ya con esto podemos intentan interpretar un poco los datos, tendríamos por ahora la fórmula de regresión lineal: (poner fórmula)
+\vspace{\baselineskip}
 
-(INTERPRETAR ?) La fórmula nos indica que por cada unidad de peso el Mpg decrementa ?
+Ya con esto podemos intentan interpretar un poco los datos, tendríamos por ahora la fórmula de regresión lineal: 
+
+\begin{equation}    
+    Mpg \sim Weight
+\end{equation}
 
 \subsection{Ajustes de regresión lineal multivariable}
 
-Aplicamos un método descendente
+Aplicamos un método descendente:
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ ., data = auto)
+Call: lm(formula = Mpg ~ ., data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -180,17 +181,18 @@ Multiple R-squared:  0.8088,    Adjusted R-squared:  0.8063
 F-statistic: 326.5 on 5 and 386 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-El p-valor del F estadístico nos dice que al menos hay una variable
-(realmente ya lo sabíamos de los ajustes univariables) con dependencia
-linea.
+% \begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
-Vemos que hay 3 variables con mal p-valor, empezamos quitando la que lo
-tiene más alto, Horse\_power
+El p-valor del F estadístico nos dice que al menos hay una variable (realmente ya lo sabíamos de los ajustes univariables) con dependencia linea.
+
+\vspace{\baselineskip}
+
+Vemos que hay 3 variables con mal p-valor, empezamos quitando la que lo tiene más alto, Horse\_power.
+
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ . - Horse_power, data = auto)
+Call: lm(formula = Mpg ~ . - Horse_power, data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -211,12 +213,12 @@ Multiple R-squared:  0.8088,    Adjusted R-squared:  0.8068
 F-statistic: 409.2 on 4 and 387 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-El F estadístico está correcto, y seguimos teniendo variables con p-valor grande, quitamos Displacement
+El F estadístico está correcto, y seguimos teniendo variables con p-valor grande, quitamos Displacement.
+
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ . - Horse_power - Displacement, data = auto)
+Call: lm(formula = Mpg ~ . - Horse_power - Displacement, data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -236,12 +238,12 @@ Multiple R-squared:  0.8086,    Adjusted R-squared:  0.8071
 F-statistic: 546.5 on 3 and 388 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-idem. a lo anterior, quitamos Acceleration.
+\textit{idem}. a lo anterior, quitamos Acceleration.
+
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ . - Horse_power - Displacement - Acceleration, 
+Call: lm(formula = Mpg ~ . - Horse_power - Displacement - Acceleration, 
     data = auto)
 
 Residuals:
@@ -261,22 +263,18 @@ Multiple R-squared:  0.8082,    Adjusted R-squared:  0.8072
 F-statistic: 819.5 on 2 and 389 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-El estadístico F sigue bien, y los p-valores de las variables son
-extremadamente bajos. Nos fijamos en el R2 y vemos que ha subido
-considerablemente (un 10\%) respecto al univariable, por lo que este
-sería nuestro modelo aditivo por ahora.
+El estadístico F sigue bien, y los p-valores de las variables son extremadamente bajos. Nos fijamos en el R\textsuperscript{2} y vemos que ha subido considerablemente (un 10\%) respecto al univariable, por lo que este sería nuestro modelo aditivo por ahora.
 
-A partir de ahora hay que tener cuidado si el R2 sigue aumentando, hay
-que evitar el overfitting en el modelo.
+\vspace{\baselineskip}
+
+A partir de ahora deberíamos tener cuidado si el R\textsuperscript{2} sigue aumentando, hay que evitar el overfitting en el modelo.
 
 \subsection{Inserción de interacciones}
 
 Del modelo aditivo solo nos han quedado dos regresores, así que probamos a incluirlos como interacción.
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ +Weight * Model_year, data = auto)
+Call: lm(formula = Mpg ~ +Weight * Model_year, data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -296,14 +294,16 @@ Multiple R-squared:  0.8339,    Adjusted R-squared:  0.8326
 F-statistic: 649.3 on 3 and 388 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-El F estadístico sigue bien y los p-valores son bajos, el nuevo R2 ha mejorado un 3\%, así que no es demasiado para considerar un overfitting. Probablemente más de un 90\% sería preocupante, pero también tenemos que tener en cuenta que las variables están fuertemente correladas con la salida.
+El F estadístico sigue bien y los p-valores son bajos, el nuevo R\textsuperscript{2} ha mejorado un 3\%, así que no es demasiado para considerar un overfitting. Probablemente más de un 90\% sería preocupante, pero también tenemos que tener en cuenta que las variables están fuertemente correladas con la salida.
+
+\vspace{\baselineskip}
 
 Podríamos probar a añadir alguna interacción más con alguna variable que no hubiera entrado en el modelo aditivo, pero no se espera que mejore:
 
-\begin{verbatim}
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
-Call:
-lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Displacement, 
+\begin{verbatim}
+Call: lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Displacement, 
     data = auto)
 
 Residuals:
@@ -327,14 +327,17 @@ Multiple R-squared:  0.8472,    Adjusted R-squared:  0.8448
 F-statistic: 355.7 on 6 and 385 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-A pesar de nuestra suposición los p-valores son válidos y el R2 aumenta un 1\%. Es cuestionable si el aumento de la complejidad del modelo merece con este incremento de R2. Por simplificar vamos a quedarnos con el modelo aditivo anterior y probar con otra interacción.
+A pesar de nuestra suposición los p-valores son válidos y el R\textsuperscript{2} aumenta un 1\%. Es cuestionable si el aumento de la complejidad del modelo merece con este incremento de R\textsuperscript{2}. Por simplificar vamos a quedarnos con el modelo aditivo anterior y probar con otra interacción.
 
-Podemos probar combinando la variable Acceleration con una de que teníamos (Weight y Model\_year)
+\vspace{\baselineskip}
+
+Podemos probar combinando la variable Acceleration separadamente con las que ya teníamos (Weight y Model\_year).
+
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 \begin{verbatim}
 
-Call:
-lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Weight, 
+Call: lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Weight, 
     data = auto)
 
 Residuals:
@@ -357,10 +360,10 @@ Multiple R-squared:  0.8482,    Adjusted R-squared:  0.8462
 F-statistic: 431.4 on 5 and 386 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-\begin{verbatim}
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
-Call:
-lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Model_year, 
+\begin{verbatim}
+Call: lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Model_year, 
     data = auto)
 
 Residuals:
@@ -383,24 +386,25 @@ Multiple R-squared:  0.8426,    Adjusted R-squared:  0.8406
 F-statistic: 413.2 on 5 and 386 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-Y entre los dos nos podríamos quedar con el primero por tener mejores p-valores y un mejor R2. Aun así, el incremento es pequeño respecto a nuestro modelo aditivo.
+Y entre los dos nos podríamos quedar con el primero por tener mejores p-valores y un mejor R\textsuperscript{2}. Aun así, el incremento es pequeño respecto a nuestro modelo aditivo.
+
+\vspace{\baselineskip}
 
 La fórmula del modelo aditivo que llevamos por ahora es:
+\begin{equation}
+    Mpg \sim Weight + Model_year + Acceleration + Weight*Model_year + Weight*Acceleration
+\end{equation}
 
-Y la graficamos:
-
+Gráficamente:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-16-1} \caption{}\end{figure}
 
 Por el uso multivariable la línea de regresión que se forma podría indicarnos un posible overfitting en el modelo, vamos a dejarlo por ahora e intentar solucionarlo con el modelo no lineal.
 
 \subsection{Ajustes de regresión no lineal}
 
-Habíamos dicho que las gráficas nos mostraban una tendencia logarítmica, vamos a incluír la de Weight en nuestro modelo aditivo
-
+Habíamos dicho que las gráficas nos mostraban una tendencia logarítmica, vamos a incluír la de Weight en nuestro modelo aditivo:
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Weight + 
+Call: lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Weight + 
     I(log(Weight)), data = auto)
 
 Residuals:
@@ -426,12 +430,12 @@ F-statistic: 400.2 on 6 and 385 DF,  p-value: < 2.2e-16
 
 El estadístico F está bien y los p-valores también, aunque el de la interacción Weight-Acceleration es alto comparado con el resto (aún así sigue siendo aceptable).
 
-Como el R2 ha subido, por ver si mejora, vamos a quitar esta interacción.
+Como el R\textsuperscript{2} ha subido, por ver si mejora, vamos a quitar esta interacción.
+
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ +Weight * Model_year + I(log(Weight)), data = auto)
+Call: lm(formula = Mpg ~ +Weight * Model_year + I(log(Weight)), data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -454,18 +458,17 @@ F-statistic: 577.3 on 4 and 387 DF,  p-value: < 2.2e-16
 
 Hemos empeorado un 0.5\%, bastante poco, y el modelo es más simple. La dejamos quitada.
 
-Podemos mostrarlo en un gráfico:
-
+Mostramos este ajuste:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-19-1} \caption{}\end{figure}
 
-Esta gráfica nos indica que con casi toda probabilidad se está generando sobreajuste, se ve necesario simplificar el modelo.
+Esta gráfica nos indica que es probable que se esté generando sobreajuste, se ve necesario simplificar el modelo.
+
+\begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 Si quitamos la otra interacción:
-
 \begin{verbatim}
 
-Call:
-lm(formula = Mpg ~ Weight + Model_year + I(log(Weight)), data = auto)
+Call: lm(formula = Mpg ~ Weight + Model_year + I(log(Weight)), data = auto)
 
 Residuals:
     Min      1Q  Median      3Q     Max 
@@ -485,16 +488,14 @@ Multiple R-squared:  0.849, Adjusted R-squared:  0.8478
 F-statistic:   727 on 3 and 388 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
-No hemos perdido apenas R2, mostramos la gráfica:
+No hemos perdido apenas R\textsuperscript{2}. Mostramos la gráfica:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-21-1} \caption{}\end{figure}
 
 Seguimos con el mismo problema, probablemente se deba a una de las variables. Quitamos Model\_year por tener poca correlación con la variable de salida:
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ Weight + I(log(Weight)), data = auto)
+Call: lm(formula = Mpg ~ Weight + I(log(Weight)), data = auto)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
@@ -516,9 +517,7 @@ F-statistic: 485.6 on 2 and 389 DF,  p-value: < 2.2e-16
 El p-valor de Weight nos indica que hay que quitarla, y al no estar incluída ninguna interacción, no es un término de jerarquía, por lo que podemos hacerlo. Se puede porque la variable sigue siendo independiente, solamente no está modelada de forma lineal, sino logarítmicamente.
 
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ I(log(Weight)), data = auto)
+Call: lm(formula = Mpg ~ I(log(Weight)), data = auto)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
@@ -542,16 +541,15 @@ F-statistic: 967.3 on 1 and 390 DF,  p-value: < 2.2e-16
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-24-3} \caption{}\end{figure}
 
-Vemos un empeoramiento significativo en la calidad de R2 respecto al modelo multivariable, pero la forma del modelo no está tan ajustada a los datos y parece sensato mantenerlo así.
+Vemos un empeoramiento significativo en la calidad de R\textsuperscript{2} respecto al modelo multivariable, pero la forma del modelo no está tan ajustada a los datos y parece sensato mantenerlo así.
 
-Aún así, no resulta lógico intentar predecir el Mpg de un coche únicamente en base al peso, alguna de las otras variables deberían ayudarnos en la predección. Por ejemplo, alguna característica del motor, como la cilindrada o los caballos de vapor.
+Aún así, no resulta lógico intentar predecir el Mpg de un coche únicamente en base al peso, alguna de las otras variables deberían ayudarnos en la predicción. Por ejemplo, alguna característica del motor, como la cilindrada o los caballos de vapor.
 
-Para resumir, mostramos el modelo con mejor R2 tras hacer múltiples pruebas, e intentando evitar un overfitting:
+\vspace{\baselineskip}
 
+Para resumir, mostramos el modelo con mejor R\textsuperscript{2} tras hacer múltiples pruebas, e intentando evitar un overfitting:
 \begin{verbatim}
-
-Call:
-lm(formula = Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), 
+Call: lm(formula = Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), 
     data = auto)
 
 Residuals:
@@ -573,127 +571,151 @@ F-statistic: 342.1 on 3 and 388 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 Los p-valores no son muy fuertes, pero siguen siendo aceptables, y gráficamente el modelo se ve un poco mejor:
-
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-1} \caption{}\end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-2} \caption{}\end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-3} \caption{}\end{figure}
 
-Pensando en el problema, y tras el análisis hecho en el apartado de EDA, creemos que usar Model\_year para predecir Mpg no parece buena idea. La gráfica de la variable nos muestran mucha dispersión en los datos y, aunque sí se ve un cierta tendencia lineal, no parece suficiente para usarla. Claramente nos ajusta mejor los datos pero parece que nos estamos pegando a ellos.
+Pensando en el problema, y tras el análisis hecho en el apartado de EDA, creemos que usar Model\_year para predecir Mpg no parece buena idea. La gráfica de la variable nos muestra mucha dispersión en los datos y, aunque sí se ve un cierta tendencia lineal, no parece suficiente para usarla. Claramente nos ajusta mejor los datos pero parece que nos estamos pegando a ellos.
 
-De cara a comprobar este razonamiento en el cross-validation, vamos a guardar dos modelos: - Modelo con mejor R2 Mpg \textasciitilde{} Weight + Model\_year + I(log(Weight)
+De cara a comprobar este razonamiento en el cross-validation, vamos a guardar dos modelos: 
 
-\begin{itemize}
-\item
-  Modelo intentando evitar el overfitting Mpg \textasciitilde{}
-  Acceleration + I(log(Weight)) + I(log(Displacement))
-\end{itemize}
+\vspace{\baselineskip}
+Modelo con mejor R\textsuperscript{2} 
+
+\begin{equation}    
+    Mpg \sim Weight + Model\_year + I(log(Weight)
+\end{equation}
+
+Modelo intentando evitar el overfitting
+\begin{equation}    
+    Mpg \sim Acceleration + I(log(Weight)) + I(log(Displacement))
+\end{equation}
 
 \subsection{Ajustes con KNN}
 
-Sabemos que la función por defecto usa la distancia de Minkowski y escala los datos a igual rango. También usa un k de 7, y sería recomendable probar con varios.
+Sabemos que la función por defecto usa la distancia de Minkowski y escala los datos a igual rango. También usa un K de 7, pero sería recomendable probar con varios.
+
+\vspace{\baselineskip}
 
 Vamos a probar con diferentes modelos, primero el multivariable con todas
-
 \begin{verbatim}
-[1] 1.880835
+Mpg ~ .
+    1.880835
 \end{verbatim}
 
-Y probando con varios obtenemos el menor error con este
-
+Y probando con varios obtenemos el menor error eliminando únicamente Acceleration:
 \begin{verbatim}
-[1] 1.856269
+Mpg ~ . - Acceleration    
+    1.856269
 \end{verbatim}
 
-Que visualmente nos quedaría
-
+Que visualmente nos quedaría:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-29-1} \caption{}\end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-29-2} \caption{}\end{figure}
 
-Si probamos el modelo no lineal obtenido en los pasos anteriores (con mejor R2)
-
+Si probamos el modelo no lineal obtenido en los pasos anteriores (con mejor R\textsuperscript{2}) nos un error bastante malo.
 \begin{verbatim}
-[1] 2.104086
+Mpg ~ Weight + Model_year + I(log(Weight))
+    2.104086
 \end{verbatim}
 
-Nos da peor error.
+\vspace{\baselineskip}
 
-Y si probamos el modelo no lineal en el que intemos resolver el overfitting
-
+El método para evitar el overfitting que usamos en el apartado anterior probablemente no funcione con KNN por seguir una metodología totalmente diferente. El ajuste de KNN para regresión no tiene nada que ver con los modelos LM. Podemos aún así comprobarlo:
 \begin{verbatim}
-[1] 2.938051
+Mpg ~ Acceleration + I(log(Weight)
+    2.938051
 \end{verbatim}
 
-Obtenemos aún mayor empeoramiento. Gráficamente:
-
+Gráficamente este quedaría de la siguiente manera:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-32-1} \caption{}\end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-32-2} \caption{}\end{figure}
 
-El RMSE (Root Mean Square Error) o raíz del error cuadrático medio nos permite calcular el error en nuestro conjunto de test o training producido en las predicciones, definido por la fórmula:
+Por completitud, podríamos usarlo también en cross-validation para comprobarlo con un conjunto de test.
 
-El método para evitar el overfitting que usamos en el apartado anterior probablemente no funcione con KNN por seguir una metodología totalmente diferente. El ajuste de KNN para regresión no tiene nada que ver con los modelos LM. Podemos aún así guardarlo para comprobarlo.
+\vspace{\baselineskip}
 
-Tendríamos por tanto los siguientes modelos para KNN: Mpg \textasciitilde{} . - Acceleration Mpg \textasciitilde{} Acceleration + I(log(Weight)) + I(log(Displacement))
+Tendríamos por tanto los siguientes modelos para KNN: 
+\begin{equation}
+    Mpg \sim . - Acceleration 
+\end{equation}
 
-Comparandolos gráficamente, vemos que son similares
+\begin{equation}    
+    Mpg \sim Acceleration + I(log(Weight)) + I(log(Displacement))
+\end{equation}
 
+\vspace{\baselineskip}
+
+Comparándolos gráficamente vemos que son similares, aunque el que intenta evitar el overfitting (en color azul en la gráfica), tiene menor dispersión:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-33-1} \caption{}\end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-33-2} \caption{}\end{figure}
 
-Aunque el que intenta evitar el overfitting (en color azul en la gráfica), tiene menor dispersión.
-
 \subsection{Comparativa de los ajustes anteriores con cross-validation}
 
-Recordamos los modelos obtenidos: LM: Mpg \textasciitilde{} Weight +
-Model\_year + I(log(Weight) Mpg \textasciitilde{} Acceleration +
-I(log(Weight)) + I(log(Displacement))
+Recordamos los modelos obtenidos.
 
-KNN: Mpg \textasciitilde{} . - Acceleration Mpg \textasciitilde{}
-Acceleration + I(log(Weight)) + I(log(Displacement))
+\vspace{\baselineskip}
+LM: 
+\begin{equation}
+    Mpg \sim Weight + Model\_year + I(log(Weight)
+\end{equation}
+\begin{equation}    
+    Mpg \sim Acceleration + I(log(Weight)) + I(log(Displacement))
+\end{equation}
 
-c(``Displacement'', ``Horse\_power'', ``Weight'', ``Acceleration'',
-``Model\_year'', ``Mpg'') X1 X2 X3 X4 X5 Y
+\vspace{\baselineskip}
+KNN: 
+\begin{equation}    
+    Mpg \sim . - Acceleration
+\end{equation}
 
-LM: Y \textasciitilde{} X3 + X5 + I(log(X3)) Y \textasciitilde{} X4 +
-I(log(X3)) + I(log(X1))
+\begin{equation}    
+    Mpg \sim Acceleration + I(log(Weight)) + I(log(Displacement))
+\end{equation}
 
-KNN: Y \textasciitilde{} . - X4 Y \textasciitilde{} X4 + I(log(X3)) +
-I(log(X1))
-
-Resultados obtenidos
-\begin{verbatim}
-Regresión 1: [1] 9.333066
-Regresión 2: [1] 17.10519
-KNN 1: [1] 7.291517
-KNN 2: [1] 18.43846
-\end{verbatim}
+\vspace{\baselineskip}
 
 Con el proceso de cross-validation dividimos el dataset en N subconjuntos (folds) y repetimos el entrenamiento N veces. Cada entrenamiento se aplica reservando uno de los subconjuntos como test y entrenando con el resto. Al final, el error obtenido para el modelo es la media de los errores en cada fold. La elección del número de folds es importante y si el problema lo permite (en términos de gasto computacional), se debería probar con varios. En este caso hemos utilizado 5 folds.
 
 Con esto conseguimos no desperdiciar el conocimiento del conjunto de test y no guiarnos por una única evaluación del modelo.
 
-Como resultados, nos muestra que los modelos con los que obtuvimos mejores resultados de R2 y RSME en sus apartados han acabado con mejor RSME tras el cross-validation. También apreciamos que con KNN conseguimos ligeramente mejores resultados.
+\vspace{\baselineskip}
 
-Por completitud, mostramos también los resultados en training
+Aplicando este proceso obtenemos los siguiente:
 \begin{verbatim}
-Regresión 1: [1] 9.159891
-Regresión 2: [1] 16.62285
-KNN 1: [1] 3.659828
-KNN 2: [1] 8.642349
+Regresión 1:  9.333066
+Regresión 2: 17.10519
+KNN 1:        7.291517
+KNN 2:       18.43846
 \end{verbatim}
 
-Que nos muestran que ninguno de los modelos LM estaban haciendo overfitting, pero en cambio en KNN si existe una diferencia significativa entre training y test.
+Los resultados nos muestra que los modelos con los que obtuvimos mejores valores de R\textsuperscript{2} y RSME en sus apartados han acabado con mejor RSME tras el cross-validation. También apreciamos que con KNN conseguimos ligeramente mejores resultados que regresión lineal/no-lineal.
+
+\vspace{\baselineskip}
+
+Por completitud, mostramos también los resultados en training:
+\begin{verbatim}
+Regresión 1:  9.159891
+Regresión 2: 16.62285
+KNN 1:        3.659828
+KNN 2:        8.642349
+\end{verbatim}
+
+Que nos muestran que ninguno de los modelos LM estaba haciendo overfitting. 
+Adicionalmente, en KNN existe una diferencia significativa entre training y test.
 
 \subsection{Comparativa de tests}
 
 Para comparar los algoritmos vamos a aplicar test estadísticos en base a los resultados obtenidos en múltiples datasets. Para asegurar la igualdad de condiciones los algoritmos hacen uso de parámetros genéricos y utilizan las mismas particiones de cross-validation.
 
-Estas son las tablas de resultados que tenemos:
+\vspace{\baselineskip}
 
+Estas son las tablas de resultados que tenemos para test:
 \begin{longtable}[]{@{}rr@{}}
 \toprule
 out\_test\_lm & out\_test\_kknn\tabularnewline
@@ -708,25 +730,25 @@ out\_test\_lm & out\_test\_kknn\tabularnewline
 \bottomrule
 \end{longtable}
 
-Aplicamos el test de Wilconxon a LM y KNN
+\vspace{\baselineskip}
 
+Aplicamos el test de Wilconxon a LM y KNN:
 \begin{verbatim}
- V 
-78 
- V 
-93 
-p-value: [1] 0.7660294
+ V    V
+78 - 93 
+
+p-value:  0.7660294
 \end{verbatim}
 
 Obtenemos un ranking de 78 para LM y 93 para KNN, con un p-valor de 0.77 (o nivel de confianza del 33\%).
 
 Esto nos dice que gana KNN pero puesto que el p-value no es lo suficientemente grande no podemos afirmar con un nivel alto de significación que las diferencias entre los tests sean notorias.
 
+\vspace{\baselineskip}
+
 Ahora aplicamos en test de Friedman a los dos algoritmos anteriores junto al algoritmo M5:
-
 \begin{verbatim}
-
-    Friedman rank sum test
+Friedman rank sum test
 
 data:  as.matrix(tablatst)
 Friedman chi-squared = 8.4444, df = 2, p-value = 0.01467
@@ -734,11 +756,11 @@ Friedman chi-squared = 8.4444, df = 2, p-value = 0.01467
 
 El p-value es \textless0.05 por lo que podemos concluir que al menos hay un par de algoritmos de calidad diferente.
 
+\vspace{\baselineskip}
+
 Vemos cuáles de ellos lo son haciendo el test post-hoc de HOLM
-
 \begin{verbatim}
-
-    Pairwise comparisons using Wilcoxon signed rank exact test 
+Pairwise comparisons using Wilcoxon signed rank exact test 
 
 data:  as.matrix(tablatst) and groups 
 
@@ -750,5 +772,7 @@ P value adjustment method: holm
 \end{verbatim}
 
 Con el test post-hoc de HOLM podemos asegurar que 3-1 (M5 vs LM) son diferentes. También podemos afirmar M5 respecto de KNN pero con un nivel de confianza menor.
+
+\vspace{\baselineskip}
 
 De KNN y LM no podemos afirmar nada puesto que el p-valor es extremadamente grande.
