@@ -18,6 +18,7 @@ output:
 #     df_print: paged
 
 knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      #include = False, # para PDF
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)

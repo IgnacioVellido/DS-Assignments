@@ -35,12 +35,17 @@
 % ==============================================================================
 % ==============================================================================
 
+\usepackage{caption}
+\usepackage[section]{placeins}
+\makeatletter
+\def\fps@figure{H}
+\makeatother
+
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{wrapfig}
-\usepackage{float}
 \usepackage{colortbl}
 \usepackage{pdflscape}
 \usepackage{tabu}
@@ -65,17 +70,12 @@
 
     % ==============================================================================
 
-    % \input{secciones/intro} \newpage
     \input{secciones/eda-reg} \newpage
     \input{secciones/regresion} \newpage
     \input{secciones/eda-clas} \newpage
     \input{secciones/clasificacion} \newpage
-    % \input{secciones/anexo_eda} \newpage
-    % \input{secciones/anexo_reg} \newpage
-    % \input{secciones/anexo_cla} \newpage
 
     \setlength{\parskip}{1em}
-
     
     % ==============================================================================
     

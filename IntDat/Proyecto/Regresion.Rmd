@@ -10,6 +10,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      include = FALSE, # para PDF
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)
