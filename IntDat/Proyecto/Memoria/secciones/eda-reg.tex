@@ -14,12 +14,12 @@ Para el problema de regresión hacemos uso del dataset \textbf{autoMPG6} \cite{a
     \item \textbf{Model\_year}: Indica las dos últimas cifras del año de producción.
 \end{enumerate}
 
-El objetivo es poder predecir, en base a los cinco atributos, el consumo de Mpg de un nuevo coche:
+El objetivo es poder predecir con estos cinco atributos el consumo de Mpg de un nuevo coche:
 
 \begin{enumerate}
     \def\labelenumi{\arabic{enumi}.}
     \setcounter{enumi}{5}
-    \item \textbf{Mpg}: Millas-por-galón, indica la cantidad de galones (1G +-= 3,78L) de fuél que consume un vehículo al recorrer una milla (1m +-= 1,6km).
+    \item \textbf{Mpg}: Millas-por-galón, indica la cantidad de galones (1G $\approx$ 3,78L) de fuél que consume un vehículo al recorrer una milla (1m $\approx$ 1,6km).
 \end{enumerate}
 
 El dataset contiene 392 instancias codificando esta información.
@@ -54,17 +54,17 @@ La descripción del problema nos da alguna información adicional sobre las vari
 
 \subsection{Análisis Estadístico de Datos}
 
-Antes de comenzar a analizar las variables nos plantemos una cuestión: ¿Debemos considerar Model\_year como una variable numérica o como un factor categórico? Aunque por la hipótesis H.7 podríamos acabar no eligiendo la variable para el problema, es necesario plantearse esta cuestión antes de comenzar.
+Antes de comenzar a analizar las variables nos plantemos una cuestión: ¿Debemos considerar Model\_year como una variable numérica o como un factor categórico? Aunque por la hipótesis H.7 podríamos acabar no eligiendo la variable para el problema, es necesario preguntarnos por esto antes de comenzar.
 
 \vspace{\baselineskip}
 
-Sabemos que las observaciones para esta variable cuenta con valores entre 72 y 82, por lo que tenemos información exacta del año (en comparación, por ejemplo, con agrupaciones mayores como la década o el siglo). El hecho de tratarla como categórica o cuantitativa depende mucho del problema. En este caso, tenemos interés en cuestionarnos por valores entre años, por ejemplo, el consumo entre los años 75 y 76 (por otro lado, no tenemos información más precisa para los meses dentro del año)
+Sabemos que las observaciones para esta variable cuenta con valores entre 72 y 82, por lo que tenemos información exacta del año (en comparación, por ejemplo, con agrupaciones mayores como la década o el siglo). El hecho de tratarla como categórica o cuantitativa depende mucho del problema. En este caso, tenemos interés en cuestionarnos por valores entre años, por ejemplo, el consumo entre los años 75 y 76.
 
 \vspace{\baselineskip}
 
-En un principio, el dataset está planteado para regresión, por lo que tendríamos dos opciones: 
+Por tanto, de cara al problema de regresión que nos atañe, tendríamos dos opciones: 
 \begin{itemize}
-    \item Mantenerlo como categórico y generar variables dummy (Valores 0-1 para indicar si la instancia es de ese año). Suponiendo que tenemos al menos una instancia de cada año, esto nos generaría 12 variables nuevas. 
+    \item Mantenerlo como categórico y generar variables dummy (valores 0-1 para indicar si la instancia es de ese año). Suponiendo que tenemos al menos una instancia de cada año, esto nos generaría 12 variables nuevas. 
     \item Mantenerlo como numérico, pero teniendo cuidado de cómo interpretar el año.
 \end{itemize}
 
@@ -74,6 +74,8 @@ Proseguimos con tanto dejando Model\_year como variable numérica.
 
 \subsubsection{Análisis univariable}
   
+La cabecera de nuestro dataset tiene esta forma:
+
 \begin{tabular}{|r|r|r|r|r|r|}
     \hline
     Displacement & Horse\_power & Weight & Acceleration & Model\_year & Mpg\\
@@ -94,7 +96,7 @@ Proseguimos con tanto dejando Model\_year como variable numérica.
 
 \vspace{\baselineskip}
 
-Hacemos summary para sacar datos de relevancia
+Y con la siguiente información estadística:
 
 \begin{verbatim}
   Displacement    Horse_power        Weight      Acceleration     Model_year   
@@ -115,16 +117,16 @@ Hacemos summary para sacar datos de relevancia
 
 \vspace{\baselineskip}
 
-El dataset no cuenta con valores repetidos ni missing values.
+El dataset \textbf{no} cuenta con \textbf{valores repetidos} ni \textbf{missing values}.
 
 \vspace{\baselineskip}
 
-Vamos a sacar plots de cada variable para verlo mejor
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-6-1} \caption{}\end{figure}
+% \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-6-1} \caption{}\end{figure}
 
-Una a una
+% Una a una
 
+Mostramos scatterplots univariables:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-7-1}\caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-7-2} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-7-3} \caption{}\end{figure}
@@ -132,11 +134,9 @@ Una a una
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-7-5} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-7-6} \caption{}\end{figure}
 
-
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-7-7} \caption{}\end{figure}
 
-Sobre la distribuciones de los datos
-
+Y boxplots sobre las distribuciones de los datos:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-8-1} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-8-2} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-8-3} \caption{}\end{figure}
@@ -149,7 +149,7 @@ Sobre la distribuciones de los datos
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-9-2} \caption{}\end{figure}
 
 Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes dependiendo de la variable. Se pueden estandarizar los datos para solucionar este problema, aunque para regresión lineal no es necesario (sí lo es para KNN)
-
+\vspace{\baselineskip}
 Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
 
 \begin{verbatim}
@@ -165,36 +165,22 @@ Displacement  Horse_power       Weight Acceleration   Model_year          Mpg
 \end{verbatim}
 
 \paragraph{Displacement}
-
-La cilindrada vemos con una desviación grande y una gran concentración
-en los valores inferiores. Desviado a la izquierda, no parece seguir una
-distribución normal. Existe una alta concentración en torno al valor
-125, muy por encima del recuento que alcanzan el resto de valores
+La cilindrada vemos con una desviación grande y una gran concentración en los valores inferiores. Desviado a la izquierda, no parece seguir una distribución normal. Existe una alta concentración en torno al valor 125, muy por encima del recuento que alcanzan el resto de valores
 
 \paragraph{Horse\_power}
-
-Similar a Displacement pero cuenta con una mayor dispersión y algunos
-valores muya altos. A día de hoy los coches suelen rondar los 120 en
-turismos y los 200 en SUVs. Aquí contamos con predominancia en el rango
-aproximado {[}70, 125{]} con algunas instancias por encima de los 200.
+Similar a Displacement pero cuenta con una mayor dispersión y algunos valores muya altos. A día de hoy los coches suelen rondar los 120 en turismos y los 200 en SUVs. Aquí contamos con predominancia en el rango aproximado {[}70, 125{]} con algunas instancias por encima de los 200.
 Desviado a la izquierda, no parece seguir una distribución normal.
 
 
 \paragraph{Weight}
-
-Una distribución más achatada que las anteriores, también ladeada hacia
-la izquierda. Un rango mayor
+Una distribución más achatada que las anteriores, también ladeada hacia la izquierda. Un rango mayor
 
 \paragraph{Acceleration}
-
-Valores altamentes concentrados pero en general con un rango alto.
-Parece seguir una distribución normal.
+Valores altamentes concentrados pero en general con un rango alto. Su forma se asemeja a una distribución normal.
 
 
 \paragraph{Model\_year}
-
-Aunque no se vea bien en las gráficas, contamos con valores de todos los
-años, más o menos equitativamente
+Aunque no se vea bien en las gráficas, contamos con valores de todos los años, más o menos equitativamente
 
 \begin{verbatim}
 Años:   70 71 72 73 74 75 76 77 78 79 80 81 82 
@@ -205,7 +191,7 @@ Conteo: 29 27 28 40 26 30 34 28 36 29 27 28 30
 \subsubsection{Análisis sobre las distribuciones}
 
 Hemos comentado antes que no apreciamos semejanzas con una distribución normal en algunas de las variables, lo comprobamos con un test estadístico (Shapiro-Wilk test):
-
+\vspace{\baselineskip}
 \begin{tabular}{l|r|r|r}
 \hline
 vars & statistic & p\_value & sample\\
@@ -224,13 +210,16 @@ Mpg & 0.9671696 & 0.0000001 & 392\\
 \hline
 \end{tabular}
 
-El test de Shapiro nos dice que ninguna variable sigue una distribución normal, con bastante certeza excepto en Acceleration.
+\vspace{\baselineskip}
 
-Para regresión aún así no es necesario.
+El test de Shapiro nos asegura con bastante certeza que ninguna variable sigue una distribución normal, aunque en menor grado en Acceleration (sigue siendo al 97\% de confianza).
 
+Para los modelos de regresión que vamos a usar aún así la normalidad de los datos no es necesaria.
+\vspace{\baselineskip}
 Se muestra aquí como no hay que dejarse engañar por los gráficos, puesto que Acceleration parecía seguirla. El p-value de Acceleration está muy cerca del umbral (0.03 vs 0.05). Es bastante probable de que la parte central derecha de la distribución sea la causante de no asegurar la normalidad.
 
-Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
+\vspace{\baselineskip}
+Mostramos con gráficos Q-Q cómo se separan las distribuciones de su supuesta normal:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-14-1} \caption{}\end{figure}
 
@@ -248,6 +237,7 @@ Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
 
 Estos gráficos Q-Q nos muestran más claramente que las variables no siguen distribuciones normales. La distribución de Acceleration es la que más se asemeja y eso lo vemos en el estadístico de Shapiro, pero en la cola superior existe una diferencia significativa que hace que el test rechace.
 
+\paragraph{Skewness}
 Las variables con skewness que tenemos son:
 
 \begin{verbatim}
@@ -260,6 +250,8 @@ Concretamente, sus valores son:
 Displacement: [1] 0.6989813
 Horse_power: [1] 1.083161
 Weight: [1] 0.5175953
+
+Adicionalmente, se muestra:
 Mpg: [1] 0.4553414
 \end{verbatim}
 
@@ -268,53 +260,13 @@ Sobre la skewness, tal y como se había visto en las gráficas, algunas de las v
 Los plots nos han dado idea de que Mpg tiene cierta skewness, pero cae por debajo del umbral de 0.5.
 
 \subsubsection{Transformaciones}
+En general no consideramos ninguna transformación necesaria para el dataset con el que contamos.
+No vemos necesario crear variables nuevas a partir de las vistas, puesto que por el conocimiento que tenemos del problema parece que las variables son coherentes.
 
-Tampoco vemos necesario crear variables nuevas a partir de las vistas, por el conocimiento que tenemos del problema parece que las variables son coherentes.
+Las transformaciones necesarias para pasar a una distribución normal dependen de la variable en cuestión. Primero deberíamos averiguar que tipo de distribución siguen.
+Aunque, tal y como se ha comentado anteriormente, los métodos utilizados para regresión (regresión lineal y KNN) no asumen ninguna forma para la distribución de los datos, por lo que no es necesario aplicar nada.
 
-Las transformaciones necesarias para pasar a una distribución normal dependen de la variable en cuestion. Primero debemos averiguar que tipo de distribución siguen.
-
-De todas maneras, los métodos utilizados para regresión (regresión lineal y KNN) no asumen ninguna forma para la distribución de los datos, por lo que no es necesario aplicar nada.
-
-Algunas parecen tener una distribución exponencial
-
-\begin{verbatim}
-  Displacement      Horse_power           Weight          Acceleration     
- Min.   :-1.8856   Min.   :-2.59657   Min.   :-2.19582   Min.   :-3.08413  
- 1st Qu.:-0.8847   1st Qu.:-0.77280   1st Qu.:-0.88990   1st Qu.:-0.61672  
- Median :-0.1367   Median :-0.07186   Median :-0.02988   Median : 0.02508  
- Mean   : 0.0000   Mean   : 0.00000   Mean   : 0.00000   Mean   : 0.00000  
- 3rd Qu.: 0.9411   3rd Qu.: 0.77159   3rd Qu.: 0.84752   3rd Qu.: 0.56609  
- Max.   : 1.7103   Max.   : 2.16086   Max.   : 1.95352   Max.   : 3.03480  
-   Model_year           Mpg          
- Min.   :-1.6431   Min.   :-2.45780  
- 1st Qu.:-0.8047   1st Qu.:-0.79553  
- Median : 0.0172   Median : 0.04412  
- Mean   : 0.0000   Mean   : 0.00000  
- 3rd Qu.: 0.8236   3rd Qu.: 0.78143  
- Max.   : 1.6154   Max.   : 2.32155  
-\end{verbatim}
-
-Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente para pasarla a una normal.
-
-\begin{tabular}{l|r|r|r}
-\hline
-vars & statistic & p\_value & sample\\
-\hline
-Displacement & 0.8818359 & 0.0000000 & 392\\
-\hline
-Horse\_power & 0.9040975 & 0.0000000 & 392\\
-\hline
-Weight & 0.9414661 & 0.0000000 & 392\\
-\hline
-Acceleration & 0.9918671 & 0.0305289 & 392\\
-\hline
-Model\_year & 0.9469666 & 0.0000000 & 392\\
-\hline
-Mpg & 0.9671696 & 0.0000001 & 392\\
-\hline
-\end{tabular}
-
-Aunque para regresión lineal no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no va a variar, por lo que es conveniente hacerlo. Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de la regresión para no confundirnos.
+Adicionalmente, aunque para regresión lineal no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no variaría aplicando esta transformación, pero deberíamos tener cuidado a la hora de interpretar los resultados de la regresión para no confundirnos.
 
 \subsubsection{Outliers}
 
@@ -326,9 +278,11 @@ Deberíamos decidir si mantener o no estas instancias. Como en nuestro caso se n
 
 \subsubsection{Análisis de correlación}
 
-Tenemos que tener en cuenta que las variables no siguen distribuciones normales. Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos usar el coeficiente de Kendall para los cálculos. Independientemente del método usado vamos a obtener las mismas correlaciones en este dataset, solo varía la fuerza con la que se dan.
+Tenemos que tener en cuenta que las variables no siguen distribuciones normales. Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos además usar el coeficiente de Kendall para los cálculos. Independientemente del método usado vamos a obtener las mismas correlaciones en este dataset, solo varía el valor de fuerza con la que se dan.
 
-Para regresión la correlación en los datos no es preocupante. Al contrario, podría haber información (poca, pero alguna cantidad) que se aporte y nos ayude en el problema. Además, la propia metodología de selección de variables en el modelo multivariable nos ayudará a descartar aquellas variables que no sean necesarias como regresor.
+\vspace{\baselineskip}
+
+Para regresión la correlación en los datos no es preocupante. Al contrario, podría haber información (poca, pero alguna cantidad) que se aporte y nos ayude en el problema. En el peor de los casos, la propia metodología de selección de variables en el modelo multivariable nos ayudará a descartar aquellas variables que no sean necesarias como regresor.
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-19-1} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-19-2} \caption{}\end{figure}
@@ -350,27 +304,35 @@ Estas gráficas nos dicen que existe una alta correlación en el dataset, genera
 
 El scatterplot anterior nos muestra mejor la forma de estas correlaciones. Vemos que en todos los casos en los que se da una correlación positiva existe una tendencia lineal entre los datos de ambas variables, y en las negativas una tendencia logarítmica.
 
-Vamos a mostrar algunas Positivas:
+\vspace{\baselineskip}
+
+Vamos a mostrar algunas parejas con correlación positiva:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-21-1} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-21-2} \caption{}\end{figure}
 
-Negativas
+Y otras con correlación negativa:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-22-1} \caption{}\end{figure}
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-22-2} \caption{}\end{figure}
 
-Previsualicación de las variables respecto a la salida
+También podemos visualizar los regresores respecto a la salida:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-23-1} \caption{}\end{figure}
 
-Se aprecia alta correlación entre Displacement, Horse\_power, Weight respecto de la salida.
+Como habíamos visto, existe alta correlación entre Displacement, Horse\_power, Weight respecto de Mpg.
 
-Como habíamos supuesto en la hipótesis H.9, Horse\_power podría depender de Displacement y Weight. Esta claro que la potencia de un motor va a depender de la cilindrada y el peso que tenga.
+\vspace{\baselineskip}
+
+Haciendo referencia a la hipótesis H.9, Horse\_power podría depender de Displacement y Weight. Parece bastante probable que la potencia de un motor dependa de la cilindrada y el peso que tenga.
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-24-1} \caption{}\end{figure}
 
+% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 Podemos apreciar como la función de densidad de Horse\_power parece una (``MEDIANIZACIÓN'') de las otras dos.
+
+% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Vamos a intentar comprobarlo
 
@@ -392,6 +354,7 @@ Para añadir interpretabilidad, podríamos agrupar la variable Weight en interva
 \subsubsection{Ordenaciones}
 
 Volvemos a mostrar la cabecera de los datos:
+\vspace{\baselineskip}
 
 \begin{tabular}{r|r|r|r|r|r}
 \hline
@@ -411,14 +374,14 @@ Displacement & Horse\_power & Weight & Acceleration & Model\_year & Mpg\\
 \hline
 \end{tabular}
 
-En este caso no es necesario aplicar ninguna reorganización. Cada variable ocupa su propia columna, y contiene un único tipo de información, con unidades de observación diferentes No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse).
+En este caso no es necesario aplicar ninguna reorganización. Cada variable ocupa su propia columna y contiene un único tipo de información, con unidades de observación diferentes. No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que podrían agruparse).
 
-\paragraph{Resolución de hipótesis}
+\subsubsection{Resolución de hipótesis}
 
 Nos habíamos planteado las siguientes hipótesis
 
 \begin{itemize}
-\item H.1: Horse\_power puede influir en Mpg: A más potencia, más consumo.
+\item \textbf{H.1}: Horse\_power puede influir en Mpg: A más potencia, más consumo.
 \end{itemize}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-27-1} \caption{}\end{figure}
@@ -426,9 +389,9 @@ Nos habíamos planteado las siguientes hipótesis
 Con el plot y los resultados de la matriz de correlación queda claro que existe una correlación negativa entre estas dos variables. Por tanto, podemos considerar Horse\_power como un buen candidato para la regresión
 
 \begin{itemize}
-\item H.2: Weight debe influir en Mpg: Un coche más pesado debería consumir más idem. a la hipótesis anterior, lo hemos visto anteriormente en la figura X
-\item H.3: Debería haber correlación entre displacement (cilindrada) con horse y acceleration La hemos referenciado anteriormente
-\item H.4: Horse y acceleration podrían estar relacionadas
+\item \textbf{H.2}: Weight debe influir en Mpg: Un coche más pesado debería consumir más idem. a la hipótesis anterior, lo hemos visto anteriormente en la figura X
+\item \textbf{H.3}: Debería haber correlación entre displacement (cilindrada) con horse y acceleration La hemos referenciado anteriormente
+\item \textbf{H.4}: Horse y acceleration podrían estar relacionadas
 \end{itemize}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-28-1} \caption{}\end{figure}
@@ -436,7 +399,7 @@ Con el plot y los resultados de la matriz de correlación queda claro que existe
 idem. se aprecia una correlación logarítmica entre las dos variables. Similarmente a lo ocurrido con la hipótesis anterior, esto puede ser un problema para nuestro problema de regresión.
 
 \begin{itemize}
-\item H.5: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años.
+\item \textbf{H.5}: Viendo que contamos con un rango pequeño de años, no debería haber un cambio significativo de prestaciones entre años.
 \end{itemize}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA_files/figure-latex/unnamed-chunk-29-1} \caption{}\end{figure}
@@ -495,13 +458,13 @@ Year: 82  Displacement Horse_power Weight Acceleration Model_year Mpg
 \end{verbatim}
 
 \begin{itemize}
-\item H.6: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse\_power y Acceleration.
+\item \textbf{H.6}: Pero debería existir una tendencia de mejora de prestaciones con los años, incluyendo aumento de Displacement, Horse\_power y Acceleration.
 \end{itemize}
 
 Ciertamente. Se ha comprobado en la hipótesis anterior.
 
 \begin{itemize}
-\item H.7: Model\_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos\ldots) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas
+\item \textbf{H.7}: Model\_year podría no mostrar relación con Mpg: Pese al paso de los años si contamos con diferentes tipos de vehículos (todoterrenos, familiares, deportivos\ldots) podría haber un consumo dispar. (Si existiera tendencia, viendo que los años son de las últimas décadas
   del siglo XX, podría ir el consumo hacia abajo)
 \end{itemize}
 
@@ -519,16 +482,16 @@ Podemos ver como se ubican los diferentes años en un plot Horse\_power vs Mpg
 Y vemos que no se puede afirmar la hipótesis, los coches están entremezclados por diferentes años
 
 \begin{itemize}
-\item H.8: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model\_year no debería tener relevancia para este problema de regresión.
+\item \textbf{H.8}: Esta última hipótesis se puede aplicar al resto de variables, indicándonos que Model\_year no debería tener relevancia para este problema de regresión.
 \end{itemize}
 
 No podemos afirmar la hipótesis anterior y por consiguiente esta tampoco.
 
 \begin{itemize}
-\item H.9: Horse\_power podría depender de las variables Displacement y Weight
+\item \textbf{H.9}: Horse\_power podría depender de las variables Displacement y Weight
 \end{itemize}
 
-Lo hemos comentado anteriormente
+Lo hemos comentado anteriormente.
 
 \subsection{Conclusiones}
 

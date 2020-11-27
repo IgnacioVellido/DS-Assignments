@@ -303,25 +303,6 @@ Primero debemos averiguar que tipo de distribución siguen.
 
 De todas maneras, los métodos utilizados para regresión (regresión lineal y KNN) no asumen ninguna forma para la distribución de los datos, por lo que no es necesario aplicar nada.
 
-Algunas parecen tener una distribución exponencial
-
-```{r}
-# auto_transform <- preProcess(auto[,skewCols], method=c("YeoJohnson"))
-# auto_norm <- predict(auto_transform, auto[,skewCols])
-
-# auto_transform <- preProcess(auto[,1:6], method=c("scale", "center"))
-auto_transform <- preProcess(auto[,1:6], method=c("YeoJohnson","scale", "center"))
-auto_norm <- predict(auto_transform, auto[,1:6])
-
-summary(auto_norm)
-```
-
-Para la variable Acceleration aplicando una transformación de YeoJohnson es suficiente para pasarla a una normal.
-```{r}
-normality(auto)
-```
-
-
 Aunque para regresión lineal no es absolutamente necesario, podemos estandarizar los datos a media 0 y dev 1, facilitando un poco los cálculos. La inferencia estadística de la regresión no va a variar, por lo que es conveniente hacerlo.
 Haciendo esto debemos tener cuidado a la hora de interpretar los resultados de la regresión para no confundirnos.
 
