@@ -14,8 +14,8 @@ output:
 #     keep_tex: yes
 #     df_print: kable
 
-knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center",
-                      #include = False, # para PDF
+knitr::opts_chunk$set(echo = F, results="hold", fig.align="center",
+                      # include = F, # para PDF
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)

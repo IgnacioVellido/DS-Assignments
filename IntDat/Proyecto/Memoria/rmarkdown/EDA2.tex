@@ -42,46 +42,6 @@
   pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
 \usepackage[margin=1in]{geometry}
-\usepackage{color}
-\usepackage{fancyvrb}
-\newcommand{\VerbBar}{|}
-\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
-% Add ',fontsize=\small' for more characters per line
-\usepackage{framed}
-\definecolor{shadecolor}{RGB}{248,248,248}
-\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
-\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
-\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
-\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\BuiltInTok}[1]{#1}
-\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
-\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
-\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
-\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
-\newcommand{\ExtensionTok}[1]{#1}
-\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\ImportTok}[1]{#1}
-\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
-\newcommand{\NormalTok}[1]{#1}
-\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
-\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
-\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
-\newcommand{\RegionMarkerTok}[1]{#1}
-\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
 \usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -250,14 +210,6 @@ las variables:
 
 Cargamos los datos:
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{names <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Age"}\NormalTok{, }\StringTok{"Year"}\NormalTok{, }\StringTok{"Positive"}\NormalTok{, }\StringTok{"Survival"}\NormalTok{)}
-
-\NormalTok{haberman <-}\StringTok{ }\KeywordTok{read_csv}\NormalTok{(}\StringTok{"Data/haberman/haberman.dat"}\NormalTok{, }\DataTypeTok{comment =} \StringTok{"@"}\NormalTok{, }\DataTypeTok{col_names =}\NormalTok{ names)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
 
 -- Column specification --------------------------------------------------------
@@ -274,24 +226,12 @@ numéricas y Survival como carácter.
 
 Vamos a transformar Survival a Factor
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman}\OperatorTok{$}\NormalTok{Survival <-}\StringTok{ }\NormalTok{haberman}\OperatorTok{$}\NormalTok{Survival }\OperatorTok{%>%}\StringTok{ }\KeywordTok{factor}\NormalTok{(}\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\StringTok{"negative"}\NormalTok{, }\StringTok{"positive"}\NormalTok{), }\DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"No"}\NormalTok{, }\StringTok{"Yes"}\NormalTok{))}
-\end{Highlighting}
-\end{Shaded}
-
 El resto de variables las mantenemos como numéricas
 
 \hypertarget{anuxe1lisis-univariable}{%
 \paragraph{Análisis univariable}\label{anuxe1lisis-univariable}}
 
 Los datos nos quedan por tanto de la siguiente manera:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{head}\NormalTok{(haberman)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{tabular}{r|r|r|l}
 \hline
@@ -313,12 +253,6 @@ Age & Year & Positive & Survival\\
 
 Hacemos summary para sacar datos de relevancia
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{summary}\NormalTok{(haberman)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
       Age             Year          Positive      Survival 
  Min.   :30.00   Min.   :58.00   Min.   : 0.000   No :225  
@@ -336,24 +270,11 @@ los 5 años.
 
 El dataset cuenta con valores repetidos
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{sum}\NormalTok{(}\KeywordTok{duplicated}\NormalTok{(haberman))}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
 [1] 17
 \end{verbatim}
 
 Mostramos estas ocurrencias:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{ind <-}\StringTok{ }\KeywordTok{duplicated}\NormalTok{(haberman) }\OperatorTok{|}\StringTok{ }\KeywordTok{duplicated}\NormalTok{(haberman, }\DataTypeTok{fromLast =} \OtherTok{TRUE}\NormalTok{)}
-\NormalTok{haberman[ind,] }\OperatorTok{%>%}\StringTok{ }\KeywordTok{arrange}\NormalTok{(Age)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{tabular}{r|r|r|l}
 \hline
@@ -451,61 +372,17 @@ Por tanto proseguimos sin eliminar estas instancias duplicadas.
 
 No contamos con missing values
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{sum}\NormalTok{(}\KeywordTok{is.na}\NormalTok{(haberman))}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
 [1] 0
 \end{verbatim}
 
 Separamos los datos de las etiquetas
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{labels <-}\StringTok{ }\NormalTok{haberman[}\DecValTok{4}\NormalTok{]}
-\NormalTok{haberman <-}\StringTok{ }\NormalTok{haberman[}\OperatorTok{-}\DecValTok{4}\NormalTok{]}
-\NormalTok{names <-}\StringTok{ }\KeywordTok{colnames}\NormalTok{(haberman)}
-\end{Highlighting}
-\end{Shaded}
-
 Vamos a sacar plots de cada variable para verlo mejor
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{gather}\NormalTok{(haberman), }\KeywordTok{aes}\NormalTok{(value)) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{geom_histogram}\NormalTok{(}\DataTypeTok{bins =} \DecValTok{13}\NormalTok{, }\DataTypeTok{color=}\StringTok{"white"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(}\OperatorTok{~}\NormalTok{key, }\DataTypeTok{scales =} \StringTok{'free_x'}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{theme_light}\NormalTok{() }\OperatorTok{+}
-\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{strip.background =} \KeywordTok{element_rect}\NormalTok{(}\DataTypeTok{fill=}\StringTok{"grey"}\NormalTok{, }\DataTypeTok{size=}\DecValTok{2}\NormalTok{))}\OperatorTok{+}
-\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{strip.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{colour =} \StringTok{'black'}\NormalTok{)) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Histogramas de cada variable"}\NormalTok{, }\DataTypeTok{x =} \StringTok{""}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-9-1} \end{center}
 
 Una a una
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{colors <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"chocolate"}\NormalTok{, }\StringTok{"deepskyblue1"}\NormalTok{, }\StringTok{"plum1"}\NormalTok{)}
-\NormalTok{bins <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{15}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{20}\NormalTok{)}
-\NormalTok{plt <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(names))}
-
-\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(names)) \{}
-  \KeywordTok{ggplot}\NormalTok{(haberman, }\KeywordTok{aes_string}\NormalTok{(}\DataTypeTok{x=}\NormalTok{names[i])) }\OperatorTok{+}\StringTok{ }
-\StringTok{    }\KeywordTok{geom_histogram}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{..density..), }\DataTypeTok{size=}\DecValTok{1}\NormalTok{, }\DataTypeTok{bins=}\NormalTok{bins[i], }\DataTypeTok{color=}\StringTok{"black"}\NormalTok{, }\DataTypeTok{fill=}\NormalTok{colors[i]) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_density}\NormalTok{(}\DataTypeTok{alpha=}\NormalTok{.}\DecValTok{3}\NormalTok{, }\DataTypeTok{fill=}\StringTok{"black"}\NormalTok{, }\DataTypeTok{color=}\StringTok{"green"}\NormalTok{, }\DataTypeTok{size=}\NormalTok{.}\DecValTok{5}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{""}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{, }\DataTypeTok{y=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{() ->}\StringTok{ }\NormalTok{plt[[i]]}
-  
-  \KeywordTok{print}\NormalTok{(plt[[i]] }\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"Histograma %s"}\NormalTok{, names[i]), }\DataTypeTok{x=}\StringTok{""}\NormalTok{))}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-10-1} \end{center}
 
@@ -513,29 +390,7 @@ Una a una
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-10-3} \end{center}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{plot_grid}\NormalTok{(}\DataTypeTok{plotlist=}\NormalTok{plt, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{labels =}\NormalTok{ names, }\DataTypeTok{label_size =} \DecValTok{8}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-10-4} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{colors <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"chocolate"}\NormalTok{, }\StringTok{"deepskyblue1"}\NormalTok{, }\StringTok{"plum1"}\NormalTok{)}
-\NormalTok{plt <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(names))}
-
-\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(names)) \{}
-  \KeywordTok{ggplot}\NormalTok{(haberman, }\KeywordTok{aes_string}\NormalTok{(}\DataTypeTok{x=}\NormalTok{names[i])) }\OperatorTok{+}\StringTok{ }
-\StringTok{    }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{fill =}\NormalTok{ colors[i]) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{""}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{, }\DataTypeTok{y=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{() ->}\StringTok{ }\NormalTok{plt[[i]]}
-  
-  \KeywordTok{print}\NormalTok{(plt[[i]] }\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"Boxplot %s"}\NormalTok{, names[i]), }\DataTypeTok{x=}\StringTok{""}\NormalTok{))}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-11-1} \end{center}
 
@@ -543,22 +398,7 @@ Una a una
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-11-3} \end{center}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{plot_grid}\NormalTok{(}\DataTypeTok{plotlist=}\NormalTok{plt, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{labels =}\NormalTok{ names, }\DataTypeTok{label_size =} \DecValTok{8}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-11-4} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{melt}\NormalTok{(haberman), }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{variable, }\DataTypeTok{y=}\NormalTok{value)) }\OperatorTok{+}\StringTok{ }
-\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{() }\OperatorTok{+}
-\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Boxplot con mismo rango"}\NormalTok{) }\OperatorTok{+}
-\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle =} \DecValTok{90}\NormalTok{))}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 No id variables; using all as measure variables
@@ -596,24 +436,12 @@ interpolación lineal.
 Podemos comparar los rangos intercuartiles si estandarizamos antes el
 dataset
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{scale}\NormalTok{(haberman) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, IQR)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
      Age     Year Positive 
 1.550430 1.769555 0.556355 
 \end{verbatim}
 
 También podemos ver la distancia entre mínimos y máximos
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{scale}\NormalTok{(haberman) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, range) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{apply}\NormalTok{(}\DecValTok{2}\NormalTok{, dist)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
      Age     Year Positive 
@@ -624,15 +452,6 @@ También podemos ver la distancia entre mínimos y máximos
 \paragraph{Age}\label{age}}
 
 Vemos que no contamos con valores de todos los años:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{table}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Age)}
-\KeywordTok{table}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Age) }\OperatorTok{%>%}\StringTok{ }\NormalTok{length}
-
-\NormalTok{(}\DecValTok{83-30}\OperatorTok{+}\DecValTok{1}\NormalTok{) }\OperatorTok{==}\StringTok{ }\KeywordTok{table}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Age) }\OperatorTok{%>%}\StringTok{ }\NormalTok{length}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 
@@ -649,12 +468,6 @@ Vemos que no contamos con valores de todos los años:
 
 Aunque no se vea bien en las gráficas, contamos con valores de todos los
 años, con mayor cantidad en los iniciales:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{table}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Year)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 
@@ -678,12 +491,6 @@ Ninguna variable parece seguir una distribución semejante a una
 distribución normal, lo comprobamos con un test estadístico
 (Shapiro-Wilk test):
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{normality}\NormalTok{(haberman) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(p_value }\OperatorTok{<}\StringTok{ }\FloatTok{0.05}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
 Warning: `cols` is now required when using unnest().
 Please use `cols = c(statistic)`
@@ -706,35 +513,11 @@ distribución normal.
 
 Lo mostramos gráficamente con plots Q-Q:
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{plt <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\DataTypeTok{length =} \KeywordTok{length}\NormalTok{(names))}
-
-\NormalTok{x<-}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\DataTypeTok{mean=}\DecValTok{0}\NormalTok{, }\DataTypeTok{sd=}\DecValTok{1}\NormalTok{)}
-
-\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{length}\NormalTok{(names)) \{}
-  \KeywordTok{ggplot}\NormalTok{(haberman, }\KeywordTok{aes_string}\NormalTok{(}\DataTypeTok{sample=}\NormalTok{names[i])) }\OperatorTok{+}\StringTok{ }
-\StringTok{    }\KeywordTok{stat_qq}\NormalTok{(}\DataTypeTok{alpha=}\NormalTok{.}\DecValTok{3}\NormalTok{, }\DataTypeTok{fill=}\NormalTok{colors[i], }\DataTypeTok{size=}\DecValTok{1}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{stat_qq_line}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{""}\NormalTok{, }\DataTypeTok{x=}\StringTok{""}\NormalTok{, }\DataTypeTok{y=}\StringTok{""}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{() ->}\StringTok{ }\NormalTok{plt[[i]]}
-  
-  \KeywordTok{print}\NormalTok{(plt[[i]] }\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\KeywordTok{sprintf}\NormalTok{(}\StringTok{"QQ-plot %s"}\NormalTok{, names[i]), }\DataTypeTok{x=}\StringTok{""}\NormalTok{))}
-\NormalTok{\}}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-18-1} \end{center}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-18-2} \end{center}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-18-3} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{plot_grid}\NormalTok{(}\DataTypeTok{plotlist=}\NormalTok{plt, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{labels =}\NormalTok{ names, }\DataTypeTok{label_size =} \DecValTok{8}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-18-4} \end{center}
 
@@ -744,49 +527,19 @@ mayormente en las colas.
 La variable Positive parece seguir una distribución exponencial, hacemos
 un test de Kolmogorov-Smirnov para corroborarlo:
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# data generation}
-\NormalTok{ex <-}\StringTok{ }\KeywordTok{rexp}\NormalTok{(}\DecValTok{10000}\NormalTok{, }\DataTypeTok{rate =} \FloatTok{1.85}\NormalTok{) }\CommentTok{# generate some exponential distribution}
-\NormalTok{control <-}\StringTok{ }\KeywordTok{abs}\NormalTok{(}\KeywordTok{rnorm}\NormalTok{(}\DecValTok{10000}\NormalTok{)) }\CommentTok{# generate some other distribution}
-
-\CommentTok{# estimate the parameters}
-\NormalTok{fit1 <-}\StringTok{ }\KeywordTok{fitdistr}\NormalTok{(ex, }\StringTok{"exponential"}\NormalTok{) }
-\NormalTok{fit2 <-}\StringTok{ }\KeywordTok{fitdistr}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Positive }\OperatorTok{%>%}\StringTok{ }\KeywordTok{unique}\NormalTok{(), }\StringTok{"exponential"}\NormalTok{)}
-
-\CommentTok{# goodness of fit test}
-\KeywordTok{ks.test}\NormalTok{(ex, }\StringTok{"pexp"}\NormalTok{, fit1}\OperatorTok{$}\NormalTok{estimate) }\CommentTok{# p-value > 0.05 -> distribution not refused}
-\KeywordTok{ks.test}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Positive, }\StringTok{"pexp"}\NormalTok{, fit2}\OperatorTok{$}\NormalTok{estimate) }\CommentTok{#  significant p-value -> distribution refused}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{verbatim}
 Warning in ks.test(haberman$Positive, "pexp", fit2$estimate): ties should not be
 present for the Kolmogorov-Smirnov test
 \end{verbatim}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# plot a graph}
-\KeywordTok{hist}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Positive, }\DataTypeTok{freq =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{breaks =} \DecValTok{100}\NormalTok{, }\DataTypeTok{xlim =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\KeywordTok{quantile}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Positive, }\FloatTok{0.99}\NormalTok{)))}
-\KeywordTok{curve}\NormalTok{(}\KeywordTok{dexp}\NormalTok{(x, }\DataTypeTok{rate =}\NormalTok{ fit1}\OperatorTok{$}\NormalTok{estimate), }\DataTypeTok{from =} \DecValTok{0}\NormalTok{, }\DataTypeTok{col =} \StringTok{"red"}\NormalTok{, }\DataTypeTok{add =} \OtherTok{TRUE}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-19-1} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# control}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 
     One-sample Kolmogorov-Smirnov test
 
 data:  ex
-D = 0.0053904, p-value = 0.9334
+D = 0.0071498, p-value = 0.6862
 alternative hypothesis: two-sided
 
 
@@ -804,52 +557,15 @@ probablemente sea la causante de que no siga ese tipo de distribución
 Podemos hacer un gráfico QQ con los cuartiles de una distribución
 exponencial
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# From https://stats.stackexchange.com/questions/76994/how-do-i-check-if-my-data-fits-an-exponential-distribution/76998}
-\NormalTok{qqexp <-}\StringTok{  }\ControlFlowTok{function}\NormalTok{(y, }\DataTypeTok{line=}\OtherTok{FALSE}\NormalTok{, ...) \{ }
-\NormalTok{    y <-}\StringTok{ }\NormalTok{y[}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(y)]}
-\NormalTok{    n <-}\StringTok{ }\KeywordTok{length}\NormalTok{(y)}
-\NormalTok{    x <-}\StringTok{ }\KeywordTok{qexp}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\NormalTok{n)}\OperatorTok{/}\NormalTok{(n}\OperatorTok{+}\DecValTok{1}\NormalTok{))}
-\NormalTok{    m <-}\StringTok{ }\KeywordTok{mean}\NormalTok{(y)}
-    \ControlFlowTok{if}\NormalTok{ (}\KeywordTok{any}\NormalTok{(}\KeywordTok{range}\NormalTok{(y)}\OperatorTok{<}\DecValTok{0}\NormalTok{)) }\KeywordTok{stop}\NormalTok{(}\StringTok{"Data contains negative values"}\NormalTok{)}
-\NormalTok{    ylim <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\KeywordTok{max}\NormalTok{(y))}
-    \KeywordTok{qqplot}\NormalTok{(x, y, }\DataTypeTok{xlab=}\StringTok{"Exponential plotting position"}\NormalTok{,}\DataTypeTok{ylim=}\NormalTok{ylim,}\DataTypeTok{ylab=}\StringTok{"Ordered sample"}\NormalTok{, ...)}
-    \ControlFlowTok{if}\NormalTok{ (line) }\KeywordTok{abline}\NormalTok{(}\DecValTok{0}\NormalTok{,m,}\DataTypeTok{lty=}\DecValTok{2}\NormalTok{)}
-    \KeywordTok{invisible}\NormalTok{()}
-\NormalTok{\}}
-
-\KeywordTok{qqexp}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Positive, }\DataTypeTok{line=}\OtherTok{TRUE}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-20-1} \end{center}
 
 Solo vemos skewness en la variable Positive, lo comprobamos:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{skewCols <-}\StringTok{ }\KeywordTok{find_skewness}\NormalTok{(haberman)}
-\KeywordTok{colnames}\NormalTok{(haberman)[skewCols]}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 [1] "Positive"
 \end{verbatim}
 
 Calculamos el grado que tienen:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{cat}\NormalTok{(}\StringTok{"Positive: "}\NormalTok{)}
-\KeywordTok{skewness}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Positive)}
-\KeywordTok{cat}\NormalTok{(}\StringTok{"Year: "}\NormalTok{)}
-\KeywordTok{skewness}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Year)}
-\KeywordTok{cat}\NormalTok{(}\StringTok{"Age: "}\NormalTok{)}
-\KeywordTok{skewness}\NormalTok{(haberman}\OperatorTok{$}\NormalTok{Age)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 Positive: [1] 2.969176
@@ -866,12 +582,6 @@ poco como para poder considerarlo.
 \subsubsection{Transformaciones}\label{transformaciones}}
 
 Dejamos que el paquete caret nos proponga metodos de preprocesado
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{preProcess}\NormalTok{(haberman)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 Created from 306 samples and 3 variables
@@ -891,34 +601,6 @@ Según el método utilizado la necesitad de normalidad puede ser o no
 necesaria. (CORROBORAR) Aplicar métodos de reducción de skewness en
 Positive no parece interesante puesto que está demasiado ladeado.
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman_transform <-}\StringTok{ }\KeywordTok{preProcess}\NormalTok{(haberman, }\DataTypeTok{method=}\KeywordTok{c}\NormalTok{(}\StringTok{"scale"}\NormalTok{, }\StringTok{"center"}\NormalTok{))}
-\CommentTok{# haberman_transform <- preProcess(haberman, method=c("YeoJohnson","scale", "center"))}
-\NormalTok{haberman_norm <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(haberman_transform, haberman)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# colors <- c("chocolate", "deepskyblue1", "plum1")}
-\CommentTok{# bins <- c(15,10,20)}
-\CommentTok{# plt <- list(length = length(names))}
-\CommentTok{# }
-\CommentTok{# for (i in 1:length(names)) \{}
-\CommentTok{#   ggplot(haberman_norm, aes_string(x=names[i])) + }
-\CommentTok{#     geom_histogram(aes(y=..density..), size=1, bins=bins[i], color="black", fill=colors[i]) +}
-\CommentTok{#     geom_density(alpha=.3, fill="black", color="green", size=.5) +}
-\CommentTok{#     labs(title="", x="", y="") +}
-\CommentTok{#     theme_light() -> plt[[i]]}
-\CommentTok{#   }
-\CommentTok{#   print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))}
-\CommentTok{# \}}
-\CommentTok{# }
-\CommentTok{# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{outliers}{%
@@ -935,16 +617,6 @@ detectados complica la operación y el pronóstico para el paciente.
 
 Podemos mostrar para aquellos valores outliers la cantidad de
 sobrevivientes:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{filter}\NormalTok{(Positive}\OperatorTok{>}\DecValTok{10}\NormalTok{) }\OperatorTok{%>%}
-\StringTok{  }\KeywordTok{summarise}\NormalTok{(Survival) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{table}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 .
@@ -977,29 +649,11 @@ que se dan.
 
 Corrplot
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{corrplot.mixed}\NormalTok{(}\KeywordTok{cor}\NormalTok{(haberman), }\DataTypeTok{tl.pos=}\StringTok{"lt"}\NormalTok{, }\DataTypeTok{upper=}\StringTok{"color"}\NormalTok{, }\DataTypeTok{lower.col=}\StringTok{"black"}\NormalTok{, }\DataTypeTok{title=}\StringTok{"Pearson"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-27-1} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{corrplot.mixed}\NormalTok{(}\KeywordTok{cor}\NormalTok{(haberman, }\DataTypeTok{method=}\StringTok{"kendall"}\NormalTok{), }\DataTypeTok{tl.pos=}\StringTok{"lt"}\NormalTok{, }\DataTypeTok{upper=}\StringTok{"color"}\NormalTok{, }\DataTypeTok{lower.col=}\StringTok{"black"}\NormalTok{, }\DataTypeTok{title=}\StringTok{"Kendall"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-27-2} \end{center}
 
 Nos muestra que no existe correlación alguna entre las variables.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{scatterplotMatrix}\NormalTok{(haberman, }\DataTypeTok{pch=}\DecValTok{20}\NormalTok{, }\DataTypeTok{col=}\StringTok{"deepskyblue"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-28-1} \end{center}
 
@@ -1008,42 +662,9 @@ entre variables, vemos que no existe tendencia alguna.
 
 Miramos la distribución de las variables con su clasificación
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Age, }\DataTypeTok{y=}\NormalTok{Year, }\DataTypeTok{color=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Plot Age-Year con su Survival"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-29-1} \end{center}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{Age, }\DataTypeTok{x=}\NormalTok{Positive, }\DataTypeTok{color=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Plot Age-Year con su Survival"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-29-2} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Year, }\DataTypeTok{y=}\NormalTok{Positive, }\DataTypeTok{color=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Plot Age-Year con su Survival"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-29-3} \end{center}
 
@@ -1057,12 +678,6 @@ Survival.
 ordenaciones}\label{tratamiento-de-variables-y-ordenaciones}}
 
 Volvemos a mostrar la cabecera de los datos:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{head}\NormalTok{(haberman)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{tabular}{r|r|r}
 \hline
@@ -1108,28 +723,7 @@ Nos habíamos planteado las siguientes hipótesis
   introducción del problema.
 \end{itemize}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Positive, }\DataTypeTok{fill=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_bar}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{facet_wrap}\NormalTok{(}\OperatorTok{~}\StringTok{ }\NormalTok{Survival) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-31-1} \end{center}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{filter}\NormalTok{(Positive}\OperatorTok{>}\DecValTok{10}\NormalTok{) }\OperatorTok{%>%}
-\StringTok{  }\KeywordTok{summarise}\NormalTok{(Survival) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{table}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 .
@@ -1146,30 +740,9 @@ Vemos que la hipótesis no es cierta
   paciente.
 \end{itemize}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Age, }\DataTypeTok{fill=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_bar}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{facet_wrap}\NormalTok{(}\OperatorTok{~}\StringTok{ }\NormalTok{Survival) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-33-1} \end{center}
 
 Si miramos los pacientes \textless40
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{filter}\NormalTok{(Age}\OperatorTok{<}\DecValTok{40}\NormalTok{) }\OperatorTok{%>%}
-\StringTok{  }\KeywordTok{summarise}\NormalTok{(Survival) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{table}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
 .
@@ -1191,32 +764,10 @@ Nos sale todo lo contrario.
   pacientes.
 \end{itemize}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Year, }\DataTypeTok{fill=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_bar}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Survival en base a Year"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
-
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-35-1} \end{center}
 
 Decrementa el número de datos en años superiores, aunque las
 proporciones parecen aumentar. Lo mostramos:
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Year, }\DataTypeTok{fill=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_bar}\NormalTok{(}\DataTypeTok{position=}\StringTok{"fill"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Proporciones Surival en base a Year"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-36-1} \end{center}
 
@@ -1229,17 +780,6 @@ datos que tenemos, por lo que no podemos confirmar la hipótesis.
   H.4: Podría haber relación entre la edad y el número de positivos,
   posiblemente indicando lo tardío que se descubre el cáncer.
 \end{itemize}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\NormalTok{haberman }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{bind_cols}\NormalTok{(labels) }\OperatorTok{%>%}\StringTok{ }
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Age, }\DataTypeTok{y=}\NormalTok{Positive, }\DataTypeTok{color=}\NormalTok{Survival)) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{geom_point}\NormalTok{() }\OperatorTok{+}
-\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title=}\StringTok{"Plot Age-Positive con su Survival"}\NormalTok{) }\OperatorTok{+}
-\StringTok{    }\KeywordTok{theme_light}\NormalTok{()}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{center}\includegraphics{EDA2_files/figure-latex/unnamed-chunk-37-1} \end{center}
 

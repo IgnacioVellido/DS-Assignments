@@ -31,7 +31,6 @@ También tenemos que tener en cuenta que las tres primeras variables están corr
 Vamos a analizar un ajuste con cada una de las características:
 
 \begin{verbatim}
-
 Call: lm(formula = Mpg ~ Weight, data = auto)
 
 Residuals:
@@ -336,7 +335,6 @@ Podemos probar combinando la variable Acceleration separadamente con las que ya 
 \begin{center}\rule{\linewidth}{0.5pt}\end{center}
 
 \begin{verbatim}
-
 Call: lm(formula = Mpg ~ +Weight * Model_year + Acceleration * Weight, 
     data = auto)
 
@@ -467,7 +465,6 @@ Esta gráfica nos indica que es probable que se esté generando sobreajuste, se 
 
 Si quitamos la otra interacción:
 \begin{verbatim}
-
 Call: lm(formula = Mpg ~ Weight + Model_year + I(log(Weight)), data = auto)
 
 Residuals:
