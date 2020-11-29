@@ -10,7 +10,7 @@ Para el problema de clasificación hacemos uso del dataset \textbf{haberman} \ci
     \item \textbf{Year}: Los dos últimas cifras del año en el que se operó el paciente.
     \item \textbf{Positive}: Número de nodos auxiliares positivos detectados. Esta variable hace referencia a los ganglios linfáticos que dan positivos como presentes de cáncer. A mayor número de nodos detectados, mayor es la gravedad del cáncer. 
     
-    Aunque normalmente la primera zona de propagación del cáncer son estos nodos, no es la única medida de la seriedad, pues este puede propagarse a otras zonas del cuerpo. En principio deberíamos suponer la posibilidad de que puede haber cosas de no supervivencia con bajo número de positivos, pero la bibliografía nos asegura que la probabilidad es baja.
+    Aunque normalmente la primera zona de propagación del cáncer son estos nodos, no es la única medida de la seriedad, pues este puede propagarse a otras zonas del cuerpo. En principio no deberíamos descartar la posibilidad de que puede haber casos de no supervivencia con bajo número de positivos.
 
     Viendo que solo tenemos esta medida del cáncer en el dataset es posible que la operación que recibieron los pacientes sea algún tipo de cirugía de ganglios linfáticos, donde el cirujano intenta extraer los nodos afectados por el tumor. Por consiguiente, cuanto mayor es la cantidad de nodos detectados, más complicaciones pueden acarrearse de la operación \cite{cancer1, cancer2}.
 \end{enumerate}
@@ -45,17 +45,17 @@ La descripción del problema nos da alguna información adicional sobre las vari
 \paragraph{Hipótesis de partida}
 
 \begin{itemize}
-    \item \textbf{H.1}: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados: Por los razonamientos explicados en la introducción del problema.
+    \item \textbf{H.1}: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados.
     \item \textbf{H.2}: Habrá mayor ratio de supervivencia cuanto más joven sea el paciente.
     \item \textbf{H.3}: El rango de Year es pequeño. La influencia de esta variable creemos que podría darse solo si durante ese período se hubieran descubierto técnicas mejores de cirugía. Este razonamiento va orientado de cara a la población y no a la muestra. Puesto que contamos con datos de un solo hospital durante pocos años, es posible que el equipo de cirugía hubiera sido el mismo para la mayoría de pacientes.
     \item \textbf{H.4}: Podría haber relación entre la edad y el número de positivos, posiblemente indicando lo tardío que se descubre el cáncer.
-    \item \textbf{H.5}: La bibliografía nos dice que el cáncer puede aparecer a diferentes edades con diferentes factores de riesgo (alcoholismo, herencia genética\ldots). Podría ser que el número de variables con las que contamos sea insuficiente para la clasificación. (Hipótesis no correspondiente al EDA).
+    \item \textbf{H.5}: La bibliografía nos dice que el cáncer puede aparecer a diferentes edades con diferentes factores de riesgo (alcoholismo, herencia genética\ldots). Podría ser que el número de variables con las que contamos sea insuficiente para la clasificación. (Hipótesis no demostrable en el EDA).
 \end{itemize}
 
 \subsection{Análisis Estadístico de Datos}
 
 R por defecto nos carga las variables Age, Year y Positive como numéricas y Survival como carácter.
-Transformamos únicamente Survival a factor, el resto de variables las mantenemos en su formato.
+Transformamos Survival a factor categórico, el resto de variables las mantenemos en su formato.
 
 \subsubsection{Análisis univariable}
 
@@ -80,7 +80,9 @@ La cabecera de los datos nos quedan por tanto de la siguiente manera:
     \hline
 \end{tabular}
 
-Con las siguientes medídas estadísticas principales:
+\vspace{\baselineskip}
+
+Con las siguientes medidas estadísticas principales:
 
 \begin{verbatim}
       Age             Year          Positive      Survival 
@@ -94,9 +96,10 @@ Con las siguientes medídas estadísticas principales:
 
 En las distribuciones de los clasificadores nos fijaremos más adelante. Aquí hacemos notar que los valores de salida en nuestros datos están bastante desbalanceados, solo un 26.5\% de los paciente sobrevivieron a los 5 años.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
+\newpage
 
-El dataset cuenta con valores 17 repetidos, concretamente las siguientes ocurrencias
+El dataset cuenta con valores 17 repetidos, concretamente las siguientes ocurrencias:
 
 \begin{tabular}{r|r|r|l}
 \hline
@@ -183,14 +186,15 @@ Existen dos posibilidades para el origen de estos datos:
 
 \begin{enumerate}
     \def\labelenumi{\arabic{enumi}.}
-    \item Errores en la introducción de los datos, entradas repetidas por error.
-    \item Sean entradas de pacientes distintos casualmente con las mismas características.
+    \item Errores en la introducción de los datos. Entradas repetidas por error.
+    \item Son entradas de pacientes distintos casualmente con las mismas características.
 \end{enumerate}
 
-Apreciamos que en la mayoría de instancias el número de Positive es cero. En el apartado 1.3 se explica como este es un valor bastante frecuente en los datos pero que posiblemente se deba a que es una medida de los nodos \textbf{auxiliares} y no un error de codificación.
+Apreciamos que en la mayoría de instancias el número de Positive es cero. En el apartado 3.3 se explica como este es un valor bastante frecuente en los datos pero que posiblemente se deba a que es una medida de los nodos \textbf{auxiliares} y no un error de codificación.
+
 \vspace{\baselineskip}
 
-Como en este caso tenemos muy pocas variables (y un número moderado de entradas, 306), es probable que los pacientes coincidan en las características. Además, podemos ver que las entradas en la mayoría de los casos las variables solo están duplicadas (solo hay una entrada triplicada).
+Como en este caso tenemos muy pocas variables (y un número moderado de entradas, 306), es probable que los pacientes coincidan en las características. Además, podemos ver que las entradas en la mayoría de los casos solo están duplicadas (solo hay una entrada triplicada).
 
 \vspace{\baselineskip}
 
@@ -221,22 +225,6 @@ Y boxplots sobre las distribuciones de los datos:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-12-1} \end{figure}
 
-Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes dependiendo de la variable. Es necesario aplicar un proceso de estandarización antes de clasificar.
-
-\subsection{Missing values}
-
-Nos cuestionamos la ocurrencia de instancias con cero en el número de positivos. Podríamos pensar que se trata de una codificación de missing values si nos aseguramos que la operación consistan en eliminar estos nodos positivos.
-
-\vspace{\baselineskip}
-
-Si revisamos la información que tenemos, estos nodos positivos se denominan auxiliares, y una mayor investigación del problema por internet nos asegura de que estos valores de cero no se corresponden a missing values.
-
-Pese a ello, lo apropiado habría sido ponerse en contacto con los creadores del dataset y preguntar por la forma de codificar los datos que habían usado.
-
-\vspace{\baselineskip}
-
-Si hubiéramos descubierto que sí lo son, y tras ver que una gran parte de las instancias contienen este valor, habríamos tenido que buscar algún tipo de imputación para rellenar estos valores. Teniendo un número pequeño de valores reales, probablemente habríamos optado por KNN o interpolación lineal.
-
 \vspace{\baselineskip}
 
 Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
@@ -252,28 +240,45 @@ También podemos ver la distancia entre mínimos y máximos
 4.905839 3.385235 7.232616 
 \end{verbatim}
 
+Ya la descripción del problema nos lo decía, los rangos en los que se distribuyen los datos son muy diferentes entre sí. Es necesario aplicar un proceso de estandarización antes de clasificar.
+
+\subsubsection{Missing values}
+
+Nos cuestionamos la ocurrencia de instancias con cero en el número de positivos. Podríamos pensar que se trata de una codificación de missing values si nos aseguramos que la operación consistía en eliminar estos nodos positivos.
+
+\vspace{\baselineskip}
+
+Si revisamos la información que tenemos, estos nodos positivos se denominan auxiliares, y una mayor investigación del problema por internet nos asegura de que estos valores de cero no se corresponden a missing values.
+
+Pese a ello, lo apropiado habría sido ponerse en contacto con los creadores del dataset y preguntar por la forma de codificar los datos que habían usado.
+
+\vspace{\baselineskip}
+
+Si hubiéramos descubierto que sí lo son, y tras ver que una gran parte de las instancias contienen este valor, habríamos tenido que buscar algún tipo de imputación para rellenar estos valores. Puesto que tendríamos un número pequeño de valores reales, probablemente habríamos optado por KNN o interpolación lineal.
 
 \paragraph{Age}
 Para esta variable no contamos con valores de todos los años, y hemos visto que en general no están equitativamente distribuidos:
 
 \begin{verbatim}
-30 31 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 
- 3  2  2  7  2  2  6 10  6  3 10  9 11  7  9  7 11  7 10 12  6 14 11 13 10  7 
-57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 83 
-11  7  8  6  9  7  8  5 10  5  6  2  4  7  1  4  2  2  1  1  1  1  1 
+Años:   30 31 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52
+Conteo:  3  2  2  7  2  2  6 10  6  3 10  9 11  7  9  7 11  7 10 12  6 14
+Años:   53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74
+Conteo: 11 13 10  7 11  7  8  6  9  7  8  5 10  5  6  2  4  7  1  4  2  2
+Años:   75 76 77 78 83
+Conteo:  1  1  1  1  1
 \end{verbatim}
 
 \paragraph{Year}
 Aquí si contamos con valores en todos los años, aunque con más instancias en los iniciales:
 
 \begin{verbatim}
-58 59 60 61 62 63 64 65 66 67 68 69 
-36 27 28 26 23 30 31 28 28 25 13 11 
+Años:   58 59 60 61 62 63 64 65 66 67 68 69 
+Conteo: 36 27 28 26 23 30 31 28 28 25 13 11 
 \end{verbatim}
 
 
 \paragraph{Positive}
-La variable Positive parece llevar una distribución exponencial y probablemente por ello aparezcan tantos posibles outliers.
+Esta variable parece llevar una distribución exponencial y probablemente por ello aparezcan tantas posibles anomalías.
 
 \subsubsection{Análisis sobre las distribuciones}
 
@@ -303,7 +308,10 @@ También lo mostramos gráficamente con plots Q-Q, donde se ve que las distribuc
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-4} \end{figure}
 
-% La variable Positive parece seguir una distribución exponencial, hacemos un test de Kolmogorov-Smirnov para corroborarlo:
+\newpage
+
+La variable Positive parece seguir una distribución exponencial. Podemos hacer un plot de los supuestos cuartiles para hacernos una idea de cómo se asemeja:
+% hacemos un test de Kolmogorov-Smirnov para corroborarlo:
 
 % \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-19-1} \end{figure}
 
@@ -326,7 +334,9 @@ También lo mostramos gráficamente con plots Q-Q, donde se ve que las distribuc
 
 % Podemos hacer un gráfico QQ con los cuartiles de una distribución exponencial
 
-% \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-20-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-20-1} \end{figure}
+
+Ya el gráfico nos muestra que no se va a asemejar, pero podríamos verificarlo con más precisión haciendo uso de un test de Kolmogorov-Smirnov.
 
 \paragraph{Skewness}
 Claramente la única variable con skewness es Positive, con un grado positivo bastante alto:
@@ -342,38 +352,42 @@ El paquete \textit{caret} nos sugiere una estandarización a media cero y desvia
 
 \vspace{\baselineskip}
 
-A excepción de KNN, los métodos de clasificación que vamos a usar necesitan la normalidad en los datos. En un caso real, si quisiéramos aplicar sí o sí esos métodos deberíamos averiguar previamente la distribución exacta que siguen esos datos para luego transformarlos a una normal. 
+A excepción de KNN, los métodos de clasificación que vamos a usar necesitan la normalidad en los datos. En un caso real, si quisiéramos aplicar sí o sí esos métodos deberíamos averiguar previamente la distribución exacta que siguen esos datos para transformarla apropiadamente. 
 
 \vspace{\baselineskip}
 
 Por otro lado, transformaciones de Yeo-Johnson o BoxCox para reducir la skewness en Positive carece de lógica puesto que no sigue una forma normal.
 
-\subsubsection{Outliers}
+\subsubsection{Anomalías}
 
-La única variable en la que podríamos considerar outliers es Positive. Tanto para la edad como para los años no tiene sentido, además de que hemos visto en los boxplots que en ellas todos los valores caen en el 95\% de la distribución.
+La única variable en la que podríamos considerar anomalías es Positive. Tanto para la edad como para los años no tiene sentido, además de que hemos visto en los boxplots que en ellas todos los valores caen en el 95\% de la distribución.
 
-A la hora de considerar los outliers en Positive, tal y como habíamos mencionado en la descripción del problema, un alto número de nodos detectados complica la operación y el pronóstico para el paciente.
+\vspace{\baselineskip}
 
-Para aquellos posibles valores outliers la cantidad de sobrevivientes está equilibrada:
+A la hora de considerar los outliers en Positive, tal y como habíamos mencionado en la descripción del problema, debemos recordar que un alto número de nodos detectados complica la operación y el pronóstico para el paciente.
+
+Contrariamente a esta idea, podemos ver que para aquellas instancias con un gran número de positivos la cantidad de sobrevivientes en nuestro dataset está equilibrada:
 
 \begin{verbatim}
  No Yes 
  17  23 
 \end{verbatim}
 
-% Aún así, si hubiera una tendencia negativa por un alto número en Positive querríamos que nuestro clasificador fuera capaz de aprenderlo, por lo que proseguimos sin eliminar outliers.
-
-% SEGURO ?? PODRÍA FASTIDIARNOS MUCHO LOS RESULTADOS
+Viendo que la distribución está equilibrada en estos posibles valores anómalos y tampoco tenemos conocimiento suficiente sobre el problema para considerar cuándo un número de positivos es demasiado alto, proseguimos manteniéndolos en nuestro dataset.
 
 \subsubsection{Análisis de correlación}
 
 Como este es un problema de clasificación, necesitamos eliminar aquellas variables correladas para que la información se aporte de manera equitativa. Las gráficas no nos han dado ninguna señal de una posible correlación, pero debemos asegurarnos de forma estadística.
+
+\vspace{\baselineskip}
 
 Tenemos que tener en cuenta que las variables no siguen distribuciones normales. Aunque el coeficiente de Pearson no asume normalidad (si asume varianza y covarianza finitas), podemos usar el coeficiente de Kendall para los cálculos. Independientemente del método usado vamos a obtener las mismas correlaciones en este dataset, solo varía la fuerza con la que se dan.
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-27-1} \end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-27-2} \end{figure}
+
+\newpage
 
 Las matrices de correlación nos muestran que no existe correlación alguna entre las variables, y un con un conjunto de scatterplot lo podemos ver gráficamente:
 
@@ -389,6 +403,8 @@ Adicionalmente, mostramos la distribución de las variables con su clasificació
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-3} \end{figure}
 
 No se aprecia ninguna relación visual que nos ayude a clasificar el Survival.
+
+\newpage
 
 \subsubsection{Tratamiento de variables y ordenaciones}
 
@@ -426,7 +442,7 @@ La variable Year solo indica las dos últimas cifras del año de operación, per
 Nos habíamos planteado las siguientes hipótesis
 
 \begin{itemize}
-    \item \textbf{H.1}: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados: Por los razonamientos explicados en la introducción del problema.
+    \item \textbf{H.1}: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados.
 \end{itemize}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-31-1} \end{figure}
@@ -436,7 +452,7 @@ Nos habíamos planteado las siguientes hipótesis
  17  23 
 \end{verbatim}
 
-Vemos que la hipótesis no es cierta
+Vemos que la hipótesis no es cierta. Creemos que se debe a que el número de nodos no es el clasificador más importante.
 
 \begin{itemize}
     \item \textbf{H.2}: Habrá mayor ratio de supervivencia cuanto más joven sea el paciente.
@@ -457,26 +473,32 @@ Si miramos los pacientes con edades \textless40 nos sale todo lo contrario:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-35-1} \end{figure}
 
-Decrementa el número de datos en años superiores, aunque las proporciones parecen aumentar. Lo mostramos:
+Decrementa el número de datos en años superiores, aunque la proporción es bastante similar con los datos que tenemos, por lo que no podemos confirmar la hipótesis:
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-36-1} \end{figure}
 
-A excepción de algunos años, la proporción es bastante similar con los datos que tenemos, por lo que no podemos confirmar la hipótesis.
+\newpage
 
 \begin{itemize}
 \item \textbf{H.4}: Podría haber relación entre la edad y el número de positivos,
 posiblemente indicando lo tardío que se descubre el cáncer.
 \end{itemize}
 
+Un scatterplot no nos muestra visualmente ninguna aparente relación, y el análisis de correlación no nos había indicado nada:
+
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-37-1} \end{figure}
 
 \subsection{Conclusiones}
 
-En resumen concluímos diciendo que tenemos un dataset con pocas variables, pero con ninguna correlación entre ellas, lo que nos favorece en el problema de clasificación que nos atañe. También hemos visto ausencia de normalidad en los clasificadores (PONER CONSECUENCIAS DE
-ESTO) \ldots{}
+Para terminar, concluímos diciendo que tenemos un dataset con pocas variables, pero con ninguna correlación entre ellas, favoreciéndonos el problema de clasificación que nos atañe. 
+También hemos visto ausencia de normalidad en los clasificadores que hará que no cumplamos con las asunciones de LDA.
 
 \vspace{\baselineskip}
 
-Además, contamos con más instancias de no supervivientes, algo que probablemente no nos resulte favorable para regresión logística y LDA (SEGURO?)
+Además, el dataset se encuentra desbalanceado, contando con más instancias de no supervivientes (en torno al 76\% de los datos). También se aprecian algunas instancias repetidas, sobre las que en principio creemos que se debe a una casualidad debido al bajo número de variables cuyos rangos de valores son pequeños en cada una, pero carecemos de información adicional que nos corrobore la hipótesis.
 
-Únicamente hemos preprocesado los datos aplicando una estandarización, preparando el dataset a los algoritmos que se van a utilizar.
+Adicionalmente, se hace notar una alta cantidad de instancias con valor de Positive cero. Por la descripción de la variable creemos que es un valor correcto y no una codificación de missing value.
+
+\vspace{\baselineskip}
+
+El único tratamiento realizado ha sido un preprocesado aplicando una estandarización, preparando el dataset a los algoritmos que se van a utilizar. Por la forma no normal de la distribución en Positive, no deberíamos aplicar algoritmos que la requieran.

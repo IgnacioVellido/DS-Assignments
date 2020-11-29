@@ -297,11 +297,11 @@ La variable Positive parece seguir una distribución exponencial, hacemos un tes
 ```{r}
 # data generation
 ex <- rexp(10000, rate = 1.85) # generate some exponential distribution
-control <- abs(rnorm(10000)) # generate some other distribution
+# control <- abs(rnorm(10000)) # generate some other distribution
 
 # estimate the parameters
 fit1 <- fitdistr(ex, "exponential") 
-fit2 <- fitdistr(haberman$Positive %>% unique(), "exponential")
+fit2 <- fitdistr(table(haberman$Positive) %>% unique(), "exponential")
 
 # goodness of fit test
 ks.test(ex, "pexp", fit1$estimate) # p-value > 0.05 -> distribution not refused
@@ -311,7 +311,9 @@ ks.test(haberman$Positive, "pexp", fit2$estimate) #  significant p-value -> dist
 hist(haberman$Positive, freq = FALSE, breaks = 100, xlim = c(0, quantile(haberman$Positive, 0.99)))
 curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
 
-# control
+
+hist(ex, freq = FALSE, breaks = 100, xlim = c(0, quantile(ex, 0.99)))
+curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
 ```
 
 Al ser el p-valor <0.05 el test nos lo rechaza.

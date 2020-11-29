@@ -49,6 +49,75 @@ haberman <- read_csv("Data/haberman/haberman.dat", comment = "@", col_names = na
 haberman$Survival <- haberman$Survival %>% factor(levels = c("negative", "positive"), labels = c("No", "Yes"))
 ```
 
+<!-- Leer CV data -->
+```{r echo=F}
+# names <- c("Age", "Year", "Positive", "Survival")
+# 
+# train1 <- read_csv("Data/haberman/haberman-10-1tra.dat", comment = "@", col_names = names)
+# train2 <- read_csv("Data/haberman/haberman-10-2tra.dat", comment = "@", col_names = names)
+# train3 <- read_csv("Data/haberman/haberman-10-3tra.dat", comment = "@", col_names = names)
+# train4 <- read_csv("Data/haberman/haberman-10-4tra.dat", comment = "@", col_names = names)
+# train5 <- read_csv("Data/haberman/haberman-10-5tra.dat", comment = "@", col_names = names)
+# train6 <- read_csv("Data/haberman/haberman-10-6tra.dat", comment = "@", col_names = names)
+# train7 <- read_csv("Data/haberman/haberman-10-7tra.dat", comment = "@", col_names = names)
+# train8 <- read_csv("Data/haberman/haberman-10-8tra.dat", comment = "@", col_names = names)
+# train9 <- read_csv("Data/haberman/haberman-10-9tra.dat", comment = "@", col_names = names)
+# train10 <- read_csv("Data/haberman/haberman-10-10tra.dat", comment = "@", col_names = names)
+# 
+# test1 <- read_csv("Data/haberman/haberman-10-1tst.dat", comment = "@", col_names = names)
+# test2 <- read_csv("Data/haberman/haberman-10-2tst.dat", comment = "@", col_names = names)
+# test3 <- read_csv("Data/haberman/haberman-10-3tst.dat", comment = "@", col_names = names)
+# test4 <- read_csv("Data/haberman/haberman-10-4tst.dat", comment = "@", col_names = names)
+# test5 <- read_csv("Data/haberman/haberman-10-5tst.dat", comment = "@", col_names = names)
+# test6 <- read_csv("Data/haberman/haberman-10-6tst.dat", comment = "@", col_names = names)
+# test7 <- read_csv("Data/haberman/haberman-10-7tst.dat", comment = "@", col_names = names)
+# test8 <- read_csv("Data/haberman/haberman-10-8tst.dat", comment = "@", col_names = names)
+# test9 <- read_csv("Data/haberman/haberman-10-9tst.dat", comment = "@", col_names = names)
+# test10 <- read_csv("Data/haberman/haberman-10-10tst.dat", comment = "@", col_names = names)
+```
+
+
+<!-- Guardamos los indices -->
+```{r}
+# Add the ranking column in ddc
+# haberman <- haberman %>%
+#   group_by_all() %>%
+#   mutate(rank_row = row_number()) %>% 
+#   ungroup()
+# 
+# # Add a dummy ranking column in dcc, which is always = 1
+# train1 <- train1 %>% mutate(rank_row = 1)
+# test1 <- test1 %>%  mutate(rank_row = 1)
+# 
+# a_ = do.call("paste", haberman[,1:5])
+# b_ = do.call("paste", train1[,1:5])
+# 
+# tra1 <- which(a_ %in% b_)
+# b_ = do.call("paste", test1[,1:5])
+# tst1 <- which(a_ %in% b_)
+# 
+# # a_
+# 
+# tra1
+# tst1
+
+# and now the anti_join by = c("x1", "x2", "x3", "x4", "x5", "rank_row") or by = names(ddc)
+# compare(haberman, train1, by = names(haberman))
+
+
+# train$Survival <- train$Survival %>% factor(levels = c("negative", "positive"), labels = c("No", "Yes"))
+# 
+# train1
+# haberman
+```
+
+
+<!-- Creamos control para caret -->
+```{r}
+# ctrl 
+```
+
+
 Los preprocesamos (estandarización)
 ```{r}
 haberman_transform <- preProcess(haberman, method=c("scale", "center"))
