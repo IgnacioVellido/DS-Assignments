@@ -330,8 +330,8 @@ Además, la propia metodología de selección de variables en el modelo multivar
 
 Corrplot
 ```{r}
-corrplot.mixed(cor(auto), tl.pos="lt", upper="color", title="Pearson")
-corrplot.mixed(cor(auto, method="kendall"), tl.pos="lt", upper="color", title="Kendall")
+corrplot.mixed(cor(auto), tl.pos="lt", upper="color", title="Pearson", mar=c(0,0,1,0))
+corrplot.mixed(cor(auto, method="kendall"), tl.pos="lt", upper="color", title="Kendall", mar=c(0,0,1,0))
 ```
 
 Estas gráficas nos dicen que existe una alta correlación en el dataset, generalmente entre todas las variables (a excepción de Model_year), pero extremadamente fuerte en las parejas:

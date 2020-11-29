@@ -427,8 +427,8 @@ Independientemente del método usado vamos a obtener las mismas correlaciones en
 
 Corrplot
 ```{r}
-corrplot.mixed(cor(haberman), tl.pos="lt", upper="color", lower.col="black", title="Pearson")
-corrplot.mixed(cor(haberman, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
+corrplot.mixed(cor(haberman), tl.pos="lt", upper="color", lower.col="black", title="Pearson", mar=c(0,0,1,0))
+corrplot.mixed(cor(haberman, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall", mar=c(0,0,1,0))
 ```
 
 Nos muestra que no existe correlación alguna entre las variables.
