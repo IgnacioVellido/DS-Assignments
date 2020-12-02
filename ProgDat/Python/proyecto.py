@@ -75,6 +75,7 @@ medidas usadas en la clasificación.
 import pandas as pd
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Preprocesamiento
 from sklearn.model_selection import train_test_split
@@ -133,50 +134,58 @@ pca = PCA(n_components=n_components, svd_solver="randomized",
 x_train_pca = pca.transform(x_train)
 x_test_pca = pca.transform(x_test)
 
-################################################################################
-# Clasificando con SVM
-################################################################################
-print("------------------------------------------------------------------")
-print("Clasificando con SVM")
-print("------------------------------------------------------------------")
-
-# Declaración de hiperparámetros
-param_grid = {
-    "C": [10, 1e3, 1e5],
-    "gamma": [0.01, 0.001],
-    "kernel": ["rbf", "poly"]
-}
-
-# Test de hiperparámetros con cross-validation de 5 folds
-clf = GridSearchCV(SVC(class_weight="balanced"), 
-                    param_grid)
-clf = clf.fit(x_train_pca, y_train)
-
-print("Mejores hiperparámetros del modelo:")
-print(clf.best_params_)
-print("\nMejor score obtenido:")
-print(clf.best_score_)
-
-# Guardamos el mejor estimador
-best_svm = clf.best_estimator_
-
-#############################
-# Evaluación final del modelo
-#############################
-
-y_pred = clf.predict(x_test_pca)
-
-print("\nResultados de la predicción sobre test:")
-print(classification_report(y_test, y_pred, target_names=labels_names))
-print("Matriz de confusión:")
-print(confusion_matrix(y_test, y_pred))
-
 # ------------------------------------------------------------------------------
-# Mostramos gráficos sobre los resultados
-disp = plot_confusion_matrix(best_svm, x_test_pca, y_test,
-                                display_labels=labels_names, cmap=plt.cm.Blues)
-# plt.show()
-plt.savefig("prueba.png")
+# Mostramos algunos gráficos
+
+df = pd.DataFrame(x_test_pca)
+df["Labels"] = pd.factorize(y_train)
+
+sns.pairplot(df, hue="Labels").savefig("pair.png")
+
+# ################################################################################
+# # Clasificando con SVM
+# ################################################################################
+# print("------------------------------------------------------------------")
+# print("Clasificando con SVM")
+# print("------------------------------------------------------------------")
+
+# # Declaración de hiperparámetros
+# param_grid = {
+#     "C": [10, 1e3, 1e5],
+#     "gamma": [0.01, 0.001],
+#     "kernel": ["rbf", "poly"]
+# }
+
+# # Test de hiperparámetros con cross-validation de 5 folds
+# clf = GridSearchCV(SVC(class_weight="balanced"), 
+#                     param_grid)
+# clf = clf.fit(x_train_pca, y_train)
+
+# print("Mejores hiperparámetros del modelo:")
+# print(clf.best_params_)
+# print("\nMejor score obtenido:")
+# print(clf.best_score_)
+
+# # Guardamos el mejor estimador
+# best_svm = clf.best_estimator_
+
+# #############################
+# # Evaluación final del modelo
+# #############################
+
+# y_pred = clf.predict(x_test_pca)
+
+# print("\nResultados de la predicción sobre test:")
+# print(classification_report(y_test, y_pred, target_names=labels_names))
+# print("Matriz de confusión:")
+# print(confusion_matrix(y_test, y_pred))
+
+# # ------------------------------------------------------------------------------
+# # Mostramos gráficos sobre los resultados
+# disp = plot_confusion_matrix(best_svm, x_test_pca, y_test,
+#                                 display_labels=labels_names, cmap=plt.cm.Blues)
+# # plt.show()
+# plt.savefig("prueba.png")
 
 # ################################################################################
 # # Clasificando con KNN
