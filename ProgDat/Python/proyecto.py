@@ -4,6 +4,7 @@
 ================================================================================
 Cardiotocogram Dataset
 Ignacio Vellido Expósito
+https://archive.ics.uci.edu/ml/datasets/cardiotocography
 ================================================================================
 
 Data Set Information:
@@ -58,15 +59,20 @@ Classification
     NSP	Normal=1; Suspect=2; Pathologic=3		
 
 
-Vamos a aplicar clasificación respecto a la última variable (NSP), el resto de 
-columnas de clasificación las quitaremos.
+Vamos a clasificar respecto a la última variable (NSP), el resto de columnas de 
+clasificación las quitaremos.
 También eliminaremos la columnas con información del exámen médico por no ser
-medidas usadas en la clasificación.
+medidas usadas para etiquetar los datos.
+
+Nos quedará por tanto un problema de clasificación multivariable con tres posibles
+etiquetas.
 """
 
 ################################################################################
 # Librerías
 ################################################################################
+
+import random
 
 import pandas as pd
 import numpy as np
@@ -95,6 +101,9 @@ from sklearn.metrics import classification_report, \
 # Lectura
 ################################################################################
 
+# Semilla con la que se han analizado los resultados
+random.seed(9999)
+
 # Cargamos los datos (sheet Raw Data nos es más cómodo que Data)
 data = pd.read_excel("data/CTG.xls", "Raw Data")
 
@@ -119,9 +128,21 @@ labels = pd.Categorical(labels)
 labels = labels.rename_categories(["N", "S", "P"])
 labels_names = ["Normal", "Suspect", "Pathologic"]
 
-# Normalizamos los datos
+# Normalizamos los datos (estandarización)
 data_norm = Normalizer().fit(data).transform(data)
 data_norm = pd.DataFrame(data_norm)
+
+print("------------------------------------------------------------------")
+print("Datos normalizados:")
+print(data)
+
+# Nos quedan 24 clasificadores con 2126 instancias
+
+# Aunque tenemos demasiadas características, podemos ver algunos datos estadísticos
+print(data.describe())
+
+# Tenemos un problema desbalanceado, muchas etiquetas de valor N
+print(labels.describe())
 
 ################################################################################
 # Visualizaciones
@@ -131,6 +152,8 @@ data_norm = pd.DataFrame(data_norm)
 # Boxplots (usamos los datos normalizados para que estén en el mismo rango)
 sns.boxplot(x="variable", y="value", data=pd.melt(data_norm))
 plt.show()
+
+# Se aprecian distribuciones bastante diferentes en las variables
 
 # ------------------------------------------------------------------------------
 # Correlación (https://seaborn.pydata.org/examples/many_pairwise_correlations.html)
@@ -152,10 +175,12 @@ sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
             square=True, linewidths=.5)
 plt.show()
 
+# Hay algunas variables correladass negativamente, pero con correlación fuerte pocas
+
 # ------------------------------------------------------------------------------
 # Scatterplot
 
-# De 2 variables correladas (puesto que es alta, sería recomendable quitar una)
+# De 2 variables correladas (puesto que esta es alta, sería recomendable quitar una)
 sns.scatterplot(data=data, x="Min", y="Width")
 plt.show()
 
@@ -172,14 +197,15 @@ x_train, x_test, y_train, y_test = train_test_split(data_norm, labels, test_size
 n_components = 5    # Bajo porque los tres modelos que tenemos tienden a 
                     # sobreajustar
 pca = PCA(n_components=n_components, svd_solver="randomized", 
-            whiten=True).fit(x_train) # No queremos variables correladas ?
+            whiten=True).fit(x_train) # No queremos que las componentes devueltas
+                                      # estén correladas
 
 # Aplicamos PCA
 x_train_pca = pca.transform(x_train)
 x_test_pca = pca.transform(x_test)
 
 # ------------------------------------------------------------------------------
-# Mostramos algunos gráficos
+# Mostramos algunos gráficos de las componentes
 
 df = pd.DataFrame(x_train_pca)
 df["Labels"] = y_train
@@ -197,12 +223,12 @@ print("------------------------------------------------------------------")
 # Declaración de hiperparámetros
 param_grid = {
     "C": [10, 1e3, 1e5],        # Valores de regularización
-    "gamma": [0.01, 0.001],     #
-    "kernel": ["rbf", "poly"]   # Kernel polinomial o ?
+    "gamma": [0.01, 0.001],     # Grado de influencia de un valor
+    "kernel": ["rbf", "poly"]   # Kernel rbf o polinomial
 }
 
 # Test de hiperparámetros con cross-validation de 5 folds
-clf = GridSearchCV(SVC(class_weight="balanced"), 
+clf = GridSearchCV(SVC(class_weight="balanced"),
                     param_grid)
 clf = clf.fit(x_train_pca, y_train)
 
@@ -210,6 +236,7 @@ print("Mejores hiperparámetros del modelo:")
 print(clf.best_params_)
 print("\nMejor score obtenido:")
 print(clf.best_score_)
+# Se nos queda un modelo con alto grado de regularización y kernel polinomial
 
 # Guardamos el mejor estimador
 best_svm = clf.best_estimator_
@@ -218,6 +245,7 @@ best_svm = clf.best_estimator_
 # Evaluación final del modelo
 #############################
 
+# Predecimos sobre los datos de test que habíamos reservado
 y_pred = clf.predict(x_test_pca)
 
 print("\nResultados de la predicción sobre test:")
@@ -225,10 +253,11 @@ print(classification_report(y_test, y_pred, target_names=labels_names))
 print("Matriz de confusión:")
 print(confusion_matrix(y_test, y_pred))
 
+
 # ------------------------------------------------------------------------------
 # Mostramos gráficos sobre los resultados
 disp = plot_confusion_matrix(best_svm, x_test_pca, y_test,
-                                display_labels=labels_names, cmap=plt.cm.Blues)
+                             display_labels=labels_names, cmap=plt.cm.Blues)
 plt.show()
 
 # Clasificación realizada en test
@@ -242,6 +271,8 @@ plt.show()
 sns.pairplot(df, hue="Pred").fig.suptitle("Componentes de PCA con etiquetas predichas", y=1.01)
 plt.show()
 
+# Tenemos buenos resultados, pero no es una gran mejora respecto respecto de una
+# predicción sin aprendizaje (si siempre dijéramos N acertaríamos un 77% de las veces)
 
 ################################################################################
 # Clasificando con KNN
@@ -252,8 +283,8 @@ print("------------------------------------------------------------------")
 
 # Declaración de hiperparámetros
 param_grid = {
-    "n_neighbors" : [3, 5, 7, 10, 13, 15],     # Diferentes valores de K
-    "weights": ["uniform", "distance"]   # Selección ponderada por distancia o no
+    "n_neighbors" : [3, 5, 7, 11, 13, 15],  # Número de vecinos
+    "weights": ["uniform", "distance"]      # Selección ponderada por distancia o no
 }
 
 # Test de hiperparámetros
@@ -264,6 +295,8 @@ print("Mejores hiperparámetros del modelo:")
 print(clf.best_params_)
 print("\nMejor score obtenido:")
 print(clf.best_score_)
+# Se consiguen mejores resultados con un KNN de tamaño intermedio/bajo con 
+# influencia ponderada por la distancia
 
 # Guardamos el mejor estimador
 best_knn = clf.best_estimator_
@@ -272,6 +305,7 @@ best_knn = clf.best_estimator_
 # Evaluación final del modelo
 #############################
 
+# Predecimos sobre los datos de test que habíamos reservado
 y_pred = clf.predict(x_test_pca)
 
 print("\nResultados de la predicción sobre test:")
@@ -294,6 +328,9 @@ plt.show()
 sns.pairplot(df, hue="Pred").fig.suptitle("Componentes de PCA con etiquetas predichas", y=1.01)
 plt.show()
 
+# Resultados un poco mejores que con SVM, probablemente porque tal y como se ve
+# en las gráficas las clases no son fácilmente separables
+
 ################################################################################
 # Clasificando con Random Forest
 ################################################################################
@@ -315,6 +352,8 @@ print("Mejores hiperparámetros del modelo:")
 print(clf.best_params_)
 print("\nMejor score obtenido:")
 print(clf.best_score_)
+# Los mejores hiperparámetros corresponden a un bosque con muchos árboles pero
+# con poda a priori
 
 # Guardamos el mejor estimador
 best_rf = clf.best_estimator_
@@ -323,6 +362,7 @@ best_rf = clf.best_estimator_
 # Evaluación final del modelo
 #############################
 
+# Predecimos sobre los datos de test que habíamos reservado
 y_pred = clf.predict(x_test_pca)
 
 print("\nResultados de la predicción sobre test:")
@@ -344,17 +384,20 @@ plt.show()
 sns.pairplot(df, hue="Pred").fig.suptitle("Componentes de PCA con etiquetas predichas", y=1.01)
 plt.show()
 
+# Random Forest tiene más facilidad de overfitting, pero limitando el tamaño de
+# los árboles evitamos que se sobreajuste demasiado. Obtenemos una accuracy 3%
+# mejor que SVM e igual que KNN
 
 # Los datos esta procesados con PCA y no son interpretables
-# Pero podemos ver la forma que tiene alguno de los árboles del
-# modelo
+# Pero podemos ver la forma que tiene alguno de los árboles del modelo
+
 # Función obtenida de: 
 # https://towardsdatascience.com/how-to-visualize-a-decision-tree-from-a-random-forest-in-python-using-scikit-learn-38ad2d75f21c
 
 from sklearn.tree import export_graphviz
 
 # Export as dot file
-export_graphviz(best_rf.estimators_[1], out_file='tree.dot', 
+export_graphviz(best_rf.estimators_[1], out_file="tree.dot", 
                 class_names = labels_names,
                 rounded = True, proportion = False, 
                 precision = 2, filled = True)
