@@ -323,3 +323,6 @@ TSWLatexianTemp*
 #*Notes.bib
 ProgDat/Python/.vscode/settings.json
 ProgDat/Python/.ipynb_checkpoints/proyecto-checkpoint.ipynb
+MD-ANSA/Anomalias/OutliersPaquetes.R
+MD-ANSA/Anomalias/OutliersLibrerias.R
+MD-ANSA/Anomalias/OutliersFunciones_byCubero.R
