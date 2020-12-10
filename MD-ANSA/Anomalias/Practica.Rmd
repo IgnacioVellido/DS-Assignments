@@ -657,3 +657,145 @@ diag_caja_juntos(datos.num, "Outliers", claves.outliers.IQR)
 Tal y como habíamos analizado anteriormente, el Toyota Corolla (que es un outlier IQR con respecto a mpg) no tiene valores anormales en el resto de columnas (aunque tal vez con la excepción de la variable disp).
 
 ## Test de hipótesis
+
+En este apartado vamos a determinar con un test de hipótesis si el valor más alejado de la media puede considerarse como un outlier.
+Así pues, la hipótesis nula es la siguiente:
+
+
+H0:El valor más alejado de la media no es un outlier
+
+O siendo más correctos:
+
+H0:El valor más alejado de la media proviene de la misma distribución que el resto de datos
+
+El método IQR que hemos visto anteriormente es un método que suele aplicarse con la única restricción de que el histograma de la variable no sea demasiado raro. Sin embargo, un test de hipótesis es un método de decisión cuya finalidad es rechazar una hipótesis con suficientes garantías, desde un punto de vista estadístico. Por tanto, debemos ser más cautelosos con las restricciones exigidas para aplicar el método. En nuestro caso, vamos a aplicar el test de Grubbs.
+
+### Comprobación de la hipótesis de Normalidad
+
+El test de Grubbs establece como hipótesis nula que el valor más alejado de la media (llamémosle O) no es un outlier. Por tanto, si el test rechaza, tendremos garantía estadística de que es un outlier. Ahora bien:
+
+El test asume que los datos deben seguir una distribución Normal. Esta hipótesis se refiere al conjunto de datos sin tener en cuenta O. Por tanto, si el test de Grubbs decide rechazar y se acepta que O es un outlier, el siguiente paso que debemos dar es comprobar que los datos que quedan siguen una distribución Normal. Esto lo haremos aplicando un test específico de ajuste de distribuciones.
+
+Si no se rechaza, sólo podremos decir que no hay evidencia de que O provenga de otra distribución distinta al resto de los datos.
+
+En primer lugar pasamos a comprobar de una forma informal que los datos siguen una distribución Normal. Lo vamos a hacer visualmente analizando el histograma. Por simplicidad incluimos el posible outlier en el gráfico. Posteriormente, aplicaremos un test de hipótesis específico de ajuste de distribuciones (sin tener en cuenta el outlier), tal y como hemos indicado anteriormente.
+
+Para ver la curva Normal que mejor se ajusta al histograma, usamos la función denscompdel paquete fitdistrplus y observamos que, efectivamente, podemos suponer que la distribución subyacente es una Normal.
+
+```{r}
+ajusteNormal = fitdist(columna , "norm")
+denscomp (ajusteNormal,  xlab = nombre.columna)
+```
+
+### Test de Grubs
+
+Una vez que hemos visto que los datos siguen una distribución no demasiado alejada de la Normal, procedemos a aplicar el test de Grubbs.
+```{r}
+test.de.Grubbs = grubbs.test(columna, two.sided = TRUE)
+test.de.Grubbs$p.value
+```
+
+El p-value es > 0.05, por lo que el test no puede rechazar. Así pues, aunque Toyota Corolla tiene un valor alto en mpg, no podemos deducir que realmente sea un outlier desde el punto de vista estadístico.
+
+En el caso de que el estudio de los outliers lo hubiésemos empezado directamente con el test de Grubbs, la anterior función sólo nos dice si el valor más alejado de la media puede considerarse un outlier. ¿Pero a qué valor corresponde? Para responder esta pregunta, usamos la función outlier del paquete outliers. Es importante enfatizar que la función outlier no realiza ningún test. Simplemente nos da información referente a las diferencias de cada valor con respecto a la media. 
+
+Para conocer el valor que toma el registro que más se aleja de la media, basta pasar como parámetro la columna de datos a la función outlier:
+```{r}
+valor.posible.outlier = outlier(columna)
+valor.posible.outlier
+```
+
+Efectivamente, el valor del Toyota Corolla en la columna mpg es 33.9. Para obtener el identificador de dicho registro, pasamos como parámetro adicional a la función outlier el valor logical = TRUE: ésto nos devuelve un vector de bools en el que todos son FALSE excepto el valor que está más alejado de la media. Basta pues, usar which para ver su identificador:
+
+```{r}
+es.posible.outlier = outlier(columna, logical = TRUE)
+clave.posible.outlier = which( es.posible.outlier == TRUE)
+clave.posible.outlier
+```
+
+Lo que nos devuelve la clave 20 (la clave de Toyota Corolla).
+
+### Test de Normalidad
+
+Vamos a comprobar que los datos que quedan después de eliminar el outlier detectado por el test de Grubss siguen una distribución Normal. En el conjunto mtcars no hay ningún registro de ninguna variable que el test de Grubbs etiquete como outlier. Por lo tanto, para ilustrar el proceso que vamos a seguir, vamos a usar un conjunto de datos sintético. En el trabajo final que usted debe desarrollar (en su caso) use la misma variable que hubiese seleccionado al principio. Hágalo aunque el test de Grubbs no haya detectado ningún outlier, para así comprobar si la variable se distribuye según una distribución Normal.
+
+El test de hipótesis que se plantea es el siguiente:
+
+```
+H0:La distribución subyacente de la variable es una Normal
+```
+
+Observe que el tipo de hipótesis nula es diferente que el del test de outliers. En este caso, la hipótesis nula es una afirmación (en el caso del test de Grubbs era una negación). Por lo tanto, si se rechaza, podemos afirmar que los datos no vienen de una Normal. En el caso de que no se pueda rechazar, sólo podremos afirmar que los datos no contradicen la hipótesis nula y por tanto, podremos asumir (pero sin garantía estadística) que se satisface el requisito de Normalidad de los datos.
+
+Hay varios tests de hipótesis para comprobar el ajuste de una distribución (por orden de importancia):
+
+- El test de Shapiro-Wilks (shapiro.test) es un test específico para la distribución Normal. Es el preferible cuando hay pocos datos (menos de 50)
+
+- El test de Anderson-Darling es un test para cualquier distribución. Requiere que se conozcan los parámetros de la distribución, aunque suele utilizarse con las estimaciones de éstos. Está disponible a través de gofstat$adtest del paquete fitdistrplus
+
+- El test de Kolomogorov-Smirnov (shapiro.test) es otro test genérico aplicable a cualquier distribución (sólo compara la mayor diferencia observada entre los datos y la media). Requiere conocer los parámetros de la distribución. En el caso de la Normal, se usa la variante de Lilliefors (lillie.test del paquete nortest) que no requiere el conocimiento de éstos.
+
+Vamos a trabajar con los dos primeros tests. Construimos un dataset artificial
+
+```{r}
+datos.artificiales = c(45,56,54,34,32,45,67,45,67,65,140)
+```
+
+y lanzamos el mismo proceso anterior para detectar el posible outlier O:
+```{r}
+test.de.Grubbs = grubbs.test(datos.artificiales, two.sided = TRUE)
+test.de.Grubbs$p.value
+
+valor.posible.outlier = outlier(datos.artificiales)
+valor.posible.outlier
+
+es.posible.outlier = outlier(datos.artificiales, logical = TRUE)
+es.posible.outlier
+
+clave.posible.outlier = which(es.posible.outlier == TRUE)
+clave.posible.outlier
+```
+
+Pasamos los tests de Normalidad al conjunto de datos eliminando previamente el outlier O:
+```{r}
+datos.artificiales.sin.outlier = datos.artificiales[-clave.posible.outlier]
+datos.artificiales.sin.outlier
+
+shapiro.test(datos.artificiales)
+
+goodness_fit = gofstat(ajusteNormal)
+goodness_fit$adtest
+```
+
+El test de Anderson-Darling no se ha podido aplicar porque hay pocos datos. El test de Shapiro no puede rechazar la hipótesis nula de Normalidad (p-value > 0.05) Así pues, podemos asumir que los datos no contradicen que la distribución subyacente sea una Normal.
+
+En resumen, podemos concluir que los valores presentes en datos.artificiales son compatibles con una distribución Normal y que el registro 11 con un valor de 140 es el que más se aleja de la media y puede considerarse un outlier con garantía estadística según el test de Grubbs.
+
+Construya una función con el nombre test_Grubbs que devuelva una lista con los cómputos anteriores. También debe lanzar el test de Normalidad sobre la columna elegida (una vez eliminado el posible outlier). Concretamente, la función pedida debe tener la siguiente cabecera:
+
+```{r}
+#######################################################################
+# Aplica el test de Grubbs sobre la columna ind.col de datos y devuelve una lista con:
+
+# nombre.columna: Nombre de la columna datos[, ind.col]
+# clave.mas.alejado.media: Clave del valor O que está más alejado de la media
+# valor.mas.alejado.media: Valor de O en datos[, ind.col]
+# nombre.mas.alejado.media: Nombre de O en datos
+# es.outlier: TRUE/FALSE dependiendo del resultado del test de Grubbs sobre O
+# p.value:  p-value calculado por el test de Grubbs
+# es.distrib.norm: Resultado de aplicar el test de Normalidad 
+#    de Shapiro-Wilks sobre datos[, ind.col]
+#    El test de normalidad se aplica sin tener en cuenta el 
+#    valor más alejado de la media (el posible outlier O)
+#    TRUE si el test no ha podido rechazar
+#       -> Sólo podemos concluir que los datos no contradicen una Normal
+#    FALSE si el test rechaza 
+#       -> Los datos no siguen una Normal
+
+# Requiere el paquete outliers
+
+test_Grubbs = function(columna, alpha = 0.05) {
+  
+}
+  
+```
