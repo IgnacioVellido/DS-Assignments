@@ -1,1 +1,13 @@
 \section{Técnicas de Clasificación}
+
+Como hemos visto en el apartado de EDA, tenemos un conjunto desbalanceado. Por la descripción del problema, cometemos un error mayor cuando clasificamos mal la clase Yes. Por tanto, deberíamos penalizar más los falsos negativos, de manera que los algoritmos de clasificación se ajusten de mejor manera.
+
+De cara al preprocesamiento de la variable Year, podríamos pensar en hacer una discretización en intervalos, lo cuál nos podría ayudarnos en la clasificación.
+Pero observando las gráficas, vemos que no parece haber ningún agrupamiento o tendencia entre las edades y las etiquetas.
+Por tanto, antes de hacer esto se debería consultar con el experto, por si hubiera un significado especial al agruparlas, y puesto que no tenemos conocimiento suficiente sobre la materia como para deducirlo nosotros, se mantienen como están.
+
+
+% ESTO NO TIENE SENTIDO, VALE SOLO PARA ANOMALÍAS
+% Debemos recordar que al tener un conjunto desbalanceado, predecir las etiquetas de nuestro dataset como siempre "No supervivencia" nos daría un accuracy de ??\%.
+% Por tanto esta debería ser la calidad mínima que deberíamos permitir en nuestros modelos, aceptar un modelo con accuracy en training inferior no tendría sentido.
+% Se puede
