@@ -201,8 +201,11 @@ knnPred <- predict(knnModel, newdata = test)
 ctable <- table(knnPred, test_labels)
 
 ctable
-postResample(pred = knnPred, obs = test_labels)
+knnResample <- postResample(pred = knnPred, obs = test_labels)
+knnResample
 ```
+
+Se aprecia que la accuracy en test es ligeramente inferior (~6 centésimas) a la de training.
 
 ```{r}
 fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
@@ -243,6 +246,51 @@ Como habíamos comentado al principio, para el problema que nos atañe quizás e
 
 --------------------------------------------------------------------------------
 
+Podemos también coger otros valores de K en test. Puesto que hemos obtenido los mejores resultados en training con un K de 13, que es un valor relativamente alto, podemo probar con uno bajo y uno intermedio (3 y 7)
+
+```{r}
+knn3Model <- train(train, y = train_labels,
+                  method = "knn", 
+                  trControl = trainControl(method = "cv"), 
+                  tuneGrid = data.frame(.k=3))
+
+knn3Model
+```
+```{r}
+knn3Pred <- predict(knn3Model, newdata = test)
+ctable <- table(knn3Pred, test_labels)
+
+ctable
+postResample(pred = knn3Pred, obs = test_labels)
+
+fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix KNN - K=3")
+```
+
+```{r}
+knn7Model <- train(train, y = train_labels,
+                  method = "knn", 
+                  trControl = trainControl(method = "cv"), 
+                  tuneGrid = data.frame(.k=7))
+
+knn7Model
+```
+
+```{r}
+knn7Pred <- predict(knn7Model, newdata = test)
+ctable <- table(knn7Pred, test_labels)
+
+ctable
+postResample(pred = knn7Pred, obs = test_labels)
+
+fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
+             conf.level = 0, margin = 1, main = "Confusion Matrix KNN - K=7")
+```
+
+K=7 vemos que es el que más sufre al evaluar en test, y ambos (tal y como nos había indicado CV) tienen una calidad bastante inferior a un K=13
+
+--------------------------------------------------------------------------------
+
 ## Utilizar el algoritmo LDA para clasificar. No olvide comprobar las asunciones.
 
 Comprobamos asunciones:
@@ -255,18 +303,17 @@ Técnicamente sabiendo esto no deberíamos usar LDA, pero puesto que esto es un 
 Aún así, las variables Age y Year no parecen seguir una distribución demasiado "rara" (en comparación con una normal), por lo que es posible que obtengamos resultados decentes.
 
 3- Las clases siguen la misma matriz de covarianza:
+Solo nos interesa la diagonal
 ```{r}
 yes <- train %>% bind_cols(train_labels) %>% setNames(names) %>% filter(Survival == "Yes") %>% dplyr::select(-Survival)
 no  <- train %>% bind_cols(train_labels) %>% setNames(names) %>% filter(Survival == "No") %>% dplyr::select(-Survival)
 
-# Solo nos interesa la diagonal
 cat("Para clase Yes:\n")
 cov(yes) %>% diag()
 cat("Para clase No:\n")
 cov(no) %>% diag()
 ```
-
-Todas los valores son positivos, por tanto entre clases se mantienen la tendencia de los datos.
+Las variables Age y Positive parecen seguir distintas varianzas, lo aseguramos con un test estadístico.
 
 Puesto que nuestras variables no siguen una distribución normal, no podemos hacer el test de homogeneidad de Barlett.
 Utilizamos por tanto el de Levene
@@ -279,7 +326,8 @@ cat("Positive:\n")
 leveneTest(Positive ~ Survival, haberman)
 ```
 
-Indicándonos que solo se puede asegurar que la variable Positive tiene homogeneidad entre clases diferentes.
+Indicándonos que solo se puede asegurar que la variable Positive no tiene homogeneidad entre clases diferentes.
+<!-- Se puede apreciar la diferencia en los p-values de las variables Age y Year -->
 
 Podemos verlo más claro gráficamente
 ```{r}
@@ -300,7 +348,7 @@ ggplot(haberman, aes(x = Positive, color = Survival, fill=Survival)) +
 ```
 
 
-Podemos mostrar las varianzas en grafors de elipses:
+Podemos mostrar las varianzas en grafos de elipses:
 ```{r}
 ggplot(haberman, aes(x = Year, y = Age, color = Survival)) + 
   geom_point() + 
@@ -320,9 +368,9 @@ ggplot(haberman, aes(x = Positive, y = Age, color = Survival)) +
 
 Se nota que la causa de que no se rechace el test para esta variable es la gran cantidad de datos con Positive=0
 
-<!-- http://thatdatatho.com/2018/02/19/assumption-checking-lda-vs-qda-r-tutorial-2/ -->
-
 Por tanto para LDA no podemos hacer uso de la variable Positive, pero sí de las otras dos.
+
+<!-- http://thatdatatho.com/2018/02/19/assumption-checking-lda-vs-qda-r-tutorial-2/ -->
 
 
 Aunque solo es recomendable, y no son cualidades necesarias para obtener solución en LDA:
@@ -347,18 +395,13 @@ ldaPred <- predict(ldaModel, newdata = test)
 ctable <- table(ldaPred, test_labels)
 
 ctable
-postResample(pred = ldaPred, obs = test_labels)
+ldaResample <- postResample(pred = ldaPred, obs = test_labels)
+ldaResample
 ```
 
 ```{r}
 fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
              conf.level = 0, margin = 1, main = "Confusion Matrix LDA")
-```
-
-
-Recordamos que teníamos muchos datos de no supervivencia antes que sí
-```{r}
-table(haberman$Survival)
 ```
 
 En training
@@ -412,6 +455,7 @@ ggplot(data, aes(x=Age, y=Year)) +
   geom_contour(data = pr, aes(x=x, y=y, z=z)) +
   theme_light()
 ```
+(Estamos pintando un contorno 3D y por eso nos salen múltiples líneas en el gráfico)
 
 Tenemos un dataset bastante desbalanceado, y LDA no predice para la clase Yes. Con esto se asegura un alto accuracy en nuestro entrenamiento, pero no asegura de que para datos externos vaya a ser así.
 Pese a ello, no nos queda más remedio que suponer que nuestros datos vienen de la misma muestra aleatoria y por tanto son releventes para la clasificación.
@@ -420,38 +464,38 @@ Pese a ello, no nos queda más remedio que suponer que nuestros datos vienen de 
 
 ## Utilizar el algoritmo QDA para clasificar. No olvide comprobar las asunciones.
 
-QDA tiene las mismas asunciones de LDA salvo que relaja la norma de que las clases tengan igual covarianza.
+QDA tiene las mismas asunciones de LDA salvo que relaja la norma de que las clases tengan igual covarianza. Esto nos permite usar la variable Positive que habíamos descartado en LDA.
 
-Por tanto tenemos que:
+Por tanto tenemos los requisitos de:
 - Distribución aleatoria
 - Distribución normal
 
 Técnicamente el no cumplir normalidad no imposibilita que se encuentre solución, pero ya no nos lo asegura.
 
-Además tenemos que:
+Además tenemos de forma recomendada que:
 - El número de predictores debe ser menor que el número de instancias de cada clase.
 Cosa que sabemos que sí por la tabla Yes/No
 - Los predictores dentro de cada clase no deben estar correlacionados.
 
 ```{r}
-corrplot.mixed(cor(yes), tl.pos="lt", upper="color", lower.col="black", title="Pearson")
-corrplot.mixed(cor(yes, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
+corrplot.mixed(cor(yes), tl.pos="lt", upper="color", lower.col="black", title="Pearson", mar=c(0,0,1,0))
+corrplot.mixed(cor(yes, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall", mar=c(0,0,1,0))
 ```
 
 
 ```{r}
-corrplot.mixed(cor(no), tl.pos="lt", upper="color", lower.col="black", title="Pearson")
-corrplot.mixed(cor(no, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall")
+corrplot.mixed(cor(no), tl.pos="lt", upper="color", lower.col="black", title="Pearson", mar=c(0,0,1,0))
+corrplot.mixed(cor(no, method="kendall"), tl.pos="lt", upper="color", lower.col="black", title="Kendall", mar=c(0,0,1,0))
 ```
 
-Cosa que tampoco se da.
+No tenemos predictores correlacionados dentro de cada clase.
 
 --------------------------------------------------------------------------------
 
 ### Aplicando QDA
 
 ```{r}
-qdaModel <- train(train %>% dplyr::select(-Positive), y = train_labels,
+qdaModel <- train(train, y = train_labels,
                 method = "qda",
                 tuneLength = 10,
                 trControl = trainControl(method = "cv"))
@@ -465,7 +509,8 @@ qdaPred <- predict(qdaModel, newdata = test)
 ctable <- table(qdaPred, test_labels)
 
 ctable
-postResample(pred = qdaPred, obs = test_labels)
+qdaResample <- postResample(pred = qdaPred, obs = test_labels)
+qdaResample
 ```
 
 ```{r}
@@ -496,34 +541,46 @@ ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
 plot_grid(plotlist=list(qdaplot,trueplot,legend), ncol=2, label_size = 1)
 ```
 
-Hacemos un plot del ajuste
-```{r}
-data <- train %>% bind_cols(train_labels) %>% setNames(names) 
-qdafit <- qda(Survival~Age+Year, data = data)
-
-x <- seq(min(train$Age), max(train$Age), length.out=dim(train)[1])
-y <- seq(min(train$Year), max(train$Year), length.out=dim(train)[1])
-
-Xcon <- matrix(c(rep(x,length(y)), rep(y, rep(length(x), length(y)))),ncol=2) #Set all possible pairs of x and y on a grid
-
-#posterior probabilities of a point belonging to each class
-out <- predict(qdafit, data.frame(Age=Xcon[,1], Year=Xcon[,2]))$post
-
-pr <- data.frame(x=rep(x, length(y)), 
-                 y=rep(y, each=length(x)), 
-                 z=as.vector(out))
-
-ggplot(data, aes(x=Age, y=Year)) +
-  geom_point(size = 2, aes(pch=Survival,  col=Survival)) +
-  geom_contour(data = pr, aes(x=x, y=y, z=z)) +
-  theme_light()
-```
-
-Obtenemos resultados extremadamente similares a LDA.
+Obtenemos resultados extremadamente similares a LDA, pero en este caso vemos que sí se predice la clase Yes.
 
 --------------------------------------------------------------------------------
 
 ## Comparar los resultados de los tres algoritmos
+
+Si nos fijamos únicamente en los resultados obtenidos para este problema, los tres algoritmos obtienen el mismo accuracy en nuestro conjunto de test.
+Aunque las etiquetas de este conjunto contienen elementos de ambas clases, podemos ver que se predice mayoritariamente la clase No.
+Como se había mencionado nuestro dataset está bastante desbalanceado, por lo que era más probable que se predijera esa clase con mayor facilidad.
+
+(Recordamos que las medidas devueltas en cada algoritmo provienen de un CV de 10-fold usando el paquete caret)
+
+```{r}
+cat("Predicciones LDA:\n")
+ldaPred
+cat("Predicciones QDA:\n")
+qdaPred
+cat("Predicciones KNN:\n")
+knnPred
+cat("\nEtiquetas:\n")
+test_labels %>% unname()
+```
+
+```{r}
+cat("Accuracy KNN:\n")
+knnResample
+cat("\nAccuracy LDA:\n")
+ldaResample
+cat("\nAccuracy QDA:\n")
+qdaResample
+```
+
+<!-- https://stats.stackexchange.com/questions/82162/cohens-kappa-in-plain-english -->
+Tenemos la misma accuracy, pero diferentes valores de Kappa, siendo en general todos bajos.
+
+Pese a esto, puesto que no cumplimos las asunciones necesarias para asegurarnos resultados en LDA y QDA, para este problema obtaríamos por usar el algoritmo KNN.
+
+------------------------------------
+
+Por otro lado, podemos hacer una comparativa general de la calidad de los algoritmos haciendo uso de las tablas proporcionadas para la práctica. Para ello, primeramente...
 
 Podríamos leer los de training pero para comparar necesitamos los de test
 ```{r}
@@ -570,7 +627,6 @@ pvalue
 Obtenemos un ranking de 144 para LDA y 96 para QDA, con un p-valor de 0.75 (o nivel de confianza del 25%).
 
 Esto nos dice que LDA obtiene mejores resultados pero puesto que el p-value es extremadamente grande no podemos afirmar con garantía estadística que las diferencias entre los tests sean notorias.
-<!-- Podemos afirmar al 85% que sí lo son, pero para hacerlo con seguridad buscaríamos al menos un 95% de confianza. -->
 
 --------------------------------------------------------------------------------
 
