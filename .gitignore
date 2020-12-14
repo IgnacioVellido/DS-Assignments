@@ -1,4 +1,6 @@
 *.txt
+IntDat/Proyecto/Clasificacion_files/**
+IntDat/Proyecto/Clasificacion_cache/**
 
 # History files
 .Rhistory

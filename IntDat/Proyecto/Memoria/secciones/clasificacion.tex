@@ -6,15 +6,15 @@ Como hemos visto en el apartado de EDA, tenemos un conjunto desbalanceado. Por l
 
 Recordamos los gráficos 1-1 con las clasificaciones, vistos en el EDA.
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-7-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-5-1}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-7-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-5-2}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-7-3}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-5-3}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-8-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-6-1}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-8-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-6-2}\caption{}\end{figure}
 
 De cara a un algoritmo KNN, apreciamos los datos muy entremezclados, con mayor tendencia a agruparse los no supervivientes que los que sí, pero nada en especial que nos llame la atención.
 
@@ -54,13 +54,11 @@ Accuracy was used to select the optimal model using the largest value.
 The final value used for the model was k = 15.
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-11-1}\caption{}\end{figure}
-
-Vemos que al estar los datos tan entremezclados ni siquiera con un K pequeño aprende bien, es ya con un K medianamente alto (= 15) donde obtiene mayor accuracy en train.
+Vemos que al estar los datos tan entremezclados ni siquiera con un K pequeño aprende bien, es ya con un K medianamente alto (= 15) donde obtiene mayor accuracy en training.
 
 Una vez más probablemente esto se deba a la gran mezcla de los datos, de forma que necesite la ``opinión'' de un gran número de vecinos para poder predecir con mayor confianza el nuevo valor.
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-12-1}\caption{Predicción con K=15 en training}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-10-1}\caption{Predicción con K=15 en training}\end{figure}
 
 Vemos que el uso de un K alto hace que perdamos puntos de Yes. Probablemente al ser minoría el error cometido clasificándolos como No es menor y por eso obtiene mejor accuracy.
 
@@ -73,11 +71,13 @@ Test evaluation:
  Accuracy     Kappa 
 0.9032258 0.5181347 
 
-Confusion matrix:
+Confusion matrix (in test split):
 knnPred No Yes
     No  26   2
     Yes  1   2
 \end{verbatim}
+
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-9-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
 Este comportamiento no es el habitual en aprendizaje automático, parece que casualmente el conjunto de test es bastante fácil de ajustar y por eso se obtienen mejores resultados que en training.
 En la sección ?? se muestran las etiquetas. También se vuelve a incidir en la alta presencia de etiquetas \textit{No}.
@@ -104,19 +104,21 @@ Resampling results:
 Tuning parameter 'k' was held constant at a value of 3
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-14-1}\caption{}\end{figure}
-
 \begin{verbatim}
 Test evaluation:
 Accuracy     Kappa 
 0.8064516 0.1388889
 
-Confusion matrix:
+Confusion matrix (in test split):
          test_labels
 knn3Pred   No Yes
      No    24   3
      Yes    3   1
 \end{verbatim}
+
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-12-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
+
+\newpage
 
 \begin{verbatim}
 k-Nearest Neighbors 
@@ -132,19 +134,19 @@ Resampling results:
 Tuning parameter 'k' was held constant at a value of 7
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-16-1}\caption{}\end{figure}
-
 \begin{verbatim}
 Test evaluation:
 Accuracy     Kappa 
 0.8064516 0.1388889
 
-Confusion matrix:
+Confusion matrix (in test split):
         test_labels
 knn7Pred No Yes
      No  24   3
      Yes  3   1 
 \end{verbatim}
+
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-14-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
 K=7 vemos que es el que más sufre al evaluar en test, y ambos (tal y como nos había indicado la primera ejecución con CV) tienen una calidad bastante inferior (tanto en training como en test) a un K=15.
 
@@ -223,17 +225,17 @@ Indicándonos que solo se puede asegurar que la variable Positive no tiene homog
 
 Gráficamente:
 
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-19-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-17-1}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-19-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-17-2}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-19-3}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-17-3}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-20-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-18-1}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-20-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-18-2}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-20-3}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-18-3}\caption{}\end{figure}
 
 Se nota que la causa de que no se rechace el test para esta variable es la gran cantidad de datos con Positive igual a 0.
 
@@ -269,7 +271,7 @@ Coefficients of linear discriminants:
             LD1
 Age  0.98140853
 Year 0.03411981
-Cross-Validated (10 fold) Confusion Matrix 
+Cross-Validated (10 fold) Confusion matrix (in test split) 
 
 (entries are percentual average cell counts across resamples)
  
@@ -281,15 +283,13 @@ Prediction No Yes
  Accuracy (average) : 0.72
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-23-1}\caption{}\end{figure}
-
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-24-1}\caption{Predicciones LDA sobre training}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-22-1}\caption{Predicciones LDA sobre training}\end{figure}
 
 Hacemos un plot del ajuste
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-25-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-23-1}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-26-1}\caption{}\small{Estamos pintando un contorno 3D y por eso nos salen múltiples líneas en el gráfico}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-24-1}\caption{}\small{Estamos pintando un contorno 3D y por eso nos salen múltiples líneas en el gráfico}\end{figure}
 
 Predecimos en test
 
@@ -298,12 +298,14 @@ Test evaluation:
 Accuracy     Kappa 
 0.8709677 0.0000000 
 
-Confusion matrix:
+Confusion matrix (in test split):
        test_labels
 ldaPred No Yes
     No  27   4
     Yes  0   0
 \end{verbatim}
+
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-21-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
 Tenemos un dataset bastante desbalanceado, y LDA no predice para la clase Yes. Con esto se asegura un alto accuracy en nuestro entrenamiento, pero no asegura de que para datos externos vaya a ser así. Pese a ello, no nos queda más remedio que suponer que nuestros datos vienen de la misma muestra aleatoria y por tanto son releventes para la clasificación.
 
@@ -334,13 +336,13 @@ Adicionalmente tenemos de forma recomendada que:
     Esto podemos verlo mediante matrices de correlación.
 \end{itemize}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-27-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-25-1}\caption{Matriz de correlación para la clase \textit{Yes}}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-27-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-25-2}\caption{Matriz de correlación para la clase \textit{Yes}}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-28-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-26-1}\caption{Matriz de correlación para la clase \textit{No}}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-28-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-26-2}\caption{Matriz de correlación para la clase \textit{Yes}}\end{figure}
 
 \subsubsection{Aplicación del algoritmo QDA}
 
@@ -356,7 +358,7 @@ Group means:
             Age        Year   Positive
 No  -0.04141411 0.004845716 -0.1792534
 Yes  0.11031976 0.021276742  0.4804648
-Cross-Validated (10 fold) Confusion Matrix 
+Cross-Validated (10 fold) Confusion matrix (in test split) 
 
 (entries are percentual average cell counts across resamples)
  
@@ -368,9 +370,7 @@ Prediction   No  Yes
  Accuracy (average) : 0.7382
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-31-1}\caption{}\end{figure}
-
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-32-1}\caption{Predicciones QDA sobre training}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-30-1}\caption{Predicciones QDA sobre training}\end{figure}
 
 
 \begin{verbatim}
@@ -378,20 +378,21 @@ Test evaluation:
 Accuracy     Kappa 
 0.8709677 0.2705882
 
-Confusion matrix:
+Confusion matrix (in test split):
        test_labels
 qdaPred No Yes
     No  26   3
     Yes  1   1
 \end{verbatim}
 
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-29-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
-Obtenemos resultados extremadamente similares a LDA, pero en este caso vemos que sí se predice la clase Yes.
+Obtenemos la mismos accuracy que LDA, pero en este caso vemos que sí se predice la clase Yes.
 
 \subsection{Comparativa de algoritmos}
 \subsubsection{Para el dataset \textit{haberman}}
 
-Si nos fijamos únicamente en los resultados obtenidos para este problema, los tres algoritmos obtienen el mismo accuracy en nuestro conjunto de test. Aunque las etiquetas de este conjunto contienen elementos de ambas clases, podemos ver que se predice mayoritariamente la clase \textit{No}. Como se había mencionado nuestro dataset está bastante desbalanceado, por lo que era más probable que se predijera esa clase con mayor facilidad.
+Si nos fijamos únicamente en los resultados obtenidos para este problema, los tres algoritmos obtienen el mismo accuracy en nuestro conjunto de test\footnote{Puesto que hemos usado el paquete caret, no podemos comparar con los datos de accuracy que nos proporciona su salida. Los datos aquí mostrados hacen referencia a una evaluación de los modelos devueltos sobre el conjunto inicialmente reservado de test.}. Aunque las etiquetas de este conjunto contienen elementos de ambas clases, podemos ver que se predice mayoritariamente la clase \textit{No}. Como se había mencionado nuestro dataset está bastante desbalanceado, por lo que era más probable que se predijera esa clase con mayor facilidad.
 
 \begin{verbatim}
 Etiquetas:
@@ -426,7 +427,8 @@ Accuracy QDA:
  Accuracy     Kappa 
 0.8709677 0.2705882 
 \end{verbatim}
-(Recordamos que las medidas devueltas en cada algoritmo provienen de un CV de 10-fold usando el paquete caret)
+
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-33-1}\caption{}\end{figure}
 
 Obtenemos valores de accuracy muy similares, pero diferentes valores de Kappa, siendo en general todos bajos.
 
@@ -438,7 +440,7 @@ A partir de las gráficas 3D de las figuras ?? y ?? se apreció una difícil sep
 
 \subsubsection{Comparativas generales}
 
-Para comparar la calidad genérica de los algoritmos vamos a aplicar test estadísticos en base a los resultados obtenidos en múltiples datasets. Para asegurar la igualdad de condiciones los algoritmos hacen uso de parámetros genéricos y utilizan las mismas particiones de cross-validation.
+Para comparar la calidad genérica de los algoritmos vamos a aplicar test estadísticos en base a los resultados obtenidos en múltiples datasets.
 
 \vspace{\baselineskip}
 
