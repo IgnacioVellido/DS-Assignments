@@ -747,7 +747,6 @@ Ahora aplicamos en test de Friedman a los dos algoritmos anteriores junto al alg
 \begin{verbatim}
 Friedman rank sum test
 
-data:  as.matrix(tablatst)
 Friedman chi-squared = 8.4444, df = 2, p-value = 0.01467
 \end{verbatim}
 
@@ -758,8 +757,6 @@ El p-value es \textless0.05 por lo que podemos concluir que al menos hay un par 
 Vemos cuáles de ellos lo son haciendo el test post-hoc de HOLM
 \begin{verbatim}
 Pairwise comparisons using Wilcoxon signed rank exact test 
-
-data:  as.matrix(tablatst) and groups 
 
   1     2    
 2 0.580 -    

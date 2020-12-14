@@ -23,8 +23,6 @@ El objetivo es poder clasificar, en base a los tres atributos, si los pacientes 
     \item \textbf{Survival}: Sí/No indicando la supervivencia del paciente tras 5 años.
 \end{enumerate}
 
-% BUSCAR POSIBLES COMPLICACIONES
-
 Contamos por tanto con un problema de clasificación binario en base a tres características, y con un número total de 306 instancias.
 
 \vspace{\baselineskip}
@@ -96,7 +94,6 @@ Con las siguientes medidas estadísticas principales:
 
 En las distribuciones de los clasificadores nos fijaremos más adelante. Aquí hacemos notar que los valores de salida en nuestros datos están bastante desbalanceados, solo un 26.5\% de los paciente sobrevivieron a los 5 años.
 
-% \vspace{\baselineskip}
 \newpage
 
 El dataset cuenta con valores 17 repetidos, concretamente las siguientes ocurrencias:
@@ -202,28 +199,28 @@ Por tanto proseguimos sin eliminar estas instancias duplicadas.
 
 \newpage
 Mostramos scatterplots univariables:
-% \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-9-1} \end{figure}
+% \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-9-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-2} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-2} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-3} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-3} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-4} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-10-4} \caption{}\end{figure}
 
 \newpage
 
 Y boxplots sobre las distribuciones de los datos:
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-2} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-2} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-3} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-3} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-4} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-11-4} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-12-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-12-1} \caption{}\end{figure}
 
 \vspace{\baselineskip}
 
@@ -300,41 +297,19 @@ Positive & 0.6153079 & 0.0000000 & 306\\
 \vspace{\baselineskip}
 
 También lo mostramos gráficamente con plots Q-Q, donde se ve que las distribuciones no siguen los cuartiles normales, mayormente en las colas:
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-2} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-2} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-3} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-3} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-4} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-18-4} \caption{}\end{figure}
 
 \newpage
 
 La variable Positive parece seguir una distribución exponencial. Podemos hacer un plot de los supuestos cuartiles para hacernos una idea de cómo se asemeja:
-% hacemos un test de Kolmogorov-Smirnov para corroborarlo:
 
-% \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-19-1} \end{figure}
-
-% \begin{verbatim}
-%     One-sample Kolmogorov-Smirnov test
-
-% data:  ex
-% D = 0.0071498, p-value = 0.6862
-% alternative hypothesis: two-sided
-
-
-%     One-sample Kolmogorov-Smirnov test
-
-% data:  haberman$Positive
-% D = 0.54423, p-value < 2.2e-16
-% alternative hypothesis: two-sided
-% \end{verbatim}
-
-% Al ser el p-valor \textless0.05 el test nos lo rechaza. El plot también nos lo muestra más claramente, la forma de la cola de la distribución probablemente sea la causante de que no siga ese tipo de distribución.
-
-% Podemos hacer un gráfico QQ con los cuartiles de una distribución exponencial
-
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-20-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-20-1} \caption{}\end{figure}
 
 Ya el gráfico nos muestra que no se va a asemejar, pero podríamos verificarlo con más precisión haciendo uso de un test de Kolmogorov-Smirnov.
 
@@ -385,24 +360,24 @@ Tenemos que tener en cuenta que las variables no siguen distribuciones normales.
 
 \newpage
 
-\begin{figure}[H]\includegraphics[width=\linewidth]{img/EDA2_files/corr1.png} \end{figure}
+\begin{figure}[H]\includegraphics[width=\linewidth]{img/EDA2_files/corr1.png} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=\linewidth]{img/EDA2_files/corr2.png} \end{figure}
+\begin{figure}[H]\includegraphics[width=\linewidth]{img/EDA2_files/corr2.png} \caption{}\end{figure}
 
 \newpage
 
 Las matrices de correlación nos muestran que no existe correlación alguna entre las variables, y un con un conjunto de scatterplot lo podemos ver gráficamente:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-28-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-28-1} \caption{}\end{figure}
 
 
 Adicionalmente, mostramos la distribución de las variables con su clasificación:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-2} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-2} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-3} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-3} \caption{}\end{figure}
 
 No se aprecia ninguna relación visual que nos ayude a clasificar el Survival.
 
@@ -437,7 +412,12 @@ Age & Year & Positive\\
 Para este dataset contamos con tres clasificadores con información de distinto tipo y bien organizada, por lo que no necesitamos hacer ningún tipo de ordenación/tratamiento. No existe ninguna relación entre variables sobre la información que codifican (en el sentido de que
 podrían agruparse).
 
-La variable Year solo indica las dos últimas cifras del año de operación, pero como todas las instancias son del mismo siglo nos resulta más conveniente tenerla así
+La variable Year solo indica las dos últimas cifras del año de operación, pero como todas las instancias son del mismo siglo nos resulta más conveniente tenerla así.
+
+\vspace{\baselineskip}
+
+Sobre esta variable, existe la posibilidad de hacer una discretización en intervalos, lo cuál podría ayudarnos en la clasificación. Pero observando las gráficas, vemos que no parece haber ningún agrupamiento o tendencia entre las edades y las etiquetas.
+Por tanto, antes de hacer esto se debería consultar con el experto, por si hubiera un significado especial al agruparlas, y puesto que no tenemos conocimiento suficiente sobre la materia como para deducirlo nosotros, se mantienen como están.
 
 \subsubsection{Resolución de hipótesis}
 
@@ -447,7 +427,7 @@ Nos habíamos planteado las siguientes hipótesis
     \item \textbf{H.1}: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados.
 \end{itemize}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-31-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-31-1} \caption{}\end{figure}
 
 \begin{verbatim}
  No Yes 
@@ -460,7 +440,7 @@ Vemos que la hipótesis no es cierta. Creemos que se debe a que el número de no
     \item \textbf{H.2}: Habrá mayor ratio de supervivencia cuanto más joven sea el paciente.
 \end{itemize}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-33-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-33-1} \caption{}\end{figure}
 
 Si miramos los pacientes con edades \textless40 nos sale todo lo contrario:
 
@@ -473,11 +453,11 @@ Si miramos los pacientes con edades \textless40 nos sale todo lo contrario:
     \item \textbf{H.3}: El rango de Year es pequeño. La influencia de esta variable creemos que podría darse solo si durante ese período se hubieran descubierto técnicas mejores de cirugía. Este razonamiento va orientado de cara a la población y no a la muestra. Puesto que contamos con datos de un solo hospital durante pocos años, es posible que el equipo de cirugía hubiera sido el mismo para la mayoría de pacientes.
 \end{itemize}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-35-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-35-1} \caption{}\end{figure}
 
 Decrementa el número de datos en años superiores, aunque la proporción es bastante similar con los datos que tenemos, por lo que no podemos confirmar la hipótesis:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-36-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-36-1} \caption{}\end{figure}
 
 \newpage
 
@@ -488,7 +468,7 @@ posiblemente indicando lo tardío que se descubre el cáncer.
 
 Un scatterplot no nos muestra visualmente ninguna aparente relación, y el análisis de correlación no nos había indicado nada:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-37-1} \end{figure}
+\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-37-1} \caption{}\end{figure}
 
 \subsection{Conclusiones}
 
