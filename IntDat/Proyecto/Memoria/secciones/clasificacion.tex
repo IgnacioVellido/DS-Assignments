@@ -12,15 +12,15 @@ Recordamos los gráficos 1-1 con las clasificaciones, vistos en el EDA.
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-5-3}\caption{}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-6-1}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.88\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-6-1}\caption{}\label{3d1}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-6-2}\caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.88\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-6-2}\caption{}\label{3d2}\end{figure}
 
 De cara a un algoritmo KNN, apreciamos los datos muy entremezclados, con mayor tendencia a agruparse los no supervivientes que los que sí, pero nada en especial que nos llame la atención.
 
-\vspace{\baselineskip}
-
 Debido a esto vamos a empezar con un valor de K relativamente bajo y vamos a ir aumentándolo poco a poco. Tenemos que tener en cuenta que un K mayor puede ocasionar overfitting, pero usando técnicas de cross-validation podemos minimizar las posibilidades.
+
+\vspace{\baselineskip}
 
 Los resultados usando el paquete caret son los siguientes\footnote{Los datos han sido preprocesados con una estandarización antes de aplicar cualquiera de los algoritmos}:
 \begin{verbatim}
@@ -32,23 +32,23 @@ k-Nearest Neighbors
 
 No pre-processing
 Resampling: Cross-Validated (10 fold) 
-Summary of sample sizes: 248, 247, 247, 247, 247, 247, ... 
+Summary of sample sizes: 248, 248, 247, 247, 248, 247, ... 
 Resampling results across tuning parameters:
 
-  k   Accuracy   Kappa    
-   3  0.6947599  0.2034939
-   4  0.6832418  0.1615034
-   5  0.6884412  0.1100164
-   6  0.6879121  0.1426382
-   7  0.6950549  0.0983539
-   8  0.7165954  0.1496547
-   9  0.7240130  0.1881672
-  10  0.7164632  0.1470534
-  11  0.7277269  0.1753847
-  12  0.7203195  0.1708068
-  13  0.7241656  0.1767408
-  14  0.7313085  0.2015352
-  15  0.7422873  0.2320214
+  k   Accuracy   Kappa     
+   3  0.6466931  0.05241865
+   4  0.6612434  0.07153373
+   5  0.6727513  0.05451908
+   6  0.6907407  0.08157828
+   7  0.6907407  0.07832535
+   8  0.7017196  0.08311583
+   9  0.7164021  0.13328924
+  10  0.7089947  0.12077424
+  11  0.7236772  0.15850208
+  12  0.7161376  0.14004893
+  13  0.7269841  0.16958772
+  14  0.7197090  0.14121236
+  15  0.7271164  0.16518141
 
 Accuracy was used to select the optimal model using the largest value.
 The final value used for the model was k = 15.
@@ -56,11 +56,13 @@ The final value used for the model was k = 15.
 
 Vemos que al estar los datos tan entremezclados ni siquiera con un K pequeño aprende bien, es ya con un K medianamente alto (= 15) donde obtiene mayor accuracy en training.
 
+\vspace{\baselineskip}
+
 Una vez más probablemente esto se deba a la gran mezcla de los datos, de forma que necesite la ``opinión'' de un gran número de vecinos para poder predecir con mayor confianza el nuevo valor.
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-10-1}\caption{Predicción con K=15 en training}\end{figure}
 
-Vemos que el uso de un K alto hace que perdamos puntos de Yes. Probablemente al ser minoría el error cometido clasificándolos como No es menor y por eso obtiene mejor accuracy.
+Vemos que el uso de un K alto hace que perdamos puntos de Yes, puesto que no hay suficientes vecinos de la misma clase que refuercen la opinión sobre esa zona del espacio.
 
 \vspace{\baselineskip}
 
@@ -69,24 +71,28 @@ Una evaluación con el subconjunto reservado inicialmente como test nos muestra 
 \begin{verbatim}
 Test evaluation:
  Accuracy     Kappa 
-0.9032258 0.5181347 
+0.8387097 0.2439024 
 
 Confusion matrix (in test split):
 knnPred No Yes
-    No  26   2
-    Yes  1   2
+    No  25   5
+    Yes  0   1
 \end{verbatim}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-9-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
 Este comportamiento no es el habitual en aprendizaje automático, parece que casualmente el conjunto de test es bastante fácil de ajustar y por eso se obtienen mejores resultados que en training.
-En la sección ?? se muestran las etiquetas. También se vuelve a incidir en la alta presencia de etiquetas \textit{No}.
+En la sección 4.4.1 se muestran las etiquetas. También se vuelve a incidir en la alta presencia de etiquetas \textit{No}.
+
+\vspace{\baselineskip}
 
 El valor alto de K hace que se prediga con mayor facilidad este valor de etiqueta y por ese desbalanceo se obtengan tan buenos resultados. En sí es un poco preocupante de cara a la población real de los datos, pero debemos suponer que la muestra que tenemos es representativa y por tanto válida.
 
+\vspace{\baselineskip}
+
 Por otro lado, para el problema que nos atañe quizás esto podría ser incluso un hecho positivo, ya que los falsos positivos sería algo que querríamos evitar a toda costa.
 
-\vspace{\baselineskip}
+\newpage
 
 Por comparar, podemos también evaluar con otros valores de K en test. Puesto que hemos obtenido los mejores resultados en training con un K de 15, que es un valor relativamente alto, podemos probar con uno bajo y uno intermedio (3 y 7).
 
@@ -95,11 +101,11 @@ k-Nearest Neighbors
 
 No pre-processing
 Resampling: Cross-Validated (10 fold) 
-Summary of sample sizes: 248, 247, 248, 248, 247, 247, ... 
+Summary of sample sizes: 247, 248, 247, 248, 248, 247, ... 
 Resampling results:
 
-  Accuracy  Kappa    
-  0.697619  0.1988554
+  Accuracy   Kappa     
+  0.6654762  0.09645955
 
 Tuning parameter 'k' was held constant at a value of 3
 \end{verbatim}
@@ -107,13 +113,13 @@ Tuning parameter 'k' was held constant at a value of 3
 \begin{verbatim}
 Test evaluation:
 Accuracy     Kappa 
-0.8064516 0.1388889
+0.8064516 0.2900763 
 
 Confusion matrix (in test split):
          test_labels
 knn3Pred   No Yes
-     No    24   3
-     Yes    3   1
+       No  23   4
+       Yes  2   2
 \end{verbatim}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-12-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
@@ -125,11 +131,11 @@ k-Nearest Neighbors
 
 No pre-processing
 Resampling: Cross-Validated (10 fold) 
-Summary of sample sizes: 248, 247, 247, 248, 248, 247, ... 
+Summary of sample sizes: 248, 247, 247, 248, 247, 247, ... 
 Resampling results:
 
   Accuracy   Kappa     
-  0.6761905  0.08141897
+  0.6874339  0.08134908
 
 Tuning parameter 'k' was held constant at a value of 7
 \end{verbatim}
@@ -137,13 +143,13 @@ Tuning parameter 'k' was held constant at a value of 7
 \begin{verbatim}
 Test evaluation:
 Accuracy     Kappa 
-0.8064516 0.1388889
+0.8064516 0.1696429 
 
 Confusion matrix (in test split):
         test_labels
 knn7Pred No Yes
-     No  24   3
-     Yes  3   1 
+     No  24   5
+     Yes  1   1
 \end{verbatim}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-14-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
@@ -165,11 +171,11 @@ Calculamos la diagonal de la matriz de correlación para cada una de las clases,
 \begin{verbatim}
 Para clase Yes:
       Age      Year  Positive 
-0.9176155 1.0113109 1.6788033 
+0.9439366 1.0656924 1.7401564 
 
 Para clase No:
       Age      Year  Positive 
-1.0756415 0.9752581 0.5448553 
+1.0423639 0.9998632 0.7266195 
 \end{verbatim}
 
 \vspace{\baselineskip}
@@ -219,7 +225,7 @@ group & 1 & 18.78912 & 1.99e-05\\
 \hline
 \end{tabular}
 
-Indicándonos que solo se puede asegurar que la variable Positive no tiene homogeneidad entre clases diferentes.
+Indicándonos que solo se puede asegurar que la variable Positive \textbf{no} tiene homogeneidad entre clases diferentes.
 
 \vspace{\baselineskip}
 
@@ -249,7 +255,7 @@ Aunque solo es recomendable, y no son cualidades necesarias para obtener soluci�
 \begin{itemize}
     \item Tenemos más instancias que predictores, por varios órdenes de magnitud.
     \item Los predictores son independientes. 
-    \item No tenemos varianza cercana a cero.
+    \item No tenemos varianzas cercanas a cero.
 \end{itemize}
 
 \subsubsection{Aplicación del algoritmo LDA}
@@ -259,55 +265,58 @@ Call:
 lda(x, y)
 
 Prior probabilities of groups:
-  No  Yes 
-0.72 0.28 
+       No       Yes 
+0.7272727 0.2727273 
 
 Group means:
             Age        Year
-No  -0.04141411 0.004845716
-Yes  0.11031976 0.021276742
+No  -0.05947324 -0.00398263
+Yes  0.11192259 -0.03680916
 
 Coefficients of linear discriminants:
             LD1
-Age  0.98140853
-Year 0.03411981
-Cross-Validated (10 fold) Confusion matrix (in test split) 
+Age   0.9781149
+Year -0.2588776
+Cross-Validated (10 fold) Confusion Matrix 
 
 (entries are percentual average cell counts across resamples)
  
           Reference
-Prediction No Yes
-       No  72  28
-       Yes  0   0
-                          
- Accuracy (average) : 0.72
+Prediction   No  Yes
+       No  72.7 27.3
+       Yes  0.0  0.0
+                            
+ Accuracy (average) : 0.7273
 \end{verbatim}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-22-1}\caption{Predicciones LDA sobre training}\end{figure}
 
-Hacemos un plot del ajuste
+El gráfico de los discriminantes no muestra una buena separación entre las clases, estando ambos centrados sobre 0.5 y similarmente esparcidos.
+\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-23-1}\caption{Histograma de los coeficientes de LDA}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-23-1}\caption{}\end{figure}
-
+Y aunque es difícil verlo en 2D, se puede apreciar que el hiperplano que se genera con LDA no separa bien las clases:
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-24-1}\caption{}\small{Estamos pintando un contorno 3D y por eso nos salen múltiples líneas en el gráfico}\end{figure}
 
-Predecimos en test
+\vspace{\baselineskip}
 
+Resultados en test:
 \begin{verbatim}
 Test evaluation:
 Accuracy     Kappa 
-0.8709677 0.0000000 
+0.8064516 0.0000000
 
 Confusion matrix (in test split):
        test_labels
 ldaPred No Yes
-    No  27   4
+    No  25   6
     Yes  0   0
 \end{verbatim}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-21-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
 Tenemos un dataset bastante desbalanceado, y LDA no predice para la clase Yes. Con esto se asegura un alto accuracy en nuestro entrenamiento, pero no asegura de que para datos externos vaya a ser así. Pese a ello, no nos queda más remedio que suponer que nuestros datos vienen de la misma muestra aleatoria y por tanto son releventes para la clasificación.
+
+Adicionalmente los resultados en test nos devuelven un kappa igual a cero, dándonos a entender que los resultados son poco fiables y que se podría obtener esa misma calidad con aleatoriedad pura.
 
 \subsection{Algoritmo QDA}
 \subsubsection{Asunciones}
@@ -324,17 +333,19 @@ Por tanto tenemos los requisitos de:
 
 Técnicamente el no cumplir normalidad no imposibilita que se encuentre solución, pero ya no nos lo asegura.
 
-\vspace{\baselineskip}
+\newpage
 
 Adicionalmente tenemos de forma recomendada que: 
 \begin{itemize}
-    \item El número de predictores debe ser menor que el número de instancias de cada clase. 
-    
-    Del EDA sabemos que esto es cierto.
-    \item Los predictores dentro de cada clase no deben estar correlacionados.
-    
-    Esto podemos verlo mediante matrices de correlación.
+  \item El número de predictores debe ser menor que el número de instancias de cada clase. 
+  
+  Del EDA sabemos que esto es cierto.
+  \item Los predictores dentro de cada clase no deben estar correlacionados.
+  
+  Corroboramos que no se da en las siguientes matrices de correlación.
 \end{itemize}
+
+\vspace{\baselineskip}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-25-1}\caption{Matriz de correlación para la clase \textit{Yes}}\end{figure}
 
@@ -351,43 +362,43 @@ Call:
 qda(x, y)
 
 Prior probabilities of groups:
-  No  Yes 
-0.72 0.28 
+       No       Yes 
+0.7272727 0.2727273 
 
 Group means:
             Age        Year   Positive
-No  -0.04141411 0.004845716 -0.1792534
-Yes  0.11031976 0.021276742  0.4804648
-Cross-Validated (10 fold) Confusion matrix (in test split) 
+No  -0.05947324 -0.00398263 -0.1503750
+Yes  0.11192259 -0.03680916  0.4933742
+Cross-Validated (10 fold) Confusion Matrix 
 
 (entries are percentual average cell counts across resamples)
  
           Reference
 Prediction   No  Yes
-       No  67.3 21.5
-       Yes  4.7  6.5
+       No  68.7 21.5
+       Yes  4.0  5.8
                             
- Accuracy (average) : 0.7382
+ Accuracy (average) : 0.7455
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-30-1}\caption{Predicciones QDA sobre training}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.78\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-30-1}\caption{Predicciones QDA sobre training}\end{figure}
 
 
 \begin{verbatim}
 Test evaluation:
 Accuracy     Kappa 
-0.8709677 0.2705882
+0.8064516 0.0000000
 
 Confusion matrix (in test split):
        test_labels
 qdaPred No Yes
-    No  26   3
-    Yes  1   1
+    No  25   6
+    Yes  0   0
 \end{verbatim}
 
-\begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-29-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.75\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-29-1}\caption{Matriz de confusión sobre el conjunto de test}\end{figure}
 
-Obtenemos la mismos accuracy que LDA, pero en este caso vemos que sí se predice la clase Yes.
+Obtenemos la mismos accuracy que LDA, pero en este caso vemos que sobre training sí se predice la clase Yes. Por tanto, el hiperplano que forma no será tan restrictivo como el de LDA, pero debería tener una forma similar.
 
 \subsection{Comparativa de algoritmos}
 \subsubsection{Para el dataset \textit{haberman}}
@@ -396,11 +407,11 @@ Si nos fijamos únicamente en los resultados obtenidos para este problema, los t
 
 \begin{verbatim}
 Etiquetas:
-No  No  Yes No  No  No  No  No  Yes No  No  No  No  No  No  No  No  Yes No 
-No  No  No  No  No  No  No  No  Yes No  No  No 
+No  No  Yes No  No  No  Yes No  No  No  No  No  No  No  Yes No  No  Yes Yes
+No  No  No  No  No  No  No  Yes No  No  No  No 
 
 Predicciones KNN:
-No  No  Yes No  No  No  No  Yes No  No  No  No  No  No  No  No  No  Yes No 
+No  No  No  No  No  No  No  No  No  No  No  No  No  No  No  No  No  No  Yes
 No  No  No  No  No  No  No  No  No  No  No  No 
 
 Predicciones LDA:
@@ -408,8 +419,8 @@ No No No No No No No No No No No No No No No No No No No No No No No No No
 No No No No No No
 
 Predicciones QDA:
-No  No  Yes No  No  No  No  Yes No  No  No  No  No  No  No  No  No  No  No 
-No  No  No  No  No  No  No  No  No  No  No  No 
+No No No No No No No No No No No No No No No No No No No No No No No No No
+No No No No No No
 \end{verbatim}
 
 \vspace{\baselineskip}
@@ -417,15 +428,15 @@ No  No  No  No  No  No  No  No  No  No  No  No
 \begin{verbatim}
 Accuracy KNN:
  Accuracy     Kappa 
-0.9032258 0.5181347 
+0.8387097 0.2439024  
 
 Accuracy LDA:
  Accuracy     Kappa 
-0.8709677 0.0000000 
+0.8064516 0.0000000 
 
 Accuracy QDA:
  Accuracy     Kappa 
-0.8709677 0.2705882 
+0.8064516 0.0000000 
 \end{verbatim}
 
 \begin{figure}[H]\center\includegraphics[width=.9\linewidth]{img/Clasificacion_files/figure-latex/unnamed-chunk-33-1}\caption{}\end{figure}
@@ -436,7 +447,9 @@ Obtenemos valores de accuracy muy similares, pero diferentes valores de Kappa, s
 
 Pese a esto, y ya no solo por tener mejores resultados, sino por no cumplir las asunciones necesarias de obtener resultados de calidad en LDA y QDA, para este problema optaríamos por usar el algoritmo KNN.
 
-A partir de las gráficas 3D de las figuras ?? y ?? se apreció una difícil separación de las clases, por lo que el algoritmo de vecinos más cercanos nos resulta una aproximación más lógica.
+A partir de las gráficas 3D de las figuras \ref{3d1} y \ref{3d2} se apreció una difícil separación de las clases, por lo que el algoritmo de vecinos más cercanos nos resulta una aproximación más lógica.
+
+\newpage
 
 \subsubsection{Comparativas generales}
 
