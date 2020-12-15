@@ -133,7 +133,7 @@ En base a los resultados vemos que el test de correlación nos había ayudado co
 
 Ya con el uso de la variable Weight vemos que podemos explicar un \textasciitilde69\% de la salida, un buen valor de partida. El ajuste quedaría de esta manera:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-6-1} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.85\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-6-1} \caption{}\end{figure}
 
 Con los coeficientes:
 
@@ -394,7 +394,7 @@ La fórmula del modelo aditivo que llevamos por ahora es:
 \end{equation}
 
 Gráficamente:
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-16-1} \caption{}\end{figure}
+\begin{figure}[H]\includegraphics[width=.89\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-16-1} \caption{}\end{figure}
 
 Por el uso multivariable la línea de regresión que se forma podría indicarnos un posible overfitting en el modelo, vamos a dejarlo por ahora e intentar solucionarlo con el modelo no lineal.
 
@@ -534,9 +534,9 @@ F-statistic: 967.3 on 1 and 390 DF,  p-value: < 2.2e-16
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-24-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-24-2} \caption{}\end{figure}
+\begin{figure}[H]\includegraphics[width=.88\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-24-2} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-24-3} \caption{}\end{figure}
+\begin{figure}[H]\includegraphics[width=.88\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-24-3} \caption{}\end{figure}
 
 Vemos un empeoramiento significativo en la calidad de R\textsuperscript{2} respecto al modelo multivariable, pero la forma del modelo no está tan ajustada a los datos y parece sensato mantenerlo así.
 
@@ -553,8 +553,7 @@ Residuals:
      Min       1Q   Median       3Q      Max 
 -12.9074  -2.6174  -0.4104   1.9500  16.5596 
 
-Coefficients:
-                      Estimate Std. Error t value Pr(>|t|)    
+Coefficients:         Estimate Std. Error t value Pr(>|t|)    
 (Intercept)          171.61778   12.14751  14.128  < 2e-16 ***
 Acceleration           0.19717    0.08914   2.212   0.0276 *  
 I(log(Weight))       -16.94003    2.27727  -7.439 6.59e-13 ***
@@ -568,11 +567,12 @@ F-statistic: 342.1 on 3 and 388 DF,  p-value: < 2.2e-16
 \end{verbatim}
 
 Los p-valores no son muy fuertes, pero siguen siendo aceptables, y gráficamente el modelo se ve un poco mejor:
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-2} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.85\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-1} \caption{}\end{figure}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-3} \caption{}\end{figure}
+\begin{figure}[H]\includegraphics[width=.94\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-2} \caption{}\end{figure}
+
+\begin{figure}[H]\includegraphics[width=.94\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-26-3} \caption{}\end{figure}
 
 Pensando en el problema, y tras el análisis hecho en el apartado de EDA, creemos que usar Model\_year para predecir Mpg no parece buena idea. La gráfica de la variable nos muestra mucha dispersión en los datos y, aunque sí se ve un cierta tendencia lineal, no parece suficiente para usarla. Claramente nos ajusta mejor los datos pero parece que nos estamos pegando a ellos.
 
@@ -608,6 +608,8 @@ Mpg ~ . - Acceleration
     1.856269
 \end{verbatim}
 
+\newpage
+
 Que visualmente nos quedaría:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-29-1} \caption{}\end{figure}
 
@@ -626,6 +628,8 @@ El método para evitar el overfitting que usamos en el apartado anterior probabl
 Mpg ~ Acceleration + I(log(Weight)
     2.938051
 \end{verbatim}
+
+\vspace{\baselineskip}
 
 Gráficamente este quedaría de la siguiente manera:
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/Regresion_files/figure-latex/unnamed-chunk-32-1} \caption{}\end{figure}
@@ -729,7 +733,7 @@ out\_test\_lm & out\_test\_kknn\tabularnewline
 
 \vspace{\baselineskip}
 
-Aplicamos el test de Wilconxon a LM y KNN:
+Aplicamos el test de \textbf{Wilconxon} a LM y KNN:
 \begin{verbatim}
  V    V
 78 - 93 
@@ -743,7 +747,7 @@ Esto nos dice que gana KNN pero puesto que el p-value no es lo suficientemente g
 
 \vspace{\baselineskip}
 
-Ahora aplicamos en test de Friedman a los dos algoritmos anteriores junto al algoritmo M5:
+Ahora aplicamos en test de \textbf{Friedman} a los dos algoritmos anteriores junto al algoritmo M5:
 \begin{verbatim}
 Friedman rank sum test
 
@@ -754,7 +758,7 @@ El p-value es \textless0.05 por lo que podemos concluir que al menos hay un par 
 
 \vspace{\baselineskip}
 
-Vemos cuáles de ellos lo son haciendo el test post-hoc de HOLM
+Vemos cuáles de ellos lo son haciendo el test post-hoc de \textbf{Holm}:
 \begin{verbatim}
 Pairwise comparisons using Wilcoxon signed rank exact test 
 

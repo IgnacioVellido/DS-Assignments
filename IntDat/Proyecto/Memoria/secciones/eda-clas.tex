@@ -97,6 +97,7 @@ En las distribuciones de los clasificadores nos fijaremos más adelante. Aquí h
 \newpage
 
 El dataset cuenta con valores 17 repetidos, concretamente las siguientes ocurrencias:
+\vspace{\baselineskip}
 
 \begin{tabular}{r|r|r|l}
 \hline
@@ -368,12 +369,12 @@ Tenemos que tener en cuenta que las variables no siguen distribuciones normales.
 
 Las matrices de correlación nos muestran que no existe correlación alguna entre las variables, y un con un conjunto de scatterplot lo podemos ver gráficamente:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-28-1} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.88\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-28-1} \caption{}\end{figure}
 
 
 Adicionalmente, mostramos la distribución de las variables con su clasificación:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-1} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.88\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-1} \caption{}\end{figure}
 
 \begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-29-2} \caption{}\end{figure}
 
@@ -419,6 +420,8 @@ La variable Year solo indica las dos últimas cifras del año de operación, per
 Sobre esta variable, existe la posibilidad de hacer una discretización en intervalos, lo cuál podría ayudarnos en la clasificación. Pero observando las gráficas, vemos que no parece haber ningún agrupamiento o tendencia entre las edades y las etiquetas.
 Por tanto, antes de hacer esto se debería consultar con el experto, por si hubiera un significado especial al agruparlas, y puesto que no tenemos conocimiento suficiente sobre la materia como para deducirlo nosotros, se mantienen como están.
 
+\newpage
+
 \subsubsection{Resolución de hipótesis}
 
 Nos habíamos planteado las siguientes hipótesis
@@ -427,7 +430,7 @@ Nos habíamos planteado las siguientes hipótesis
     \item \textbf{H.1}: Habrá menor ratio de supervivencia cuanto mayor sea el número de nodos positivos encontrados.
 \end{itemize}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-31-1} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-31-1} \caption{}\end{figure}
 
 \begin{verbatim}
  No Yes 
@@ -435,6 +438,8 @@ Nos habíamos planteado las siguientes hipótesis
 \end{verbatim}
 
 Vemos que la hipótesis no es cierta. Creemos que se debe a que el número de nodos no es el clasificador más importante.
+
+\newpage
 
 \begin{itemize}
     \item \textbf{H.2}: Habrá mayor ratio de supervivencia cuanto más joven sea el paciente.
@@ -449,15 +454,17 @@ Si miramos los pacientes con edades \textless40 nos sale todo lo contrario:
  36   4 
 \end{verbatim}
 
+\newpage
+
 \begin{itemize}
     \item \textbf{H.3}: El rango de Year es pequeño. La influencia de esta variable creemos que podría darse solo si durante ese período se hubieran descubierto técnicas mejores de cirugía. Este razonamiento va orientado de cara a la población y no a la muestra. Puesto que contamos con datos de un solo hospital durante pocos años, es posible que el equipo de cirugía hubiera sido el mismo para la mayoría de pacientes.
 \end{itemize}
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-35-1} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.78\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-35-1} \caption{}\end{figure}
 
 Decrementa el número de datos en años superiores, aunque la proporción es bastante similar con los datos que tenemos, por lo que no podemos confirmar la hipótesis:
 
-\begin{figure}[H]\includegraphics[width=.9\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-36-1} \caption{}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.78\linewidth]{img/EDA2_files/figure-latex/unnamed-chunk-36-1} \caption{}\end{figure}
 
 \newpage
 

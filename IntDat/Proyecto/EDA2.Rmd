@@ -9,13 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# Para PDF output
-# pdf_document:
-#     keep_tex: yes
-#     df_print: kable
-
 knitr::opts_chunk$set(echo = F, results="hold", fig.align="center",
-                      # include = F, # para PDF
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)
@@ -27,12 +21,6 @@ library(caret)  # preprocess
 library(moments)  # skewness
 library(car)  # scatterplotMatrix
 library(MASS) # fit
-# require(vcd)
-# library(ISLR)
-# library(HSAUR2)
-# library(vcdExtra)
-# library(cepp)
-# library("dslabs")
 ```
 
 # Intro
@@ -55,7 +43,6 @@ En principio deberíamos suponer la posibilidad de que puede haber cosas de no s
 
 Viendo que solo tenemos esta medida del cáncer en el dataset es posible que la operación que recibieron los pacientes sea algún tipo de cirugía de ganglios linfáticos, donde el cirujano intenta extraer los nodos afectados por el tumor.
 Por consiguiente, cuanto mayor es la cantidad de nodos detectados, más complicaciones pueden acarrearse de la operación.
-(poner referencias)
 
 https://www.cancer.org/cancer/breast-cancer/treatment/surgery-for-breast-cancer/lymph-node-surgery-for-breast-cancer.html
 https://en.wikipedia.org/wiki/Lymph_node#:~:text=A%20lymph%20node%2C%20or%20lymph,include%20B%20and%20T%20cells.
@@ -63,8 +50,6 @@ https://en.wikipedia.org/wiki/Lymph_node#:~:text=A%20lymph%20node%2C%20or%20lymp
 El objetivo es poder clasificar, en base a los tres atributos, si los pacientes pueden sobrevir 5 años o más:
 
 4. Survival: Sí/No indicando la supervivencia del paciente tras 5 años.
-
-BUSCAR POSIBLES COMPLICACIONES
 
 Contamos por tanto con un problema de clasificación binario en base a tres características, y con un número total de 306 instancias.
 
@@ -173,7 +158,6 @@ ggplot(gather(haberman), aes(value)) +
   labs(title="Histogramas de cada variable", x = "")
 ```
 Una a una
-<!-- MODIFICAR LOS BINS -->
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1")
 bins <- c(15,10,20)
@@ -295,25 +279,25 @@ Se ve que las distribuciones no siguen los cuartiles normales, mayormente en las
 La variable Positive parece seguir una distribución exponencial, hacemos un test de Kolmogorov-Smirnov para corroborarlo:
 <!-- HABRÍA QUE DEJARLO UNIQUE - PROBABLEMENTE NO SE PUEDA -->
 ```{r}
-# data generation
-ex <- rexp(10000, rate = 1.85) # generate some exponential distribution
-# control <- abs(rnorm(10000)) # generate some other distribution
-
-# estimate the parameters
-fit1 <- fitdistr(ex, "exponential") 
-fit2 <- fitdistr(table(haberman$Positive) %>% unique(), "exponential")
-
-# goodness of fit test
-ks.test(ex, "pexp", fit1$estimate) # p-value > 0.05 -> distribution not refused
-ks.test(haberman$Positive, "pexp", fit2$estimate) #  significant p-value -> distribution refused
-
-# plot a graph
-hist(haberman$Positive, freq = FALSE, breaks = 100, xlim = c(0, quantile(haberman$Positive, 0.99)))
-curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
-
-
-hist(ex, freq = FALSE, breaks = 100, xlim = c(0, quantile(ex, 0.99)))
-curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
+# # data generation
+# ex <- rexp(10000, rate = 1.85) # generate some exponential distribution
+# # control <- abs(rnorm(10000)) # generate some other distribution
+# 
+# # estimate the parameters
+# fit1 <- fitdistr(ex, "exponential") 
+# fit2 <- fitdistr(table(haberman$Positive) %>% unique(), "exponential")
+# 
+# # goodness of fit test
+# ks.test(ex, "pexp", fit1$estimate) # p-value > 0.05 -> distribution not refused
+# ks.test(haberman$Positive, "pexp", fit2$estimate) #  significant p-value -> distribution refused
+# 
+# # plot a graph
+# hist(haberman$Positive, freq = FALSE, breaks = 100, xlim = c(0, quantile(haberman$Positive, 0.99)))
+# curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
+# 
+# 
+# hist(ex, freq = FALSE, breaks = 100, xlim = c(0, quantile(ex, 0.99)))
+# curve(dexp(x, rate = fit1$estimate), from = 0, col = "red", add = TRUE)
 ```
 
 Al ser el p-valor <0.05 el test nos lo rechaza.
@@ -365,33 +349,14 @@ preProcess(haberman)
 Nos sugiere una estandarización a media cero y desviación típica 1.
 Para un problema de clasificación esto es totalmente necesario puesto que no queremos que los diferentes rangos de las variables hagan que haya información de más peso que otra.
 
-Según el método utilizado la necesitad de normalidad puede ser o no necesaria. (CORROBORAR)
+Según el método utilizado la necesitad de normalidad puede ser o no necesaria.
 Aplicar métodos de reducción de skewness en Positive no parece interesante puesto que está demasiado ladeado.
 
 ```{r}
 haberman_transform <- preProcess(haberman, method=c("scale", "center"))
-# haberman_transform <- preProcess(haberman, method=c("YeoJohnson","scale", "center"))
 haberman_norm <- predict(haberman_transform, haberman)
 ```
 
-<!-- Por ver lo mal que queda con YeoJohnson -->
-```{r}
-# colors <- c("chocolate", "deepskyblue1", "plum1")
-# bins <- c(15,10,20)
-# plt <- list(length = length(names))
-# 
-# for (i in 1:length(names)) {
-#   ggplot(haberman_norm, aes_string(x=names[i])) + 
-#     geom_histogram(aes(y=..density..), size=1, bins=bins[i], color="black", fill=colors[i]) +
-#     geom_density(alpha=.3, fill="black", color="green", size=.5) +
-#     labs(title="", x="", y="") +
-#     theme_light() -> plt[[i]]
-#   
-#   print(plt[[i]] + labs(title=sprintf("Histograma %s", names[i]), x=""))
-# }
-# 
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
-```
 
 -----------------------------------------------------------
 
@@ -567,7 +532,5 @@ haberman %>%
 
 En resumen concluímos diciendo que tenemos un dataset con pocas variables, pero con ninguna correlación entre ellas, lo que nos favorece en el problema de clasificación que nos atañe.
 También hemos visto ausencia de normalidad en los clasificadores (PONER CONSECUENCIAS DE ESTO) ...
-
-Además, contamos con más instancias de no supervivientes, algo que probablemente no nos resulte favorable para regresión logística y LDA (SEGURO?)
 
 Únicamente hemos preprocesado los datos aplicando una estandarización, preparando el dataset a los algoritmos que se van a utilizar.

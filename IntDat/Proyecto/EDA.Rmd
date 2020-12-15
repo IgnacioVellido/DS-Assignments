@@ -9,16 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# Para PDF output
-
-
-# prettydoc::html_pretty:
-#     theme: hpstr
-#     highlight: github
-#     df_print: paged
-
 knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
-                      #include = False, # para PDF
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)
@@ -30,11 +21,6 @@ library(caret)  # preprocess
 library(moments)  # skewness
 library(car)  # scatterplotMatrix
 library(MASS) # fit
-# library(ISLR)
-# library(HSAUR2)
-# library(vcdExtra)
-# library(cepp)
-# library("dslabs")
 ```
 
 # Intro
@@ -411,8 +397,6 @@ scale(auto) %>%
 ```
 Viendo que no son tan similares como creíamos, buscamos diferentes fórmulas para el cálculo de los caballos de vapor, y vemos que las fórmulas son un poco más complejas y no tenemos exactamente los datos necesarios para utilizarlas (no se descarta que no se puedan deducir, pero no sería un cálculo evidente)
 
-(poner fórmulas https://www.ajdesigner.com/phphorsepower/horsepower_equation_trap_speed_method_increase_horsepower.php#:~:text=Solving%20for%20the%20change%20in,the%20vehicle%2C%20driver%20and%20passenger.)
-
 ---------------------------------------------------------------------------
 
 ### Tratamiento de variables
@@ -548,5 +532,3 @@ Aunque no hemos descubierto los tipos de distribución que siguen nuestras varia
 Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable.
 Aún así, hemos visto que tenemos algunas variables más interesentas que otras.
 Varibles correladas con la salida nos aumentan las posibilidades de obtener un buen regresor, pero debemos evitar usar variables correladas entre sí para evitar la multicolinealidad. Sería conveniente evitarla para aumentar la interpretabilidad del modelo, pero la potencia en sí de este no cambia.
-(https://statisticsbyjim.com/regression/multicollinearity-in-regression-analysis/#:~:text=Multicollinearity%20occurs%20when%20independent%20variables,model%20and%20interpret%20the%20results.)
-(referenciar esta frase en el apartado de regresión)
