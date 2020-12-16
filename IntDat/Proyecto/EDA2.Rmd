@@ -531,6 +531,5 @@ haberman %>%
 #### Conclusiones
 
 En resumen concluímos diciendo que tenemos un dataset con pocas variables, pero con ninguna correlación entre ellas, lo que nos favorece en el problema de clasificación que nos atañe.
-También hemos visto ausencia de normalidad en los clasificadores (PONER CONSECUENCIAS DE ESTO) ...
 
 Únicamente hemos preprocesado los datos aplicando una estandarización, preparando el dataset a los algoritmos que se van a utilizar.

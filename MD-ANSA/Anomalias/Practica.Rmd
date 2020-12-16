@@ -794,8 +794,256 @@ Construya una función con el nombre test_Grubbs que devuelva una lista con los 
 
 # Requiere el paquete outliers
 
-test_Grubbs = function(columna, alpha = 0.05) {
+test_Grubbs = function(datos, ind.col, alpha = 0.05) {
+  columna <- datos[,ind.col]
+  res <- list()
   
+  # Nombre columna
+  res$nombre.columna <- colnames(datos)[ind.col]
+    
+  # Búsqueda del outlier
+  es.posible.outlier <- outlier(columna, logical = TRUE)
+  
+  res$clave.mas.alejado.media <- which(es.posible.outlier == TRUE)
+  res$valor.mas.alejado.media <- outlier(columna)
+  res$nombre.mas.alejado.media <- rownames(datos)[res$clave.mas.alejado.media]
+  
+  # Test de Grubbs
+  test.de.Grubbs = grubbs.test(columna, two.sided = TRUE)
+
+  res$es.outlier <- ifelse(test.de.Grubbs$p.value <= alpha, TRUE, FALSE)
+  res$p.value <- test.de.Grubbs$p.value
+
+  # Test de normalidad
+  test.Normalidad <- shapiro.test(columna[-res$clave.mas.alejado.media])
+  res$es.distrib.norm <- ifelse(test.Normalidad$p.value > alpha, TRUE, FALSE)
+  
+  res
 }
   
+df.datos.artificiales = as.data.frame(datos.artificiales)
+
+test.Grubbs.datos.artificiales = test_Grubbs(df.datos.artificiales, 1)
+
+test.Grubbs.datos.artificiales
 ```
+
+```{r}
+test.Grubbs.datos.num = test_Grubbs(datos.num, indice.columna)
+
+test.Grubbs.datos.num
+```
+
+## Trabajando con varias columnas
+
+### Outliers IQR
+
+Empezamos con los outliers IQR: vamos a calcular los outliers IQR con respecto a cada una de las columnas. El conjunto de ellos nos dará aquellos registros que son outliers con respecto a alguna columna.
+Para ello, llamamos a la siguiente función (disponible en OutliersFunciones_byCubero.R) y guardamos el resultado en la variable claves.outliers.IQR.en.alguna.columna (mire el código de la función para ver cómo utiliza sapply)
+
+```{r}
+claves.outliers.IQR.en.alguna.columna =
+  claves_outliers_IQR_en_alguna_columna(datos.num, 1.5)
+
+claves.outliers.IQR.en.alguna.columna
+```
+
+En este ejemplo, no hay registros duplicados pero podría haberlos. En ese caso, construimos sendas variables claves.outliers.IQR.en.mas.de.una.columna con todos aquellos registros que aparecen más de una vez y modificamos la variable claves.outliers.IQR.en.alguna.columna para que no aparezcan registros repetidos:
+
+```{r}
+claves.outliers.IQR.en.mas.de.una.columna = 
+  unique(
+    claves.outliers.IQR.en.alguna.columna[
+      duplicated(claves.outliers.IQR.en.alguna.columna)])
+claves.outliers.IQR.en.alguna.columna = 
+  unique (claves.outliers.IQR.en.alguna.columna)
+
+
+claves.outliers.IQR.en.mas.de.una.columna
+claves.outliers.IQR.en.alguna.columna 
+nombres_filas(datos.num, claves.outliers.IQR.en.mas.de.una.columna)
+nombres_filas(datos.num, claves.outliers.IQR.en.alguna.columna)
+```
+
+Vamos a ver los valores normalizados de estos outliers. Nos debe salir lo siguiente:
+```{r}
+datos.num.norm[claves.outliers.IQR.en.alguna.columna,]
+```
+
+Vamos a ver esta misma información de forma gráfica. Para ello, utilice el vector claves.outliers.IQR.en.alguna.columna para pasarlo como parámetro a la función diag_caja_juntos. De esta forma, obtendremos los diagramas de cajas de todas las variables y se mostrarán los valores que toman los outliers con respecto a alguna columna. Hágalo con los outliers normales y con los extremos. En nuestro ejemplo, como no hay outliers extremos, mostraremos los resultados con los outliers normales. Debe salir lo siguiente:
+```{r}
+diag_caja_juntos(datos.num.norm, "Outliers en alguna columna", claves.outliers.IQR.en.alguna.columna)
+```
+
+Vemos, por ejemplo, que el Toyota Corolla se dispara (por arriba) en mpg pero no tanto en el resto de columnas. Parece por tanto un coche bastante equilibrado que consume muy poco.
+
+Por otra parte, el Maserati Bora se dispara en hp (por arriba) y algo menos en qsec (por abajo): es un coche muy potente lo que le permite obtener una aceleración muy alta. Además, tiene un consumo (mpg) bastante moderado para ser un coche de esas características.
+
+Es llamativo el caso del Merc 230 que tenga una aceleración tan baja, la menor de todos los coches. Habría que determinar si se trata de un error en la toma de datos o simplemente los ingenieros diseñaron el vehículo con esas características.
+
+También es llamativo el bloque de coches Lincoln Continental, Chrysler Imperial, Cadillac Fletwood. Son coches muy pesados, con mucha cilindrada y que consumen mucho. Los típicos coches americanos.
+
+### Test de Hipótesis
+
+Vamos a ejecutar el test de Grubbs sobre las columnas de datos.num. En primer lugar, analizamos los histogramas de las variables para ver aquellas que se ajustan a una distribución Normal. Podemos usar los gráficos que generamos en el apartado Datasets y Selección de Variables o bien generarlos con las funciones fitdist y denscomp tal y como hicimos en el apartado Comprobación de la Hipótesis de Normalidad (tendrá que recorrer todas las columnas con sapply). Si lo hace de esta segunda forma, le debe salir lo siguiente:
+```{r}
+par(mfrow = c(2,3))
+datos.num %>% apply(2, function(columna) {
+  ajusteNormal = fitdist(columna , "norm")
+  denscomp (ajusteNormal,  xlab = nombre.columna)
+})
+```
+
+Tal y como vimos en el apartado Datasets y Selección de Variables, la variable disp es la que más se aleja de una Normal. En cualquier caso, la mantenemos por ahora. Pasamos el test de Grubbs a todas las columnas. Para ello, utilice sapply (también podría haber usado apply, pero los resultados no se muestran de una forma tan compacta). Debe obtener lo siguiente:
+```{r}
+sapply(1:ncol(datos.num), test_Grubbs, datos=datos.num)
+```
+
+En primer lugar, analizamos el test de Normalidad de Shapiro-Wilks. Recordemos que la función test_Grubbs la habíamos construido de forma que aplicaba el test después de haber eliminado el posible outlier de la columna correspondiente. El test rechaza en las variables disp (como ya habíamos supuesto) y drat. Así pues, podemos afirmar que dichas variables no siguen una distribución Normal. En cuanto al resto de variables, el test no puede rechazar por lo que concluimos que dichas variables puede considerarse que siguen una Normal. Recuerde que no tenemos ninguna garantía estadística ya que el test no ha rechazado y realmente lo único que podemos afirmar es que los datos no contradicen la hipótesis de Normalidad.
+
+Por otra parte, vemos que ninguno de los outliers IQR pueden considerarse realmente outliers con garantía estadística. Los candidatos que han estado más cerca de considerarse outliers según el test de Grubbs son el Maserati Bora(columna hp, p-value 0.111) y Merc 230 (columna qsec, p-value = 0.08)
+
+# Outliers Multivariantes
+
+## Métodos estadísticos basados en la distancia de Mahalanobis
+
+Para encontrar outliers multivariantes con técnicas estadísticas, vamos a aplicar las que se basan en la distancia de Mahalanobis. Es importante destacar que la finalidad de estas técnicas es ofrecer una garantía estadística de que si un valor se etiqueta como outlier, realmente lo es. Por lo tanto, la hipótesis nula establece que no lo es, de forma que si se rechaza, estaremos seguros de que sí es un outlier:
+
+```
+H0:El valor más alejado del centro de la distribución no es un outlier
+```
+
+### Hipótesis de Normalidad
+Los métodos basados en la distancia de Mahalanobis asumen que la distribución conjunta es una distribución Normal multivariante. Por lo tanto, la hipótesis nula es realmente la siguiente:
+
+```
+H0:El valor con mayor distancia de Mahalanobis al centro de la distribución vienede la misma distribución Normal multivariante que el resto de datos
+```
+
+Una condición necesaria para que un conjunto de variables siga una distribución Normal multivariante es que cada una de ellas siga una distribución normal 1-variante. Por lo tanto, lo primero que vamos a hacer es trabajar únicamente con aquellas variables que siguen una Normal. Para ello, usamos la función test_Grubbs que ya habíamos construido previamente. Recuerde que esta función devuelve una lista que incluye la propiedad es.distrib.norm que es un bool que nos dice si la variable en cuestión puede considerarse que sigue una distribución Normal. Utilícela con sapply para obtener un vector de bools son.col.normales. Utilice dicho vector para construir el dataset datos.num.distrib.norm que contendrá aquellas variables Normales del conjunto de datos datos.num. En nuestro ejemplo, recuerde que disp y drat (índices de variables 2 y 4) no eran variables Normales. Debe salir lo siguiente:
+```{r}
+test <- sapply(1:ncol(datos.num), test_Grubbs, datos=datos.num)
+son.col.normales <- apply(test, 2, function(x) {
+  x$es.distrib.norm
+})
+datos.num.distrib.norm = datos.num[,son.col.normales]
+
+son.col.normales
+head(datos.num.distrib.norm)
+```
+
+Ahora bien, el que las variables sigan una distribución Normal 1-variante no garantiza que el conjunto de ellas siga una distribución Normal multivariante. Es una condición necesaria pero no suficiente. Por lo tanto, tenemos que lanzar un test de Normalidad multivariante. Para ello, lanzamos la función mvn de la librería MVN. Lo hacemos sobre el conjunto de datos datos.num.distrib.norm:
+```{r}
+test.MVN = mvn(datos.num.distrib.norm, mvnTest = "energy")
+test.MVN$multivariateNormality["MVN"]
+test.MVN$multivariateNormality["p value"]
+```
+
+
+El test nos dice que la distribución conjunta de las variables mpg, hp, wt, qsec no es una Normal multivariante. Por lo tanto, no deberíamos aplicar el método basado en la distancia de Mahalanobis. De todas formas, vamos a lanzarlo para ver si detectamos algún valor que, aunque no pueda considerarse un outlier con garantía estadística, al menos proporcione alguna información interesante.
+
+### Tests de hipótesis para detectar outliers
+Vamos a usar la función cerioli2010.fsrmcd.test del paquete CerioliOutlierDetection (el paquete ofrece otra función cerioli2010.irmcd.test que, por simplicidad, no la veremos) La función cerioli2010.fsrmcd.test obtiene los outliers calculando las distancias de Mahalanobis usando una estimación de la matriz de covarianzas, según el método robusto MCD -minimum covariance determinant (la distribución del estadístico es la obtenida en Hardin-Rocke o Green and Martin) A título informativo, estos métodos robustos no incluyen los valores alejados del centro de la distribución en la estimación de la matriz de covarianzas. Para verlo visualmente, lancemos la función corr.plot (del paquete mvoutlier) sobre las dos primeras variables (es sólo un ejemplo):
+
+```{r}
+corr.plot(datos.num[,1], datos.num[,2])
+```
+
+Observe cómo cambia la forma de las elipses determinadas por la distancia de Mahalanobis. En rojo se muestran los puntos de la derecha que están más alejados del centro y que, por tanto, no se han usado en la estimación de la matriz de covarianzas.
+
+Tenemos dos formas de llamar a la función cerioli2010.fsrmcd.test dependiendo del tipo de test que queramos realizar:
+
+1. Si queremos lanzar el test siguiente:
+
+```
+H0:El valor con mayor distancia de Mahalanobis viene de la misma distribución Normal multivariante que el resto de datos
+```
+
+  llamaremos a la función con un valor de significación de 0.05 (parámetro signif.alpha). Éste sería el equivalente al test  de Grubbs en el que sólo se establece como posible outlier el valor más alejado del centro de la distribución. Lo llamaremos test individual
+
+2. Si queremos lanzar el conjunto de tests siguientes:
+
+```
+∀i=1⋯n,  H0i:El i-ésimo valor viene de la misma distribuciónNormal multivariante que el resto de datos
+```
+
+  llamaremos a la función con un valor de significación penalizado, por ejemplo usando la corrección de Sidak: 1−(1−α)1/n. Ésta sería la forma de comprobar si cada uno de los valores es un outlier o no. Al penalizar el error de significación, controlamos el error FWER (consulte las transparencias) pero el test será muy conservador. Lo llamaremos test de intersección
+
+La función cerioli2010.fsrmcd.test devuelve una lista y podremos acceder a las siguientes propiedades:
+
+- outliers: Es un vector de bools en la que indica si el dato i-ésimo es un outlier. En el caso de que hayamos aplicado el test individual , sólo tenemos garantía estadística de que es un outlier el valor con mayor distancia de Mahalanobis.
+
+- mahdist.rw: Es un vector con las distancias de Mahalanobis de cada valor. Realmente, son las distancias de Mahalanobis modificadas por los autores del paquete. Si necesita conocer las distancias de Mahalanobis no modificadas, debe acceder a la propiedad mahdist.
+
+Aplique el test individual con un valor de significación de 0.05 y el test de intersección con un valor de 1−(1−0.05)1/n (n es el número de registros del conjunto de datos). Obtenga las claves de los outliers encontrados por ambos métodos. Para ello tendrá que acceder al vector outliers devuelto por la función cerioli2010.fsrmcd.test. Obtenga también los nombres de las filas correspondientes usando la función nombres_filas disponible en OutliersFunciones_byCubero.R. Como este tipo de métodos robustos usan un método aleatorio para iniciar el proceso de elección de los datos que participarán en el cómputo final, es necesario que establezcamos el valor de semilla para que los resultados que veamos en esta ejecución sean siempre los mismos. Así pues pondremos, por ejemplo, set.seed(2). Debe salir lo siguiente:
+
+```{r}
+set.seed(2)
+
+cerioli.individual <- cerioli2010.fsrmcd.test(datos.num, signif.alpha = 0.05)
+claves.test.individual <- which(cerioli.individual$outliers)
+nombres.test.individual <- nombres_filas(datos.num, claves.test.individual)
+
+n <- nrow(datos.num)
+alpha <- 0.05
+cerioli.interseccion <- cerioli2010.fsrmcd.test(datos.num, signif.alpha = 1 - (1 - alpha)^(1/n))
+claves.test.interseccion <- which(cerioli.interseccion$outliers)
+nombres.test.interseccion <- nombres_filas(datos.num, claves.test.individual)
+
+claves.test.individual
+## [1]  9 17 29 31
+nombres.test.individual
+## [1] "Merc 230"          "Chrysler Imperial" "Ford Pantera L"    "Maserati Bora"
+claves.test.interseccion
+## integer(0)
+nombres.test.interseccion
+```
+
+Observe que el test de intersección no devuelve ningún outlier, mientras que el test individual devuelve 4 outliers. Ya hemos explicado que sólo tenemos garantía estadística de que sea un outlier el que tiene mayor valor de distancia de Mahalanobis. Para ver cuál es ese valor, basta ordenar decrecientemente el vector mahdist.rw (use la función order con el parámetro decreasing = TRUE ) y seleccionar el primero. Muestre también un gráfico de todas las distancias de Mahlanobis obtenidas para que aprecie cuál es el mayor valor. Le debe salir lo siguiente:
+```{r}
+cerioli.individual$mahdist.rw %>% sort() %>% plot()
+```
+
+
+```{r}
+clave.mayor.dist.Mah <- order(cerioli.individual$mahdist.rw , decreasing = TRUE)[1]
+nombre.mayor.dist.Mah <- nombres_filas(datos.num, clave.mayor.dist.Mah)
+
+cerioli.individual$mahdist
+clave.mayor.dist.Mah
+nombre.mayor.dist.Mah
+```
+
+Por lo tanto, podemos concluir que el test individual rechazaría la hipótesis de que el registro con clave 31 (Maserati Bora) no es un outlier. Así pues, lo aceptamos como outlier. Algunas consideraciones:
+
+1. Recuerde que no hemos podido determinar que la distribución subyacente fuese una Normal, por lo que no tenemos garantía estadística de que, efectivamente, dicho registro sea un outlier (de que provenga de una distribución distinta del resto de los datos).
+
+2. Bajo la premisa de lo dicho anteriormente, el test individual ha etiquetado al Maserati Bora como un outlier multivariante. Recuerde que dicho registro no fue etiquetado como outlier 1-variante en niguna variable por el test de Grubbs ya que tenía un valor muy alto en dos variables (hp y qsec), aunque no lo suficiente para que fuese un outlier. Sin embargo, al tener el mismo coche dos variables con valores muy altos, el test multivariante sí lo puede considerar como un outlier, ya que se suman las contribuciones de ambas variables.
+
+## Visualización de datos con un Biplot
+El BiPlot es una herramienta gráfica que nos permite tener una idea aproximada de los valores de los registros con respecto a todas las variables, así como las correlaciones entre dichas variables.
+
+El Biplot muestra los registros (las filas del dataset) como puntos en un plano 2D (también podría usarse un gráfico tridimensional) En el mismo gráfico se representan las variables como flechas, indicando la dirección de crecimiento en dicha variable de los datos. Al pasar de n dimensiones a sólo 2, es obvio que se pierde información por lo que siempre debemos tener en cuenta que es una representación aproximada. La aproximación será mejor cuanto mayor sea la suma de los porcentajes explicados por cada eje del plano (componente principal).
+
+Llamamos a la función biplot_2_colores disponible en OutliersFunciones_byCubero.R pasándole como primer parámetro el conjunto de datos y como segundo las claves de aquellos registros cuyos nombres queremos mostrar en el gráfico. En nuestro caso, le pasamos las claves de los outliers IQR.
+```{r}
+biplot.outliers.IQR = biplot_2_colores(datos.num, 
+                                       claves.outliers.IQR.en.alguna.columna, 
+                                       titulo.grupo.a.mostrar = "Outliers IQR",
+                                       titulo ="Biplot Outliers IQR")
+biplot.outliers.IQR
+```
+
+La suma de los porcentajes explicados es muy alta (19.1 + 69.8 = 88.9), por lo que la representación obtenida es una buena aproximación. Puede apreciarse en el gráfico que, efectivamente, Toyota Corolla se sitúa en la zona más alta de la variable mpg, al igual que Maserati Bora lo hace en la parte de valores muy altos de hp y en la de valores muy bajos de qsec (recuerde que las flechas indican la dirección de crecimiento) En la sección siguiente usaremos el biplot para mostrar los resultados de otros métodos de detección de outliers.
+
+## Métodos basados en distancias: LOF
+
+Los métodos estadísticos tienen como finalidad proporcionar garantía estadística de que los valores etiquetados como outliers efectivamente lo son. Para ello, presuponen que los datos siguen una distribución estadística concreta. Sin embargo, en las situaciones en las que este requisito no se cumple, no podemos aplicar dichos métodos. En estos casos, vamos a aplicar otros métodos que no ofrecen garantía estadística, pero son capaces de determinar cómo de alejado está cada punto al resto de los datos. Para ello, se usa una medida de distancia que, mientras no digamos lo contrario, será la distancia euclídea. Para que unas variables no dominen sobre otras tendremos que, obligatoriamente, normalizar los datos. Nosotros usaremos la normalización por z-score. De los métodos basados en distancia, aplicaremos uno de los más conocidos: LOF
+
+En primer lugar, debemos determinar el número de vecinos más cercanos que usaremos en el cómputo del método LOF (consulte las transparencias de clase) A falta de más información, elegimos arbitrariamente el valor de 5. Llamamos a la función lofactor de la librería DMwR pasándole como parámetro el conjunto de datos numéricos, una vez normalizados (recuerde que era datos.num.norm):
+```{r}
+num.vecinos.lof = 5
+lof.scores = lofactor(datos.num.norm, k = num.vecinos.lof)
+```
+
+La función lofactor asigna un score a cada dato, indicando hasta qué punto es un outlier. Ordenamos dicho vector de forma decreciente y mostramos en un gráfico los scores correspondientes. Nos debe salir lo siguiente:

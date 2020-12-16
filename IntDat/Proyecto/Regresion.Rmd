@@ -29,8 +29,6 @@ auto <- read_csv("Data/autoMPG6/autoMPG6.dat", comment = "@", col_names = names)
 
 --------------------------------------------------------------------------------
 
-Recordamos que la descripción de los datos se encuentra en el apartado [??]
-
 Como se comentó en el apartado de EDA:
 
 "Se nos pide elegir 5 regresores para la regresión y contamos exactamente con ese número, por lo que no podemos descartar ninguna variable.
@@ -100,13 +98,8 @@ Y vemos sus coeficientes:
 confint(fit)
 ```
 Aunque los valores del intervalo del coeficiente de Weight sea bajo, vemos que no incluye el cero (y con el p-valor obtenido anteriormente, lo podemos asegurar con bastante certeza).
+
 Probablemente la razón de estos coeficientes tan pequeños es que los datos no están estandarizados (se podría hacer perfectamente, se han dejado con sus rangos normales para interpretarlos mejor) y los valores de las unidades de medida son bastante diferentes (hablamos de rangos de [9.0,46.6] en Mpg frente a [1613,5140] en Weight)
-
-Ya con esto podemos intentan interpretar un poco los datos, tendríamos por ahora la fórmula de regresión lineal:
-(poner fórmula)
-
-(INTERPRETAR ?)
-La fórmula nos indica que por cada unidad de peso el Mpg decrementa ?
 
 --------------------------------------------------------------------------------
 
@@ -135,8 +128,6 @@ lm(Mpg ~ . - Horse_power - Displacement - Acceleration, data=auto) %>% summary()
 
 El estadístico F sigue bien, y los p-valores de las variables son extremadamente bajos.
 Nos fijamos en el R<sup>2</sup> y vemos que ha subido considerablemente (un 10%) respecto al univariable, por lo que este sería nuestro modelo aditivo por ahora.
-
-<!-- (Poner fórmula) -->
 
 A partir de ahora hay que tener cuidado si el R<sup>2</sup> sigue aumentando, hay que evitar el overfitting en el modelo.
 
@@ -179,7 +170,6 @@ fit <- lm(Mpg ~ Weight * Model_year + Acceleration * Weight, data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
-# this is the predicted line of multiple linear regression
 ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
   geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
@@ -212,7 +202,6 @@ fit <- lm(Mpg ~ + Weight * Model_year + I(log(Weight)), data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
-# this is the predicted line of multiple linear regression
 ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
   geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
@@ -231,7 +220,6 @@ fit <- lm(Mpg ~ Weight + Model_year+ I(log(Weight)), data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
-# this is the predicted line of multiple linear regression
 ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
   geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
@@ -255,7 +243,7 @@ fit <- lm(Mpg ~ I(log(Weight)), data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
-# this is the predicted line of multiple linear regression
+
 ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
   geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
@@ -292,7 +280,7 @@ fit <- lm(Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement)), data=auto)
 
 predicted_df <- data.frame(mpg_pred = predict(fit, auto), hp=auto$Weight)
 
-# this is the predicted line of multiple linear regression
+
 ggplot(data = auto, aes(y = Mpg, x = Weight)) + 
   geom_point() +
   geom_line(color='red', data = predicted_df, aes(y=mpg_pred, x=hp)) +
@@ -421,9 +409,6 @@ Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement))
 KNN:
 Mpg ~ . - Acceleration
 Mpg ~ Acceleration + I(log(Weight)) + I(log(Displacement))
-
-c("Displacement", "Horse_power", "Weight", "Acceleration", "Model_year", "Mpg")
-      X1                X2          X3            X4            X5         Y    
       
 LM:
 Y ~ X3 + X5 + I(log(X3))

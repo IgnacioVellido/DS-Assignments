@@ -154,12 +154,11 @@ ggplot(train, aes(x = Age, y = Year, color=train_labels)) +
 plot_grid(plotlist=list(knnplot,trueplot,legend), ncol=2, label_size = 1)
 ```
 
-Vemos que el uso de un K alto hace que perdamos puntos de Yes. Probablemente al ser minoría el error cometido clasificándolos como No es menor y por eso obtiene mejor accuracy.
+Vemos que no se produce ni un solo falso negativo en nuestro conjunto de test. El valor alto de K hace que se prediga con mayor facilidad este valor No de etiqueta y por ese desbalanceo se obtengan tan buenos resultados.
 
-En principio (a falta de evaluar con CV) creemos que en comparación con otros algoritmos el hecho de que el dataset este desbalanceado y los datos muy entremezclados la calidad real (fuera del entrenamiento) no sea muy buena.
-Podría ser que en la población se mantega este desbalanceo en los datos y funcione bien, pero en caso de que no lo sea, el valor de K tan alto haría que probablemente se tienda a devolver una predicción de No.
+Si enfocamos el problema como una predicción no limitada al hospital y a los años de las muestras, este hecho es en sí es un poco preocupante, pues no sabemos si esta tendencia es constante en todos los pacientes. Pese a ello, debemos suponer que la muestra que tenemos es representativa y por tanto válida.
 
-Como habíamos comentado al principio, para el problema que nos atañe quizás esto podría ser incluso un hecho positivo, ya que los falsos positivos sería algo que querríamos evitar a toda costa.
+Por otro lado, como estamos tratando con un problema médico, esto quizás podría ser incluso un hecho positivo, ya que los falsos positivos sería algo que querríamos evitar a toda costa (todo depende del enfoque hacia el que se haya orientado el estudio).
 
 --------------------------------------------------------------------------------
 
@@ -204,7 +203,7 @@ fourfoldplot(ctable, color = c("#CC6666", "#99CC99"), std = "all.max",
              conf.level = 0, margin = 1, main = "Confusion Matrix KNN - K=7")
 ```
 
-K=7 vemos que es el que más sufre al evaluar en test, y ambos (tal y como nos había indicado CV) tienen una calidad bastante inferior a un K=13
+K=7 vemos que es el que más sufre al evaluar en test, y ambos (tal y como nos había indicado CV) tienen una calidad bastante inferior a un K=15
 
 --------------------------------------------------------------------------------
 
@@ -230,7 +229,7 @@ cov(yes) %>% diag()
 cat("Para clase No:\n")
 cov(no) %>% diag()
 ```
-Las variables Age y Positive parecen seguir distintas varianzas, lo aseguramos con un test estadístico.
+Las variable Positive parece tener distintas varianzas, lo aseguramos con un test estadístico.
 
 Puesto que nuestras variables no siguen una distribución normal, no podemos hacer el test de homogeneidad de Barlett.
 Utilizamos por tanto el de Levene
@@ -284,7 +283,7 @@ ggplot(haberman, aes(x = Positive, y = Age, color = Survival)) +
 
 Se nota que la causa de que no se rechace el test para esta variable es la gran cantidad de datos con Positive=0
 
-Por tanto para LDA no podemos hacer uso de la variable Positive, pero sí de las otras dos.
+Por tanto para LDA no podemos hacer uso de la variable Positive, puesto que además de la falta de normalidad se incumpliría la asunción número 3, por lo que haremos uso de las otras dos.
 
 Aunque solo es recomendable, y no son cualidades necesarias para obtener solución en LDA:
 - Tenemos más instancias que predictores, por varios órdenes de magnitud.
@@ -302,6 +301,7 @@ ldaModel <- train(train %>% dplyr::select(-Positive), y = train_labels,
 ldaModel$finalModel
 confusionMatrix(ldaModel)
 ```
+
 Predecimos en test
 ```{r}
 ldaPred <- predict(ldaModel, newdata = test)
@@ -346,7 +346,6 @@ Hacemos un plot del ajuste
 data <- train %>% bind_cols(train_labels) %>% setNames(names) 
 ldafit <- lda(Survival~Age+Year, data = data)
 plot(ldafit)
-ldafit$post
 ```
 
 
@@ -510,7 +509,6 @@ Por otro lado, podemos hacer una comparativa general de la calidad de los algori
 Podríamos leer los de training pero para comparar necesitamos los de test
 ```{r}
 results <- read_csv("Data/clasif_test_alumos.csv")
-# results <- results[-1]
 results
 ```
 
@@ -519,7 +517,7 @@ results
 LDA vs QDA
 
 ```{r}
-# TABLA NORMALIZADA - lda (other) vs qda (ref) para WILCOXON 
+# TABLA NORMALIZADA
 # + 0.1 porque wilcox R falla para valores == 0 en la tabla
 
 difs <- (results[,3] - results[,4]) / results[,3]

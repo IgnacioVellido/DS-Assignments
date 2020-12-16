@@ -192,8 +192,6 @@ scale(auto) %>% apply(2, range) %>% apply(2, dist)
 
 ##### Displacement:
 
-(coger los plots de la variable sola)
-
 La cilindrada vemos con una desviación grande y una gran concentración en los valores inferiores.
 Desviado a la izquierda, no parece seguir una distribución normal.
 Existe una alta concentración en torno al valor 125, muy por encima del recuento que alcanzan el resto de valores 
