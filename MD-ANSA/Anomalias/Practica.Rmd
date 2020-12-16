@@ -977,6 +977,8 @@ La función cerioli2010.fsrmcd.test devuelve una lista y podremos acceder a las 
 
 Aplique el test individual con un valor de significación de 0.05 y el test de intersección con un valor de 1−(1−0.05)1/n (n es el número de registros del conjunto de datos). Obtenga las claves de los outliers encontrados por ambos métodos. Para ello tendrá que acceder al vector outliers devuelto por la función cerioli2010.fsrmcd.test. Obtenga también los nombres de las filas correspondientes usando la función nombres_filas disponible en OutliersFunciones_byCubero.R. Como este tipo de métodos robustos usan un método aleatorio para iniciar el proceso de elección de los datos que participarán en el cómputo final, es necesario que establezcamos el valor de semilla para que los resultados que veamos en esta ejecución sean siempre los mismos. Así pues pondremos, por ejemplo, set.seed(2). Debe salir lo siguiente:
 
+EL ALPHA DEL DE INTERSECCIÓN ES MUY PEQUEÑO. SI QUISIÉRAMOS BUSCAR K OUTLIERS NO SERÍA MEJOR PONER 0.05/K ??
+
 ```{r}
 set.seed(2)
 
