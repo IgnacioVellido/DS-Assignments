@@ -1046,6 +1046,350 @@ En primer lugar, debemos determinar el número de vecinos más cercanos que usar
 ```{r}
 num.vecinos.lof = 5
 lof.scores = lofactor(datos.num.norm, k = num.vecinos.lof)
+claves.lof.ordenados <- order(lof.scores, decreasing = T)
 ```
 
 La función lofactor asigna un score a cada dato, indicando hasta qué punto es un outlier. Ordenamos dicho vector de forma decreciente y mostramos en un gráfico los scores correspondientes. Nos debe salir lo siguiente:
+```{r}
+plot(sort(lof.scores, decreasing = T))
+```
+
+Podemos apreciar que hay un grupo de tres valores con scores más altos que el resto de datos. Vamos a analizar dichos valores. Establecemos la variable num.outliers en 3 y obtenemos sus claves junto con sus nombres (use la función nombres_filas). Nos debe salir lo siguiente:
+```{r}
+num.outliers <- 3
+
+claves.outliers.lof <- order(lof.scores, decreasing = T) %>% head(num.outliers)
+nombres.outliers.lof <- nombres_filas(datos.num.norm, claves.outliers.lof)
+
+claves.outliers.lof
+nombres.outliers.lof
+```
+
+Mostramos también los valores normalizados de dichos registros:
+```{r}
+datos.num.norm[claves.outliers.lof, ]
+```
+
+Viendo estos datos, es posible que el Lincoln Continental y el Cadillac Fletwood hayan obtenido un score alto debido simplemente a que tenían valores extremos en una única variable (y por tanto eran puntos alejados del resto) Posteriormente analizaremos con más detalle esta cuestión. Por ahora, vamos a analizar el registro que tiene el mayor score en LOF. Corresponde al Valiant. Podemos apreciar que no tiene un valor extremo en ninguna variable por separado (el más extremo es -1.564608 en drat)
+
+Vamos a empezar viendo las posibles interacciones de dos variables. Recuerde que el método LOF tiene en cuenta todas las variables a la hora de calcular el valor del score, por lo que no podemos extraer conclusiones definitivas analizando únicamente las interacciones de dos variables. En cualquier caso, obtendremos una idea aproximada de la situación del outlier.
+
+Para ello, mostramos los diagramas de dispersión corespondientes a los cruces 2 a 2 de las variables. Para ello, ejecutamos el siguiente código, que muestra en rojo el registro correspondiente al Valiant (en general, el que ha obtenido un mayor score):
+```{r}
+clave.max.outlier.lof = claves.outliers.lof[1]
+
+colores = rep("black", times = nrow(datos.num.norm))
+colores[clave.max.outlier.lof] = "red"
+pairs(datos.num.norm, pch = 19,  cex = 0.5, col = colores, lower.panel = NULL)
+```
+
+Podemos apreciar que, por ejemplo, hay una correlación inversa entre mpg y disp. En este sentido, el valor de Valiant no contradice esta correlación ya que se sitúa en mitad de la nube de puntos. Por lo tanto, si sólo tuviésemos en cuenta estas dos variables, un método estadístico no lo hubiera marcado como outlier. Sin embargo, no hay apenas vehículos en ese rango de valores: está él y otro más. Así pues, Valiant está aislado en una zona de puntos, cercano a otras dos zonas de puntos de alta densidad, por lo que es posible que este hecho haya influido en el score asignado por el método LOF.
+
+Si nos fijamos en la combinación drat y qsec, vemos que no hay ninguna correlación entre ambas variables, pero el registro Valiant se sitúa de nuevo en una zona aislada cerca de una nube de puntos de alta densidad a su izquierda, por lo que también es posible que ésto haya influido en el método LOF.
+
+Una vez que tenemos una idea aproximada, vamos a ver de un forma gráfica la interacción de todas las variables (no sólo 2 a 2) Para ello, usamos un biplot. A diferencia de los diagramas de dispersión, el biplot muestra el comportamiento de los datos con respecto a todas las variables. Sin embargo, la información obtenida no es exacta y es proporcional al porcentaje de variación explicado por las componentes principales. En nuestro ejemplo, la suma de la variabilidad explicada por las dos componentes principales es muy alta (casi un 90%) y por tanto la aproximación es muy buena.
+
+Para mostrar el biplot ejecutamos el siguiente código:
+```{r}
+biplot.max.outlier.lof = biplot_2_colores(datos.num.norm, clave.max.outlier.lof, titulo = "Mayor outlier LOF")
+biplot.max.outlier.lof
+```
+
+Valiant está en una zona con poca densidad, pero bastante cerca a otra zona de alta densidad (la de los vehículos que están en la parte central-izquierda del gráfico) Este grupo de vehículos correspondería a los que tienen un valor algo superior al normal en las variables hp, disp, wt bastante por debajo de lo normal en drat y algo por debajo de lo normal en mpg. Son vehículos con bastante potencia, cilindrada y peso, pero parece que al tener una relación con el eje trasero baja, les permite tener una aceleración media y un consumo algo menor de la media. Sin embargo el Valiant, es un vehículo con valores no demasiado distintos en disp, wt, drat, mpg, algo menor en hp pero un valor de qsec mucho mayor. Así pues, es un coche de consumo normal pero con una aceleración muy baja en relación a otros vehículos con valores similares de drat, disp, wt pero con algo más de potencia (hp). Así pues, a primera vista, el Valiant no es un vehículo cuya compra estaría recomendada, aunque obviamente habría que tener en cuenta otros factores no incluidos en el conjunto de datos como por ejemplo el diseño, precio, fiabilidad, etc.
+
+En cualquier caso, no olvidemos que el método LOF depende del número de vecinos elegido. De hecho, en este ejemplo, si hubiésemos cambiado la variable num.vecinos.lof habríamos obtenido otro resultado.
+
+## Métodos basados en Clustering
+
+En este apartado vamos a ver otro método basado en distancias. Detectaremos outliers según la distancia de cada dato al centroide de su cluster. El centroide podrá ser cualquiera (podrá provenir de un k-means o ser un medoide, por ejemplo). Recordemos que al ser un método basado en distancias, debemos trabajar con los datos normalizados. Empezamos con k-means
+
+### Clustering usando k-means
+
+A falta de más información, fijamos el número de outliers en 5 y el de clusters en 3. Además, como los resultados del método de clustering k-means dependen de la elección inicial de los centroides, fijamos un valor de la semilla con la función set.seed para que, de esta forma, no varíen los resultados de una ejecución a otra.
+```{r}
+num.outliers = 5
+num.clusters = 3
+set.seed(2)
+```
+
+Construimos el modelo kmeans (modelo.kmeans) llamando a la función kmeans. Nos devuelve una lista con las siguientes propiedades:
+
+- cluster: contiene los índices de asignación de cada dato al cluster correspondiente. El resultado lo guardamos en la variable asignac.clust.
+
+  Por ejemplo, si el dato con índice 69 está asignado al tercer cluster, en el vector asignac.clust habrá un 3 en la componente número 69.
+
+- centers: contiene los datos de los centroides. Los datos están normalizados por lo que los centroides también lo están. El resultado lo guardamos en la variable centroides.normalizados
+
+Nos debe salir lo siguiente:
+```{r}
+modelo.kmeans <- kmeans(datos.num.norm, num.clusters)
+asignaciones.clustering.kmeans <- modelo.kmeans$cluster
+centroides.normalizados <- modelo.kmeans$centers
+
+head(asignaciones.clustering.kmeans)
+centroides.normalizados
+```
+
+En el caso de que necesite conocer los valores sin normalizar que le corresponderían a los datos de los centroides, puede usar la función desnormaliza disponible en OutliersFunciones_byCubero.R:
+```{r}
+centroides.desnormalizados = desnormaliza(datos.num, centroides.normalizados)
+centroides.desnormalizados
+```
+
+Ya podemos calcular los outliers como aquellos datos que más se alejan del centroide del cluster al que ha sido asignado. Esto lo vamos a hacer construyendo una función top_clustering_outliers que debe tener la siguiente cabecera:
+```{r}
+#######################################################################
+# Calcula las distancias de los datos a los centroides
+# y se queda con los primeros (tantos como indica num.outliers)
+# Devuelve una lista con las claves de dichos registros y las
+# correspondientes distancias a sus centroides
+
+ 
+top_clustering_outliers = function(datos.normalizados, 
+                                   asignaciones.clustering, 
+                                   datos.centroides.normalizados, 
+                                   num.outliers){
+  distancias <- distancias_a_centroides(datos.normalizados, 
+                                        asignaciones.clustering,
+                                        datos.centroides.normalizados)
+  claves <- distancias %>% order(decreasing = T) %>% head(num.outliers)
+  
+  res <- list()
+  res$distancias <- distancias %>% sort(decreasing = T) %>% head(num.outliers)
+  res$claves <- claves
+  res
+}
+```
+
+Implemente esta función de la siguiente forma: si un dato di ha sido asignado a un cluster Ck, calculamos la distancia euclídea disti de di al centroide de Ck. Los outliers serán los datos con mayores valores de disti. Para ello, debe calcular el vector de todas las distancias distancias, ordenarlo y quedarse con los primeros (tantos como indique la variable num.outliers) De esa forma obtendrá el vector claves. La función top_clustering_outliers devolverá una lista con ambos valores, a saber, distancias y claves. Para calcular las distancias use la siguiente función disponible en OutliersFunciones_byCubero.R.
+
+Le debe salir lo siguiente:
+```{r}
+top.outliers.kmeans = top_clustering_outliers(datos.num.norm , 
+                                              asignaciones.clustering.kmeans, 
+                                              centroides.normalizados, 
+                                              num.outliers)
+claves.outliers.kmeans = top.outliers.kmeans$claves 
+nombres.outliers.kmeans = nombres_filas(datos.num, claves.outliers.kmeans)
+distancias.outliers.centroides = top.outliers.kmeans$distancias
+
+claves.outliers.kmeans
+nombres.outliers.kmeans
+distancias.outliers.centroides
+```
+
+Vamos a mostrar un biplot con la información de los outliers y de los clusters. Para ello, usamos la función biplot_outliers_clustering disponible en OutliersFunciones_byCubero.R:
+
+Esta función llama a otra función más genérica biplot_colores_formas que muestra un biplot de un conjunto de datos diferenciados por color y por forma. En nuestro caso, los colores corresponden a las asignaciones de los clusters y las formas a si es o no un outlier. Esta segunda función no la necesita para estas prácticas pero le puede ser útil en otras aplicaciones.
+```{r}
+biplot_outliers_clustering(datos.num, 
+                           titulo = "Outliers k-means",
+                           asignaciones.clustering = asignaciones.clustering.kmeans,
+                           claves.outliers = claves.outliers.kmeans)
+```
+
+Podemos apreciar que cuatro de los cinco outliers detectados por este método están en el exterior de la nube de puntos, por lo que es muy posible que se hayan etiquetado como outliers porque tienen un valor muy alto en una o varias variables. Estos coches son Ford Pantera L, Honda Civic, Cadillac Fletwood y Merc 230. Los registros Merc 230 y Cadillac Fletwood ya los conocíamos porque eran outliers con respecto a 1 columna. Ahora han aparecido dos nuevos: Ford Pantera L y Honda Civic. Veamos el diagrama de cajas conjunto para hacernos una idea de los valores que toman:
+```{r}
+diag_caja_juntos(datos.num, "Outliers k-means", claves.outliers.kmeans)
+```
+
+Parece ser que, efectivamente, Ford Pantera L y Honda Civic han sido etiquetados como outliers porque tienen valores algo extremos (sin llegar a ser muy extremos) en varias variables, por lo que la suma de los efectos de dichas variables han podido determinar que tengan scores altos. Por ejemplo, Honda Civic tiene valores algo extremos en todas las variables salvo en qsec.
+
+El único registro que no está en el exterior del biplot y ha sido etiquetado como outlier es Ferrari Dino. El diagrama de cajas también muestra que, efectivamente, no tiene un valor extremo en una o varias variables. Posteriormente analizaremos con más detalle este caso.
+
+### Clustering usando medoides
+
+En este apartado vamos a usar el método de clustering PAM (Partition around medoids) Previamente tenemos que calcular la matriz de distancias de todos con todos usando la función dist. A continuación, usamos la función pam del paquete cluster, pasándole como parámetros la matriz de distancias y k = número de clusters. Guardamos el resultado en modelo.pam
+```{r}
+set.seed(2)
+matriz.distancias = dist(datos.num.norm)
+modelo.pam        = pam(matriz.distancias , k = num.clusters)
+```
+
+Para obtener las asignaciones de cada dato a su cluster accedemos a modelo.pam$clustering. Aunque no sea de interés para el cálculo de los outliers, podemos ver la información de los medoides. Para ver los nombres de los medoides accedemos a modelo.pam$medoids. Mostramos también los valores que toman los medoides en todas las variables para hacernos una idea de cómo son los representantes de los clusters encontrados por pam (ahora no hace falta desnormalizar como hicimos en kmeans ya que los medoides son valores reales del conjunto de datos). También mostramos los valores normalizados.
+```{r}
+asignaciones.clustering.pam = modelo.pam$clustering   
+nombres.medoides = modelo.pam$medoids    
+medoides = datos.num[nombres.medoides, ]
+medoides.normalizados = datos.num.norm[nombres.medoides, ]
+
+nombres.medoides
+medoides
+medoides.normalizados
+```
+Calculamos ahora los top outliers. Para ello llamamos a la función top_clustering_outliers. Mostramos también el biplot correspondiente llamando a la función biplot_outliers_clustering. Nos debe salir lo siguiente:
+```{r}
+top.outliers.pam = top_clustering_outliers(datos.num.norm , 
+                                              asignaciones.clustering.pam, 
+                                              medoides.normalizados, 
+                                              num.outliers)
+claves.outliers.pam = top.outliers.pam$claves 
+nombres.outliers.pam = nombres_filas(datos.num, claves.outliers.pam)
+
+claves.outliers.pam
+nombres.outliers.pam
+```
+
+
+```{r}
+biplot_outliers_clustering(datos.num, 
+                           titulo = "Outliers PAM",
+                           asignaciones.clustering = asignaciones.clustering.pam,
+                           claves.outliers = claves.outliers.pam)
+```
+
+Podemos apreciar que, en este ejemplo, al usar la partición creada por pam, los outliers encontrados corresponden a registros que tienen un valor extremo en alguna de las variables.
+
+### Análisis de los outliers multivariantes puros
+
+Un outlier multivariante puede ser etiquetado como tal por varias razones:
+
+- El outlier tiene un valor extremo en alguna variable. Es decir, en una única variable, dicho registro presenta un valor extremo y por tanto esa variable contribuye de forma decisiva en el cómputo global. Puede ser el caso del Merc 230 que era un outlier en qsec.
+
+  También sería el caso del grupo de vehículos Lincoln Continental, Chrysler Imperial, Cadillac Fletwood que eran outliers no sólo en una variable sino en varias (coches muy pesados, con mucha cilindrada y que consumen mucho)
+
+  Estos outliers se sitúan en la periferia del biplot.
+
+- El outlier tiene valores relativamente extremos en más de una variable, aunque no llega a ser un outlier en ninguna de ellas. El efecto sumado de dichas variables hace que el registro sea etiquetado como outlier. Era el caso del Ford Pantera L y Honda Civic.
+
+  Al igual que los outliers anteriores, éstos también suelen situarse en la periferia del biplot.
+
+- El outlier no tiene valores extremos en ninguna variable pero, sin embargo, presenta una combinación inusual de valores de dos o más variables.
+
+  Estos outliers suelen estar en la zona interior del biplot.
+
+- El outlier tiene alguna otra característica que depende del método de detección aplicado. Por ejemplo, los métodos basados en distancia detectan aquellos valores que están aislados del resto de valores. Concretamente, el método LOF tiene en cuenta la densidad relativa de los vecinos próximos. Realmente, podría considerarse que este tipo de outliers aislados son un tipo particular de los anteriores (registros con combinaciones inusuales de variables)
+
+Informalmente, diremos que los tres últimos tipos de outliers son outliers multivariantes puros, es decir, aquellos que no son outliers con respecto a una única variable. De hecho, ya hemos detectado algunos en los apartados anteriores. Por ejemplo, el método k-means había identificado como outliers a Ford Pantera L y Honda Civic ya que presentaban valores algo extremos en varias variables. También identificó a Ferrari Dino como outlier, aunque éste no parecía que tuviese valores extremos en varias variables. Este vehículo será analizado con más detalle posteriormente.
+
+Lo que vamos a hacer ahora es automatizar el proceso. Para ello, vamos a identificar a los outliers en una única variable usando el método IQR: recuerde que habíamos obtenido los outliers en alguna columna (claves.outliers.IQR.en.alguna.columna) Bastará por tanto ver los outliers que son multivariantes pero no son 1-variantes (con respecto a ninguna variable). Este proceso lo podemos aplicar sobre cualquiera de los métodos vistos anteriormente (estadísticos, basados en distancia o basados en clustering). Nosotros vamos a usar el método LOF, que es uno de los que mejores resultados dan en una gran variedad de situaciones.
+
+Así pues, se le pide que calcule los registros que están en claves.outliers.lof pero no están en claves.outliers.IQR.en.alguna.columna (deberá aplicar la función setdiff). Debe salir lo siguiente:
+```{r}
+claves.outliers.lof.no.IQR <- setdiff(claves.outliers.lof, claves.outliers.IQR.en.alguna.columna)
+nombres.outliers.lof.no.IQR <- nombres_filas(datos.num, claves.outliers.lof.no.IQR)
+
+claves.outliers.IQR.en.alguna.columna
+claves.outliers.lof
+claves.outliers.lof.no.IQR
+nombres.outliers.lof.no.IQR
+```
+
+Así pues, el único outlier LOF multivariante puro es el correspondiente al Valiant. En la sección LOF vimos que era un outlier porque, si bien no tenía valores extremos en cada variable, no había otros registros (salvo uno) que tuviesen valores similares (era un registro aislado del resto) Analizando los valores del Valiant vimos que era un coche poco recomendable (en comparación a los otros coches) atendiendo a los parámetros de aceleración y consumo.
+
+Sería interesante intentar extraer alguna otra información adicional del conjunto de datos, aumentando el número de outliers a estudiar. Si recuerda la gráfica de los scores LOF, había un grupo de 3 registros con mayores valores de score, pero también había otro grupo de 8 registros con scores notablemente superiores al resto. Vamos por tanto a analizar de nuevo los resultados del método LOF aumentando el número total de outliers a 11. Para ello, basta con que seleccione los 11 primeros registros del vector claves.lof.ordenados y calcular de nuevo los que son outliers LOF pero no 1-variantes. Le debe salir lo siguiente (el vector claves.outliers.IQR.en.alguna.columna no cambia):
+```{r}
+claves.outliers.lof.no.IQR <- setdiff(claves.lof.ordenados %>% head(11), claves.outliers.IQR.en.alguna.columna)
+nombres.outliers.lof.no.IQR <- nombres_filas(datos.num, claves.outliers.lof.no.IQR)
+
+claves.outliers.IQR.en.alguna.columna
+claves.lof.ordenados %>% head(11)
+claves.outliers.lof.no.IQR
+nombres.outliers.lof.no.IQR
+```
+
+Mostramos el biplot de los outliers puros:
+```{r}
+biplot <- biplot_2_colores(datos.num, 
+                           titulo = "Outliers LOF (excluídos los que son IQR)",
+                           claves.a.mostrar = claves.outliers.lof.no.IQR)
+biplot
+```
+
+Puede apreciar que el Hornet 4 Drive es un outlier muy similar a Valiant, aunque este último tenía un mayor score. El resto de outliers, exceptuando a Ferrari Dino presentan valores extremos en varias variables. Por ejemplo, Camaro Z28 y Duster 360 tienen un valor muy alto en hp y muy bajo en qsec por lo que posiblemente el efecto sumado de ambas variables haya contribuido a que tengan un alto score. Nos fijamos por tanto en el Ferrari Dino que no parece que tenga un valor extremo en ninguna variable (se sitúa en la zona central del biplot). Veamos los datos normalizados:
+```{r}
+datos.num.norm[claves.outliers.lof.no.IQR, ]
+```
+
+Ferrari Dino es un dato con valores interesantes porque tiene:
+
+- Sólo algo más de potencia que los otros coches (hp = 0.4129) El Maserati Bora tiene mucha más potencia (2.7)
+- Una aceleración muy notable (qsec = -1.3143) El Maserati Bora tiene algo más, pero tampoco mucho (-1.8)
+- Un consumo excelente para los coches de su categoría ya que consume lo mismo que la media (mpg= -0.0648)
+- Menos centímetros cúbicos (disp = -0.6916) El Maserati Bora tiene más que la media (0.567)
+
+Los ingenieros del Ferrari Dino han sido capaces de conseguir un coche con una aceleración muy notable y un consumo excelente sin tener que recurrir a aumentar la potencia y los centímetros cúbicos. Posiblemente también habrá contribuido a alcanzar estos buenos resultados el tener un peso bastante bajo (wt = -0.4570) algo inusual en coches de esas características (El Maserati tiene 0.3)
+
+# Análisis de resultados
+
+Conjunto de datos
+
+Hemos trabajado con la base de datos mtcars disponible en R. Hemos suprimido las variables que tenían pocos valores distintos (cyl, vs, am, gear, carb) y nos hemos quedado con las variables siguientes: mpg, disp, hp, drat, wt, qsec
+
+Hemos aplicado la normalización por z-score en aquellos métodos que así lo han requerido.
+
+Outliers en una variable
+
+Método IQR
+
+No hemos encontrado outliers extremos (alejados de la media más de tres veces la distancia intercuartil) pero sí hay varios outliers no extremos (alejados de la media más de 1.5 veces la distancia intercuartil).
+
+El Toyota Corolla se dispara (por arriba) en mpg pero no tanto en el resto de columnas. Parece por tanto un coche bastante equilibrado que consume muy poco.
+
+Por otra parte, el Maserati Bora se dispara en hp (por arriba) y algo menos en qsec (por abajo): es un coche muy potente lo que le permite obtener una aceleración muy alta. Además, tiene un consumo (mpg) bastante moderado para ser un coche de esas características.
+
+Es llamativo el caso del Merc 230 que tenga una aceleración tan baja, la menor de todos los coches. Habría que determinar si se trata de un error en la toma de datos o simplemente los ingenieros diseñaron el vehículo con esas características.
+
+También es llamativo el bloque de coches Lincoln Continental, Chrysler Imperial, Cadillac Fletwood. Son coches muy pesados, con mucha cilindrada y que consumen mucho. Los típicos coches americanos.
+
+Test de Hipótesis
+
+El test de Shapiro-Wilks rechaza la Normalidad en las variables disp y drat. En cuanto al resto de variables, el test no puede rechazar por lo que concluimos que dichas variables puede considerarse que siguen una Normal. Recuerde que no tenemos ninguna garantía estadística ya que el test no ha rechazado y realmente lo único que podemos afirmar es que los datos no contradicen la hipótesis de Normalidad.
+
+Por otra parte, vemos que ninguno de los outliers IQR pueden considerarse realmente outliers con garantía estadística. Los candidatos que han estado más cerca de considerarse outliers según el test de Grubbs son el Maserati Bora(columna hp, p-value 0.111) y Merc 230 (columna qsec, p-value = 0.08)
+
+Outliers multivariantes
+
+Visualización con biplot
+
+La suma de los porcentajes explicados es muy alta (19.1 + 69.8 = 88.9), por lo que la representación obtenida es una buena aproximación.
+
+Métodos estadísticos usando la distancia de Mahalanobis
+
+La distribución conjunta de las variables mpg, hp, wt, qsec no es una Normal multivariante. Por lo tanto, no deberíamos aplicar el método basado en la distancia de Mahalanobis. De todas formas, lo hemos lanzado para ver si detectamos algún valor que, aunque no pueda considerarse un outlier con garantía estadística, al menos proporcione alguna información interesante.
+
+El test de intersección no devuelve ningún outlier, mientras que el test individual devuelve 4 outliers. Recordemos que sólo tenemos garantía estadística de que sea un outlier el que tiene mayor valor de distancia de Mahalanobis. Dicho valor es el Maserati Bora. Dicho registro no fue etiquetado como outlier 1-variante en niguna variable por el test de Grubbs ya que tenía un valor muy alto en dos variables (hp y qsec), aunque no lo suficiente para que fuese un outlier. Sin embargo, al tener el mismo coche dos variables con valores muy altos, el test multivariante sí lo puede considerar como un outlier, ya que se suman las contribuciones de ambas variables. En cualquier caso, insistimos en que al no haber podido establecer que la distribución subyacente sea una Normal multivariante, no podemos concluir con garantía estadística que, efectivamente, sea un outlier.
+
+LOF
+
+El gráfico de scores mostró un grupo destacado de 3 registros: Lincoln Continental, Cadillac Fletwood y Valiant. Tanto Lincoln Continental como Cadillac Fletwood obtuvieron un score alto debido a que tienen valores extremos en una única variable, por lo que no resultan de interés como outliers multivariantes.
+
+De entre los tres anteriores, el registro con mayor score es el Valiant. Este vehículo no tiene un valor inusual en ninguna variable (por separado), pero se sitúa en una zona con poca densidad, bastante cerca a otra zona de alta densidad que consiste en vehículos con bastante potencia, cilindrada y peso, pero parece que al tener una relación con el eje trasero baja, les permite tener una aceleración media y un consumo algo menor de la media. Sin embargo el Valiant, es un vehículo con valores no demasiado distintos en disp, wt, drat, mpg, algo menor en hp pero un valor de qsec mucho mayor. Así pues, es un coche de consumo normal pero con una aceleración muy baja en relación a otros vehículos con valores similares de drat, disp, wt pero con algo más de potencia (hp). Así pues, a primera vista, el Valiant no es un vehículo cuya compra estaría recomendada, aunque obviamente habría que tener en cuenta otros factores no incluidos en el conjunto de datos como por ejemplo el diseño, precio, fiabilidad, etc.
+
+En una segunda ejecución de LOF se incluyó un grupo de otros 8 registros con altos scores. De entre los nuevos outliers detectados cabe destacar el Camaro Z28 y el Duster 360. Ambos tienen un valor muy alto en hp y muy bajo en qsec por lo que posiblemente el efecto sumado de ambas variables haya contribuido a que tengan un alto score.
+
+Destaca también el Hornet 4 Drive que es muy similar a Valiant (que ya hemos analizado anteriormente), aunque este último tenía un mayor score.
+
+Otro outlier a destacar es Ferrari Dino. Es un dato con valores interesantes porque tiene:
+
+Sólo algo más de potencia que los otros coches (hp = 0.4129) El Maserati Bora tiene mucha más potencia (2.7)
+Una aceleración muy notable (qsec = -1.3143) El Maserati Bora tiene algo más, pero tampoco mucho (-1.8) - Un consumo excelente para los coches de su categoría ya que consume lo mismo que la media (mpg-= 0.0648)
+Menos centímetros cúbicos (disp = -0.6916) El Maserati Bora tiene más que la media (0.567)
+Los ingenieros del Ferrari Dino han sido capaces de conseguir un coche con una aceleración muy notable y un consumo excelente sin tener que recurrir a aumentar la potencia y los centímetros cúbicos. Posiblemente también habrá contribuido a alcanzar estos buenos resultados el tener un peso bastante bajo (wt = -0.4570) algo inusual en coches de esas características (El Maserati tiene 0.3)
+
+En resumen, el método LOF ha detectado outliers interesantes como por ejemplo el Valiant que es un coche con unos resultados inusuales por malos, así como el Ferrari Dino que destaca justo por lo contrario.
+
+Métodos basados en clustering
+
+Con el método de k-means (ordenando outliers según la distancia euclídea a los centroides) hemos detectado como outliers vehículos como Ford Pantera L y Honda Civic al tener valores bastante extremos (sin llegar a ser muy extremos) en varias variables, por lo que la suma de los efectos de dichas variables han podido determinar que tengan scores altos. Por ejemplo, Honda Civic tiene valores algo extremos en todas las variables salvo en qsec.
+
+Este método también etiquetó a Ferrari Dino como outlier (registro que ya hemos analizado anteriormente)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
