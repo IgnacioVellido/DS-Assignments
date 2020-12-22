@@ -413,6 +413,8 @@ https://archive.ics.uci.edu/ml/datasets/Wine
 
 ```{r}
 datos <- readMat("./wine.mat") %>% as.data.frame()
+nombres <- c("Alcohol", "Malic", "Ash", "Alcalinity", "Mag", "Phenols", "Flavanoids", "Non-flava", "Proantho", "Color", "Hue", "OD280", "Proline", "Anomaly")
+colnames(datos) <- nombres
 
 head(datos)
 ```
@@ -454,13 +456,16 @@ c(1:ncol(datos.num)) %>% sapply(function(x) hist(datos.num[,x],
 En general la mayoría de variables parecen seguir distribuciones no muy raras, excepto en X.12 que parece ser bimodal.
 
 Comprobamos normalidad con el test de Shapiro
+Lo hacemos aunque haya posibles outliers, solo es para hacernos una idea de si las variables que hemos visto que más se parecen son rechazadas por un test estadístico (posiblemente lo harían por outliers IQR)
 ```{r}
-# shapiro.test(datos.num)
-datos.num %>% apply(2, shapiro.test)
+print("Shapiro test, p-values:")
+sapply(datos.num, function(x) {
+  shapiro.test(x)$p.value}
+)
 ```
 
 Puesto que en este apartado no vamos a usarlas todas, elegimos las que más se asemejan a una normal, o al menos, las que el test de Shapiro no puede asegurar que no son normales.
-Por tanto, nos quedamos con X.8, X.4, X.3, X.1 -> Definitivamente, X.4, la que tiene el p-value más alto
+Por tanto, nos quedamos con X.8, Alcalinity, X.3, X.1 -> Definitivamente, Alcalinity, la que tiene el p-value más alto
 ```{r}
 indice.columna <- 4
 columna        <- datos.num[, indice.columna]
@@ -469,32 +474,302 @@ nombre.columna <- names(datos.num) [indice.columna]
 
 ### Obtención de los outliers IQR
 
+Calculamos los cuartiles
 ```{r}
-claves.outliers.IQR <- c()
+cuartil.primero <- quantile(columna, .25, names = F)
+cuartil.tercero <- quantile(columna, .75, names = F)
+iqr <- IQR(columna)
+```
+
+```{r}
+cat("Q1: ")
+cuartil.primero
+cat("\nQ3: ")
+cuartil.tercero
+cat("\nIQR: ")
+iqr
+```
+
+Calulamos los extremos
+```{r}
+extremo.superior.outlier.IQR <- cuartil.tercero + 1.5 * iqr
+extremo.inferior.outlier.IQR <- cuartil.primero - 1.5 * iqr
+extremo.superior.outlier.IQR.extremo <- cuartil.tercero + 3 * iqr
+extremo.inferior.outlier.IQR.extremo <- cuartil.primero - 3 * iqr
+```
+
+```{r}
+extremo.superior.outlier.IQR
+extremo.inferior.outlier.IQR
+extremo.superior.outlier.IQR.extremo
+extremo.inferior.outlier.IQR.extremo
+```
+
+
+Construimos vectores lógicos indicando si cada instancia es o no un outlier (normal o extremo)
+```{r}
+son.outliers.IQR <- columna < extremo.inferior.outlier.IQR | columna > extremo.superior.outlier.IQR
+son.outliers.IQR.extremos <- columna < extremo.inferior.outlier.IQR.extremo | columna > extremo.superior.outlier.IQR.extremo
+```
+
+```{r}
+head(son.outliers.IQR)
+head(son.outliers.IQR.extremos)
+sum(son.outliers.IQR)
+sum(son.outliers.IQR.extremos)
+```
+
+### Índices y valores de los outliers IQR
+```{r}
+son.outliers.IQR     = son_outliers_IQR(datos.num, indice.columna)
+# head(son.outliers.IQR)
+
+claves.outliers.IQR  = claves_outliers_IQR(datos.num, indice.columna)
+claves.outliers.IQR
+
+df.outliers.IQR <- datos.num[claves.outliers.IQR,]
+df.outliers.IQR
+# nombres.outliers.IQR <- row.names(df.outliers.IQR) 
+# valores.outliers.IQR <- columna[claves.outliers.IQR]
+
+son.outliers.IQR.extremos    = son_outliers_IQR(datos.num, indice.columna, 3)
+# head(son.outliers.IQR.extremos)
+
+claves.outliers.IQR.extremos = claves_outliers_IQR(datos.num, indice.columna, 3)
+claves.outliers.IQR.extremos
+```
+
+```{r}
+# claves.outliers.IQR
+# nombres.outliers.IQR
+# valores.outliers.IQR
+```
+
+### Desviación de los outliers con respecto a la media de la columna
+
+Si partimos de una variable X cuya distribución no es normal, el método de z-score no obtiene una N(0,1), pero si la distribución de X no es demasiado rara, los datos que así obtengamos nos darán información útil sobre si los registros son usuales o no. Para ilustrarlo, apliquemos el método z-score a la variable mpg. Para ello, usamos la función scale:
+
+```{r}
+datos.num.norm = scale(datos.num)
+head(datos.num.norm)
+
+columna.norm   = datos.num.norm[, indice.columna]
+```
+
+Obtenemos los valores normalizados de los outliers
+```{r}
+valores.outliers.IQR.norm <- columna.norm[claves.outliers.IQR]
+
+valores.outliers.IQR.norm
+```
+
+<!-- Son muy grandes, no? Estan por encima del 99% de lo que sería una normal -->
+
+Vamos a ver ahora el comportamiento de los outliers en la columna seleccionada con respecto al resto de columnas. Para ello, basta con seleccionar los datos correspondientes del conjunto de datos normalizado. En nuestro caso, sólo tenemos un outlier IQR en la columna seleccionada. Nos debe salir lo siguiente:
+
+```{r}
+datos.num.norm.outliers.IQR <- datos.num.norm[claves.outliers.IQR,]
+
+datos.num.norm.outliers.IQR
+```
+
+<!-- ANALIZAR -->
+
+### Gráfico
+
+Mostramos en un gráfico los valores de los registros respecto a diferentes variables.
+```{r}
+# plot_2_colores(datos.num.norm[], claves.outliers.IQR)
+plot_2_colores(datos.num.norm[,c(4,1)], claves.outliers.IQR)
+plot_2_colores(datos.num.norm[,c(4,3)], claves.outliers.IQR)
+```
+
+<!-- Con las variables X.1 y Alcalinity se nota como se alejan de la distribución -->
+
+<!-- No tenemos extremos -->
+
+### Diagrama de cajas
+
+```{r}
+diag_caja_outliers_IQR(datos.num.norm, 4)
+```
+
+```{r}
+diag_caja(datos.num.norm, 4, claves.outliers.IQR)
+```
+
+En todas las variables
+```{r}
 diag_caja_juntos(datos.num, "Outliers", claves.outliers.IQR)
 ```
+Vemos que solo la instancia 11 no tiene un valor anormal en al menos un par de variales
+
+## Test de hipótesis
+
+Ya hicimos el test de Shapiro anteriormente, pero podemos ver de forma gráfica que la distribución de la variable elegida 
+```{r}
+ajusteNormal = fitdist(columna , "norm")
+denscomp(ajusteNormal,  xlab = nombre.columna)
+```
+
+### Test de Grubs
+
+Sabiendo que la distribución se asemeja a una normal, podemos hacer el test de Grubs sobre el valor más alejado de la media, que sabemos que es ??:
+```{r}
+test.de.Grubbs = grubbs.test(columna, two.sided = TRUE)
+test.de.Grubbs$p.value
+```
+
+<!-- El p-value es > 0.05, por lo que el test no puede rechazar. Así pues, aunque Toyota Corolla tiene un valor alto en mpg, no podemos deducir que realmente sea un outlier desde el punto de vista estadístico. -->
+
+NO HACE FALTA PORQUE SABEMOS QUE LA INSTANCIA QUE ES
+```{r}
+# valor.posible.outlier = outlier(columna)
+# valor.posible.outlier
+```
 
 ```{r}
+# es.posible.outlier = outlier(columna, logical = TRUE)
+# clave.posible.outlier = which( es.posible.outlier == TRUE)
+# clave.posible.outlier
+```
 
+### Test de Normalidad
+
+```{r}
+#######################################################################
+# Aplica el test de Grubbs sobre la columna ind.col de datos y devuelve una lista con:
+
+# nombre.columna: Nombre de la columna datos[, ind.col]
+# clave.mas.alejado.media: Clave del valor O que está más alejado de la media
+# valor.mas.alejado.media: Valor de O en datos[, ind.col]
+# nombre.mas.alejado.media: Nombre de O en datos
+# es.outlier: TRUE/FALSE dependiendo del resultado del test de Grubbs sobre O
+# p.value:  p-value calculado por el test de Grubbs
+# es.distrib.norm: Resultado de aplicar el test de Normalidad 
+#    de Shapiro-Wilks sobre datos[, ind.col]
+#    El test de normalidad se aplica sin tener en cuenta el 
+#    valor más alejado de la media (el posible outlier O)
+#    TRUE si el test no ha podido rechazar
+#       -> Sólo podemos concluir que los datos no contradicen una Normal
+#    FALSE si el test rechaza 
+#       -> Los datos no siguen una Normal
+
+# Requiere el paquete outliers
+
+test_Grubbs = function(datos, ind.col, alpha = 0.05) {
+  columna <- datos[,ind.col]
+  res <- list()
+  
+  # Nombre columna
+  res$nombre.columna <- colnames(datos)[ind.col]
+    
+  # Búsqueda del outlier
+  es.posible.outlier <- outlier(columna, logical = TRUE)
+  
+  res$clave.mas.alejado.media <- which(es.posible.outlier == TRUE)
+  res$valor.mas.alejado.media <- outlier(columna)
+  res$nombre.mas.alejado.media <- rownames(datos)[res$clave.mas.alejado.media]
+  
+  # Test de Grubbs
+  test.de.Grubbs = grubbs.test(columna, two.sided = TRUE)
+
+  res$es.outlier <- ifelse(test.de.Grubbs$p.value <= alpha, TRUE, FALSE)
+  res$p.value <- test.de.Grubbs$p.value
+
+  # Test de normalidad
+  test.Normalidad <- shapiro.test(columna[-res$clave.mas.alejado.media])
+  res$es.distrib.norm <- ifelse(test.Normalidad$p.value > alpha, TRUE, FALSE)
+  
+  res
+}
+```
+
+```{r}
+test.Grubbs.datos.num = test_Grubbs(datos.num, indice.columna)
+
+test.Grubbs.datos.num
+```
+Hacemos notar que al eliminar el outlier al calcular el estadístico de normalidad ahora nos rechaza
+<!-- POR QUÉ? -->
+
+## Trabajando con varias columnas
+
+### Outliers IQR
+
+Empezamos con los outliers IQR: vamos a calcular los outliers IQR con respecto a cada una de las columnas. El conjunto de ellos nos dará aquellos registros que son outliers con respecto a alguna columna.
+```{r}
+claves.outliers.IQR.en.alguna.columna =
+  claves_outliers_IQR_en_alguna_columna(datos.num, 1.5)
+
+claves.outliers.IQR.en.mas.de.una.columna = 
+  unique(
+    claves.outliers.IQR.en.alguna.columna[
+      duplicated(claves.outliers.IQR.en.alguna.columna)])
+claves.outliers.IQR.en.alguna.columna = 
+  unique (claves.outliers.IQR.en.alguna.columna)
+
+
+claves.outliers.IQR.en.mas.de.una.columna
+claves.outliers.IQR.en.alguna.columna 
+```
+
+Vamos a ver los valores normalizados de algunos de estos outliers:
+```{r}
+datos.num.norm[claves.outliers.IQR.en.alguna.columna,] %>% head() %>% as.data.frame()
+```
+
+De forma gráfica (como hay muchos cogemos unos pocos)
+```{r}
+diag_caja_juntos(datos.num.norm, "Outliers en alguna columna", claves.outliers.IQR.en.alguna.columna)
+# diag_caja_juntos(datos.num.norm, "Outliers en alguna columna", claves.outliers.IQR.en.alguna.columna %>% head())
+```
+
+Notamos valores extremadamente altos en Mg y la instancia 11 que parece tener bajas cantidades de múltiples elementos (Alcalinity, Ash, Proantho...)
+
+
+### Test de Hipótesis
+
+Test de Grubs
+```{r}
+par(mfrow = c(2,3))
+datos.num %>% apply(2, function(col) {
+  ajusteNormal = fitdist(col, "norm")
+  denscomp (ajusteNormal,  xlab = "")
+})
+```
+
+Deberíamos quitar la variable 12 pues parece bimodal
+La 2, 10, 13
+Ante la duda, también la 8?
+```{r}
+# QUITAR VARIABLE 12
+datos.num.reducidos <- datos.num[,-c(2,8,10,12,13)]
 ```
 
 
+<!-- ?? -->
+```{r}
+sapply(1:ncol(datos.num.reducidos), test_Grubbs, datos=datos.num)
+```
 
+# Outliers Multivariantes
 
+## Métodos estadísticos basados en la distancia de Mahalanobis
 
+Para que un par de variables siga una distribución normal conjunta ambas deben estar normalmente distribuídas de forma indiviual.
+Como el test de normalidad nos deja solo una (Ash), y para poder hacer el apartado, reducidos el nivel de significación a 0.025 para obtener otra variable más (esto no)
+```{r}
+test <- sapply(1:ncol(datos.num), test_Grubbs, datos=datos.num)
+# test <- sapply(1:ncol(datos.num), test_Grubbs, alpha=0.025, datos=datos.num)
+son.col.normales <- apply(test, 2, function(x) {
+  x$es.distrib.norm
+})
+datos.num.distrib.norm = datos.num[,son.col.normales]
 
-
-
-
-
-
-
-
-
-
-
-
-
+son.col.normales
+head(datos.num.distrib.norm)
+```
 
 
 
