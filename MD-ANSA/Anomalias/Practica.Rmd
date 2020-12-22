@@ -467,12 +467,6 @@ c(1:ncol(datos.num)) %>% sapply(function(x) hist(datos.num[,x],
                                                  xlab=names(datos.num)[x]))
 ```
 
-Comprobamos normalidad con el test de Shapiro
-```{r}
-# shapiro.test(datos.num[,-1])
-# datos.num %>% apply(2, is.numeric)
-```
-
 Ninguna variable sigue una distribución __rara__ (quizás la variable _disp_ que parece uniforme), así que mantenemos todas las columnas.
 
 A falta de más información, seleccionamos cualquiera de ellas (posteriormente trabajaremos con todas) Por ejemplo, seleccionamos _mpg_ (ya que junto a qsec, drat y hp son las que más se asemejan a una Normal) Establecemos las siguientes variables para reutilizarlas a lo largo de este apartado.
