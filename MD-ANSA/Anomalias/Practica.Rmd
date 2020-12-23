@@ -976,22 +976,19 @@ EL ALPHA DEL DE INTERSECCIÓN ES MUY PEQUEÑO. SI QUISIÉRAMOS BUSCAR K OUTLIERS
 ```{r}
 set.seed(2)
 
-cerioli.individual <- cerioli2010.fsrmcd.test(datos.num, signif.alpha = 0.05)
+cerioli.individual <- cerioli2010.fsrmcd.test(datos.num.distrib.norm, signif.alpha = 0.05)
 claves.test.individual <- which(cerioli.individual$outliers)
-nombres.test.individual <- nombres_filas(datos.num, claves.test.individual)
+nombres.test.individual <- nombres_filas(datos.num.distrib.norm, claves.test.individual)
 
 n <- nrow(datos.num)
 alpha <- 0.05
-cerioli.interseccion <- cerioli2010.fsrmcd.test(datos.num, signif.alpha = 1 - (1 - alpha)^(1/n))
+cerioli.interseccion <- cerioli2010.fsrmcd.test(datos.num.distrib.norm, signif.alpha = 1 - (1 - alpha)^(1/n))
 claves.test.interseccion <- which(cerioli.interseccion$outliers)
-nombres.test.interseccion <- nombres_filas(datos.num, claves.test.individual)
+nombres.test.interseccion <- nombres_filas(datos.num.distrib.norm, claves.test.individual)
 
 claves.test.individual
-## [1]  9 17 29 31
 nombres.test.individual
-## [1] "Merc 230"          "Chrysler Imperial" "Ford Pantera L"    "Maserati Bora"
 claves.test.interseccion
-## integer(0)
 nombres.test.interseccion
 ```
 

@@ -758,10 +758,10 @@ sapply(1:ncol(datos.num.reducidos), test_Grubbs, datos=datos.num)
 ## Métodos estadísticos basados en la distancia de Mahalanobis
 
 Para que un par de variables siga una distribución normal conjunta ambas deben estar normalmente distribuídas de forma indiviual.
-Como el test de normalidad nos deja solo una (Ash), y para poder hacer el apartado, reducidos el nivel de significación a 0.025 para obtener otra variable más (esto no)
+Como el test de normalidad nos deja solo una (Ash), y para poder hacer el apartado, reducidos el nivel de significación a 0.025 para obtener otra variable más (esto no deberíamos aplicarlo en un problema real)
 ```{r}
-test <- sapply(1:ncol(datos.num), test_Grubbs, datos=datos.num)
-# test <- sapply(1:ncol(datos.num), test_Grubbs, alpha=0.025, datos=datos.num)
+# test <- sapply(1:ncol(datos.num), test_Grubbs, datos=datos.num)
+test <- sapply(1:ncol(datos.num), test_Grubbs, alpha=0.025, datos=datos.num)
 son.col.normales <- apply(test, 2, function(x) {
   x$es.distrib.norm
 })
@@ -771,6 +771,338 @@ son.col.normales
 head(datos.num.distrib.norm)
 ```
 
+Ahora bien, el que las variables sigan una distribución Normal 1-variante no garantiza que el conjunto de ellas siga una distribución Normal multivariante. Es una condición necesaria pero no suficiente. Por lo tanto, tenemos que lanzar un test de Normalidad multivariante:
+```{r}
+test.MVN = mvn(datos.num.distrib.norm, mvnTest = "energy")
+test.MVN$multivariateNormality["MVN"]
+test.MVN$multivariateNormality["p value"]
+```
+
+El test multivariante no rechaza la hipótesis nula, por lo que no nos asegura que la distribución conjunta de Ash y Non-flava no es normal. Nuestro test indidual nos había dicho que no lo era, aunque recordamos que si no quitámos el valor más alejado de la media no lo negaba (con este valor MVN hizo el test)
+
+No deberíamos por tanto aplicar este método con distancia de Mahalanobis, pues la condición de que las variables se distribuyan de forma normal era necesaria.
+
+### Tests de hipótesis para detectar outliers
+
+Visualmente
+```{r}
+corr.plot(datos.num[,3], datos.num[,8])
+```
+
+Podemos ver que hay 3 puntos fuera de ??, 2 considerablemente más alejados que el tercero.
+También apreciamos que el uso o no de un método robusto no nos va a cambiar los resultados ??
+
+Aplicamos test individual y test múltiple, según las hipótesis
+```{r}
+set.seed(2)
+
+cerioli.individual <- cerioli2010.fsrmcd.test(datos.num.distrib.norm, signif.alpha = 0.05)
+claves.test.individual <- which(cerioli.individual$outliers)
+nombres.test.individual <- nombres_filas(datos.num.distrib.norm, claves.test.individual)
+
+n <- nrow(datos.num)
+alpha <- 0.05
+cerioli.interseccion <- cerioli2010.fsrmcd.test(datos.num.distrib.norm, signif.alpha = 1 - (1 - alpha)^(1/n))
+claves.test.interseccion <- which(cerioli.interseccion$outliers)
+nombres.test.interseccion <- nombres_filas(datos.num.distrib.norm, claves.test.individual)
+
+claves.test.individual
+# nombres.test.individual
+claves.test.interseccion
+# nombres.test.interseccion
+```
+
+Muestre también un gráfico de todas las distancias de Mahlanobis obtenidas para que aprecie cuál es el mayor valor:
+```{r}
+cerioli.individual$mahdist.rw %>% sort() %>% plot()
+```
+
+Se aprecia los 4 puntos vistos anteriormente
+
+```{r}
+clave.mayor.dist.Mah <- order(cerioli.individual$mahdist.rw, decreasing = TRUE)[1]
+nombre.mayor.dist.Mah <- nombres_filas(datos.num, clave.mayor.dist.Mah)
+
+cerioli.individual$mahdist
+clave.mayor.dist.Mah
+# nombre.mayor.dist.Mah
+```
+
+<!-- Por lo tanto, podemos concluir que el test individual rechazaría la hipótesis de que el registro con clave 31 (Maserati Bora) no es un outlier. Así pues, lo aceptamos como outlier. Algunas consideraciones: -->
+
+<!-- 1. Recuerde que no hemos podido determinar que la distribución subyacente fuese una Normal, por lo que no tenemos garantía estadística de que, efectivamente, dicho registro sea un outlier (de que provenga de una distribución distinta del resto de los datos). -->
+
+<!-- 2. Bajo la premisa de lo dicho anteriormente, el test individual ha etiquetado al Maserati Bora como un outlier multivariante. Recuerde que dicho registro no fue etiquetado como outlier 1-variante en niguna variable por el test de Grubbs ya que tenía un valor muy alto en dos variables (hp y qsec), aunque no lo suficiente para que fuese un outlier. Sin embargo, al tener el mismo coche dos variables con valores muy altos, el test multivariante sí lo puede considerar como un outlier, ya que se suman las contribuciones de ambas variables. -->
+
+
+## Visualización de datos con un Biplot
+
+```{r}
+biplot.outliers.IQR = biplot_2_colores(datos.num, 
+                                       claves.outliers.IQR.en.alguna.columna, 
+                                       titulo.grupo.a.mostrar = "Outliers IQR",
+                                       titulo ="Biplot Outliers IQR")
+biplot.outliers.IQR
+```
+
+Al contar con un gran número de variables cuesta ver el gráfico.
+Lo primero que debemos notar es que el biplot no explica un alto porcentaje de las varianzas, probablemente por la cantidad de variables.
+
+Si redujéramos:
+```{r}
+biplot.outliers.IQR = biplot_2_colores(datos.num.reducidos[,-(1:3)], 
+                                       claves.outliers.IQR.en.alguna.columna, 
+                                       titulo.grupo.a.mostrar = "Outliers IQR",
+                                       titulo ="Biplot Outliers IQR")
+biplot.outliers.IQR
+```
+
+También se ve que una gran cantidad de outliers se ubican con valores altos en alguna columna, alejados del centro.
+Por tener un conjunto de variables bastante correladas, estos también "parecen" ser altos en otras columnas ??
+```{r}
+# corrplot::corrplot(cor(datos.num))
+# corrplot::corrplot.mixed(cor(datos.num), tl.pos="lt", upper="circle", mar=c(0,0,1,0))
+corrplot::corrplot(cor(datos.num), type="upper")
+corrplot::corrplot(cor(datos.num.reducidos), type="upper")
+```
+
+## Métodos basados en distancias: LOF
+
+MIRAR NÚMERO DE VECINOS
+```{r}
+num.vecinos.lof = 5
+lof.scores = lofactor(datos.num.norm, k = num.vecinos.lof)
+claves.lof.ordenados <- order(lof.scores, decreasing = T)
+```
+
+```{r}
+plot(sort(lof.scores, decreasing = T))
+```
+
+Vemos un conjunto de puntos siguiendo un forma bastante continua, aunque podemos apreciar dos grupos: uno con 6 elementos y otro con 9.
+
+Analizamos este primero
+```{r}
+num.outliers <- 6
+
+claves.outliers.lof <- order(lof.scores, decreasing = T) %>% head(num.outliers)
+# nombres.outliers.lof <- nombres_filas(datos.num.norm, claves.outliers.lof)
+
+claves.outliers.lof
+# nombres.outliers.lof
+```
+
+Mostramos también los valores normalizados de dichos registros:
+```{r}
+datos.num.norm[claves.outliers.lof, ]
+```
+
+ANALIZAR EL POR QUÉ DE LOS SCORES
+
+USAR LOS REDUCIDOS !!!
+
+Analizamos el registro con mayor score de LOF
+```{r}
+clave.max.outlier.lof = claves.outliers.lof[1]
+
+colores = rep("black", times = nrow(datos.num.norm))
+colores[clave.max.outlier.lof] = "red"
+pairs(datos.num.norm, pch = 19,  cex = 0.5, col = colores, lower.panel = NULL)
+```
+
+
+<!-- Una vez que tenemos una idea aproximada, vamos a ver de un forma gráfica la interacción de todas las variables (no sólo 2 a 2) Para ello, usamos un biplot. A diferencia de los diagramas de dispersión, el biplot muestra el comportamiento de los datos con respecto a todas las variables. Sin embargo, la información obtenida no es exacta y es proporcional al porcentaje de variación explicado por las componentes principales. En nuestro ejemplo, la suma de la variabilidad explicada por las dos componentes principales es muy alta (casi un 90%) y por tanto la aproximación es muy buena. -->
+
+Para mostrar el biplot ejecutamos el siguiente código:
+```{r}
+biplot.max.outlier.lof = biplot_2_colores(datos.num.norm, clave.max.outlier.lof, titulo = "Mayor outlier LOF")
+biplot.max.outlier.lof
+```
+
+El porcentaje explicado es muy BAJO !!
+
+```{r}
+biplot.max.outlier.lof = biplot_2_colores(datos.num.reducidos, clave.max.outlier.lof, titulo = "Mayor outlier LOF")
+biplot.max.outlier.lof
+```
+El porcentaje explicado es muy BAJO !!
+Parece tener una combinación inusual en muchas variables
+
+## Métodos basados en Clustering
+
+### Clustering usando k-means
+<!-- A falta de más información, fijamos el número de outliers en 5 y el de clusters en 3. Además, como los resultados del método de clustering k-means dependen de la elección inicial de los centroides, fijamos un valor de la semilla con la función set.seed para que, de esta forma, no varíen los resultados de una ejecución a otra. -->
+```{r}
+num.outliers = 5
+num.clusters = 3
+set.seed(2)
+```
+
+Modelo k-means:
+```{r}
+modelo.kmeans <- kmeans(datos.num.norm, num.clusters)
+asignaciones.clustering.kmeans <- modelo.kmeans$cluster
+centroides.normalizados <- modelo.kmeans$centers
+
+head(asignaciones.clustering.kmeans)
+centroides.normalizados
+```
+
+Variables desnormalizadas:
+```{r}
+centroides.desnormalizados = desnormaliza(datos.num, centroides.normalizados)
+centroides.desnormalizados
+```
+
+```{r}
+#######################################################################
+# Calcula las distancias de los datos a los centroides
+# y se queda con los primeros (tantos como indica num.outliers)
+# Devuelve una lista con las claves de dichos registros y las
+# correspondientes distancias a sus centroides
+
+ 
+top_clustering_outliers = function(datos.normalizados, 
+                                   asignaciones.clustering, 
+                                   datos.centroides.normalizados, 
+                                   num.outliers){
+  distancias <- distancias_a_centroides(datos.normalizados, 
+                                        asignaciones.clustering,
+                                        datos.centroides.normalizados)
+  claves <- distancias %>% order(decreasing = T) %>% head(num.outliers)
+  
+  res <- list()
+  res$distancias <- distancias %>% sort(decreasing = T) %>% head(num.outliers)
+  res$claves <- claves
+  res
+}
+```
+
+Calculamos outliers
+```{r}
+top.outliers.kmeans = top_clustering_outliers(datos.num.norm , 
+                                              asignaciones.clustering.kmeans, 
+                                              centroides.normalizados, 
+                                              num.outliers)
+claves.outliers.kmeans = top.outliers.kmeans$claves 
+# nombres.outliers.kmeans = nombres_filas(datos.num, claves.outliers.kmeans)
+distancias.outliers.centroides = top.outliers.kmeans$distancias
+
+claves.outliers.kmeans
+# nombres.outliers.kmeans
+distancias.outliers.centroides
+```
+
+Biplot outliers y clusters:
+```{r}
+biplot_outliers_clustering(datos.num, 
+                           titulo = "Outliers k-means",
+                           asignaciones.clustering = asignaciones.clustering.kmeans,
+                           claves.outliers = claves.outliers.kmeans)
+```
+
+Diagrama de cajas
+```{r}
+diag_caja_juntos(datos.num, "Outliers k-means", claves.outliers.kmeans)
+```
+
+ANALIZAR
+
+MIRAR SI SON LOS MISMOS QUE CON LOS MÉTODOS ANTERIORES
+
+### Clustering usando medoides
+
+```{r}
+set.seed(2)
+matriz.distancias = dist(datos.num.norm)
+modelo.pam        = pam(matriz.distancias , k = num.clusters)
+```
+
+```{r}
+asignaciones.clustering.pam = modelo.pam$clustering
+# nombres.medoides = modelo.pam$medoids    
+medoides = datos.num[nombres.medoides, ] %>% as.data.frame()
+medoides.normalizados = datos.num.norm[nombres.medoides, ] %>% as.data.frame()
+
+# nombres.medoides
+medoides
+medoides.normalizados
+```
+
+Calculamos los top.outliers
+```{r}
+top.outliers.pam = top_clustering_outliers(datos.num.norm , 
+                                              asignaciones.clustering.pam, 
+                                              medoides.normalizados, 
+                                              num.outliers)
+claves.outliers.pam = top.outliers.pam$claves 
+# nombres.outliers.pam = nombres_filas(datos.num, claves.outliers.pam)
+
+claves.outliers.pam
+# nombres.outliers.pam
+```
+
+```{r}
+biplot_outliers_clustering(datos.num, 
+                           titulo = "Outliers PAM",
+                           asignaciones.clustering = asignaciones.clustering.pam,
+                           claves.outliers = claves.outliers.pam)
+```
+
+### Análisis de los outliers multivariantes puros
+
+- El outlier tiene un valor extremo en alguna variable. Es decir, en una única variable, dicho registro presenta un valor extremo y por tanto esa variable contribuye de forma decisiva en el cómputo global. Puede ser el caso del Merc 230 que era un outlier en qsec.
+
+  También sería el caso del grupo de vehículos Lincoln Continental, Chrysler Imperial, Cadillac Fletwood que eran outliers no sólo en una variable sino en varias (coches muy pesados, con mucha cilindrada y que consumen mucho)
+
+  Estos outliers se sitúan en la periferia del biplot.
+
+- El outlier tiene valores relativamente extremos en más de una variable, aunque no llega a ser un outlier en ninguna de ellas. El efecto sumado de dichas variables hace que el registro sea etiquetado como outlier. Era el caso del Ford Pantera L y Honda Civic.
+
+  Al igual que los outliers anteriores, éstos también suelen situarse en la periferia del biplot.
+
+- El outlier no tiene valores extremos en ninguna variable pero, sin embargo, presenta una combinación inusual de valores de dos o más variables.
+
+  Estos outliers suelen estar en la zona interior del biplot.
+
+- El outlier tiene alguna otra característica que depende del método de detección aplicado. Por ejemplo, los métodos basados en distancia detectan aquellos valores que están aislados del resto de valores. Concretamente, el método LOF tiene en cuenta la densidad relativa de los vecinos próximos. Realmente, podría considerarse que este tipo de outliers aislados son un tipo particular de los anteriores (registros con combinaciones inusuales de variables)
+
+```{r}
+claves.outliers.lof.no.IQR <- setdiff(claves.outliers.lof, claves.outliers.IQR.en.alguna.columna)
+nombres.outliers.lof.no.IQR <- nombres_filas(datos.num, claves.outliers.lof.no.IQR)
+
+claves.outliers.IQR.en.alguna.columna
+claves.outliers.lof
+claves.outliers.lof.no.IQR
+# nombres.outliers.lof.no.IQR
+```
+
+<!-- Sería interesante intentar extraer alguna otra información adicional del conjunto de datos, aumentando el número de outliers a estudiar. Si recuerda la gráfica de los scores LOF, había un grupo de 3 registros con mayores valores de score, pero también había otro grupo de 8 registros con scores notablemente superiores al resto. Vamos por tanto a analizar de nuevo los resultados del método LOF aumentando el número total de outliers a 11. Para ello, basta con que seleccione los 11 primeros registros del vector claves.lof.ordenados y calcular de nuevo los que son outliers LOF pero no 1-variantes. Le debe salir lo siguiente (el vector claves.outliers.IQR.en.alguna.columna no cambia): -->
+```{r}
+claves.outliers.lof.no.IQR <- setdiff(claves.lof.ordenados %>% head(11), claves.outliers.IQR.en.alguna.columna)
+nombres.outliers.lof.no.IQR <- nombres_filas(datos.num, claves.outliers.lof.no.IQR)
+
+claves.outliers.IQR.en.alguna.columna
+claves.lof.ordenados %>% head(11)
+claves.outliers.lof.no.IQR
+# nombres.outliers.lof.no.IQR
+```
+
+Mostramos el biplot de los outliers puros:
+```{r}
+biplot <- biplot_2_colores(datos.num, 
+                           titulo = "Outliers LOF (excluídos los que son IQR)",
+                           claves.a.mostrar = claves.outliers.lof.no.IQR)
+biplot
+```
+
+<!-- Puede apreciar que el Hornet 4 Drive es un outlier muy similar a Valiant, aunque este último tenía un mayor score. El resto de outliers, exceptuando a Ferrari Dino presentan valores extremos en varias variables. Por ejemplo, Camaro Z28 y Duster 360 tienen un valor muy alto en hp y muy bajo en qsec por lo que posiblemente el efecto sumado de ambas variables haya contribuido a que tengan un alto score. Nos fijamos por tanto en el Ferrari Dino que no parece que tenga un valor extremo en ninguna variable (se sitúa en la zona central del biplot). Veamos los datos normalizados: -->
+```{r}
+datos.num.norm[claves.outliers.lof.no.IQR, ] %>% as.data.frame()
+```
+
+
+# Análisis de resultados
 
 
 
