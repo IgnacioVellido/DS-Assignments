@@ -730,7 +730,6 @@ Hay varios tests de hipótesis para comprobar el ajuste de una distribución (po
 - El test de Kolomogorov-Smirnov (shapiro.test) es otro test genérico aplicable a cualquier distribución (sólo compara la mayor diferencia observada entre los datos y la media). Requiere conocer los parámetros de la distribución. En el caso de la Normal, se usa la variante de Lilliefors (lillie.test del paquete nortest) que no requiere el conocimiento de éstos.
 
 Vamos a trabajar con los dos primeros tests. Construimos un dataset artificial
-
 ```{r}
 datos.artificiales = c(45,56,54,34,32,45,67,45,67,65,140)
 ```

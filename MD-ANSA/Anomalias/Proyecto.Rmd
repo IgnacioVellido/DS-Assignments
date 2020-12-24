@@ -679,36 +679,64 @@ Para el resto, vemos que más o menos habíamos acertado en el resto, solo la 11
 
 ## Test de hipótesis
 
-Ya hicimos el test de Shapiro anteriormente, pero podemos ver de forma gráfica que la distribución de la variable elegida 
+Haciendo uso de un test de hipótesis determinaremos si el valor más alejado de la media se puede considerar un outlier.
+
+### Comprobación de la hipótesis de Normalidad
+
+Puesto que vamos a aplicar el test de Grubs, tenemos que comprobar previamente que la distribución que sigue la variable __sin el outlier__ sigue una distribución normal (por tanto, el test de Shapiro que aplicamos anteriormente no nos vale).
+
+Primeramente, podemos ver de forma gráfica que la distribución de la variable elegida:
 ```{r}
 ajusteNormal = fitdist(columna , "norm")
 denscomp(ajusteNormal,  xlab = nombre.columna)
 ```
 
+Que vemos que se asemeja 
+
 ### Test de Grubs
 
-Sabiendo que la distribución se asemeja a una normal, podemos hacer el test de Grubs sobre el valor más alejado de la media, que sabemos que es ??:
+Más adelante se aplicará el test de normalidad sobre la variable sin el outlier.
+Antes, basándonos en el gráfico anterior y suponiendo que la distribución es normal, podemos hacer el test de Grubs sobre el valor más alejado de la media:
 ```{r}
 test.de.Grubbs = grubbs.test(columna, two.sided = TRUE)
 test.de.Grubbs$p.value
 ```
 
-<!-- El p-value es > 0.05, por lo que el test no puede rechazar. Así pues, aunque Toyota Corolla tiene un valor alto en mpg, no podemos deducir que realmente sea un outlier desde el punto de vista estadístico. -->
-
-NO HACE FALTA PORQUE SABEMOS QUE LA INSTANCIA QUE ES
+Mostramos el valor de la instancia:
 ```{r}
-# valor.posible.outlier = outlier(columna)
-# valor.posible.outlier
+valor.posible.outlier = outlier(columna)
+valor.posible.outlier
+```
+Y su clave
+```{r}
+es.posible.outlier = outlier(columna, logical = TRUE)
+clave.posible.outlier = which( es.posible.outlier == TRUE)
+clave.posible.outlier
 ```
 
-```{r}
-# es.posible.outlier = outlier(columna, logical = TRUE)
-# clave.posible.outlier = which( es.posible.outlier == TRUE)
-# clave.posible.outlier
-```
+Tenemos un p-value > 0.05, por lo que el test no rechaza la hipótesis de que el valor más alejado de la media (en este caso la instancia 11) no es un outlier. Aunque tenga un valor bajo para la variable Alcalinity no podemos concluir con garantía estadística que es una anomalía.
 
 ### Test de Normalidad
 
+Pasamos los tests de Normalidad al conjunto de datos eliminando previamente el outlier O (instancia 11):
+<!-- INCLUIR -->
+```{r}
+datos.sin.outlier = columna[-clave.posible.outlier]
+datos.sin.outlier
+
+shapiro.test(datos.sin.outlier)
+
+goodness_fit = gofstat(ajusteNormal)
+goodness_fit$adtest
+```
+
+El test de Anderson-Darling no se aplica por tener pocos datos. Para el test de Shapira, esta vez sin el outlier, vemos que ahora el test rechaza (p-value < 0.05) por lo que afirma con significación que la columna no sigue una distribución normal. Tal y como habíamos visto anteriormente, el test con el outlier no rechazaba, por lo que este modificaba la media lo suficiente para hacer creer al estadístico que la distribución era normal.
+No deberíamos por tanto aplicar el test de Grubs sobre la columna Alcalinity, pues esta normalidad es una condición necesaria.
+
+Pese a ello, proseguimos con el apartado.
+
+Construímos una función que nos calcula toda la información necesaria para aplicar un test de Grubs sobre una columna.
+<!-- INCLUIR -->
 ```{r}
 #######################################################################
 # Aplica el test de Grubbs sobre la columna ind.col de datos y devuelve una lista con:
@@ -758,19 +786,21 @@ test_Grubbs = function(datos, ind.col, alpha = 0.05) {
 }
 ```
 
+
+Aplicamos la función a nuestro dataset
 ```{r}
 test.Grubbs.datos.num = test_Grubbs(datos.num, indice.columna)
 
 test.Grubbs.datos.num
 ```
-Hacemos notar que al eliminar el outlier al calcular el estadístico de normalidad ahora nos rechaza
-<!-- POR QUÉ? -->
 
 ## Trabajando con varias columnas
 
+Aplicamos los métodos anteriores simultáneamente sobre varias columnas.
+
 ### Outliers IQR
 
-Empezamos con los outliers IQR: vamos a calcular los outliers IQR con respecto a cada una de las columnas. El conjunto de ellos nos dará aquellos registros que son outliers con respecto a alguna columna.
+Calculamos los outliers IQR
 ```{r}
 claves.outliers.IQR.en.alguna.columna =
   claves_outliers_IQR_en_alguna_columna(datos.num, 1.5)
@@ -788,22 +818,40 @@ claves.outliers.IQR.en.alguna.columna
 ```
 
 Vamos a ver los valores normalizados de algunos de estos outliers:
+<!-- INCLUIR -->
 ```{r}
 datos.num.norm[claves.outliers.IQR.en.alguna.columna,] %>% head() %>% as.data.frame()
 ```
 
-De forma gráfica (como hay muchos cogemos unos pocos)
+De forma gráfica (puesto que hay una gran cantidad de puntos los separamos en dos gráficos):
 ```{r}
-diag_caja_juntos(datos.num.norm, "Outliers en alguna columna", claves.outliers.IQR.en.alguna.columna)
-# diag_caja_juntos(datos.num.norm, "Outliers en alguna columna", claves.outliers.IQR.en.alguna.columna %>% head())
+diag_caja_juntos(datos.num.norm, "Outliers en alguna columna-1", claves.outliers.IQR.en.alguna.columna[c(T,F)])
+diag_caja_juntos(datos.num.norm, "Outliers en alguna columna-2", claves.outliers.IQR.en.alguna.columna[c(F,T)])
 ```
 
-Notamos valores extremadamente altos en Mg y la instancia 11 que parece tener bajas cantidades de múltiples elementos (Alcalinity, Ash, Proantho...)
+Notamos valores extremadamente altos en Mag y Proline, y solo unas pocas variables con outliers.
+También vemos que muchos outliers lo son en más de una columna, pero ninguno parece que en más de tres.
 
+Además, apreciamos en Mag (cantidad de Magnesio) valores extremádamente altos, sobre todo en la instancia 47.
+Una búsqueda rápida por internet nos dice que la cantidad magnesio en los vinos es baja, cosa que hace aún más llamativa esta instancia.
+```{r}
+datos.num[47,]
+
+summary(datos.num$Mag)
+```
+
+De los valores altos en Proline (2,4,9,10) vemos que todos tienen valores similares en el resto de variables.
+La Proline es el amino ácido más abundante en los vinos y parece variar en base al tipo de fermentación que ha sufrido el vino.
+```{r}
+datos.num[c(2,4,9,10),]
+```
+
+Referencia:
+https://ojs.openagrar.de/index.php/VITIS/article/view/7459/6882
 
 ### Test de Hipótesis
 
-Test de Grubs
+Aplicaremos el test de Grubs sobre las columnas que tenemos, pero antes mostramos los gráficos de las distribuciones:
 ```{r}
 par(mfrow = c(2,3))
 datos.num %>% apply(2, function(col) {
@@ -812,19 +860,24 @@ datos.num %>% apply(2, function(col) {
 })
 ```
 
-Deberíamos quitar la variable 12 pues parece bimodal
-La 2, 10, 13
-Ante la duda, también la 8?
+Quitamos la variable pues parece bimodal, pero mantenemos el resto por no ser demasiado ``raras``
+<!-- La 2, 10, 13 -->
+<!-- Ante la duda, también la 8? -->
 ```{r}
-# QUITAR VARIABLE 12
-datos.num.reducidos <- datos.num[,-c(2,8,10,12,13)]
+# datos.num.reducidos <- datos.num[,-c(2,8,10,12,13)]
+datos.num.reducidos <- datos.num[,-12]
 ```
 
-
-<!-- ?? -->
+Aplicamos el test
+<!-- INCLUIR -->
 ```{r}
 sapply(1:ncol(datos.num.reducidos), test_Grubbs, datos=datos.num)
 ```
+
+Lo primero que vemos es que tras quitar el valor más alejado de la media en cada columna solo una (Ash) no es rechazada por el test de Shapiro. Por tanto es la única que no contradice la hipótesis de normalidad, pues del resto se afirma con garantía estadística que no lo son.
+
+Del único outlier que debemos mirar con el test de Grubs, vemos que es la instancia 11, que conocíamos que contenía valores extremadamente bajos de los componentes.
+El p-value supera por poco nuestro nivel de significación, por lo que el test no lo rechaza con significación.
 
 # Outliers Multivariantes
 
