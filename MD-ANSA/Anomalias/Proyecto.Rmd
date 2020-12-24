@@ -10,7 +10,7 @@ output:
     df_print: paged
 ---
 
-
+ Los trozos de código que usted ha de completar (los indicados con COMPLETAR) sí debe mostrarlos en el documento final.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, results="hold", fig.align="center", 
                       comment=NA, messages=FALSE)
@@ -173,7 +173,7 @@ diag_caja = function (datos, ind.columna, claves.a.mostrar = c()){
   nombres.filas = rep("", num.filas)
   nombres.claves = nombres_filas(datos, claves.a.mostrar)
 
-  for (i in num.claves)
+  for (i in 1:num.claves)
     nombres.filas[claves.a.mostrar[i]]  = nombres.claves[i]
   
 
@@ -387,7 +387,7 @@ top_clustering_outliers = function(datos.norm,
 
 # Dataset y Selección de Variables
 
-Vamos a usar el conjunto de datos ``wine``, un dataset orientado a la clasificación multiclase de vinos en base a 13 atributos. Estos atributos miden diferentes características químicas, siendo las siguientes:
+Vamos a usar el conjunto de datos ``wine``, un dataset orientado a la clasificación multiclase de diferentes vinos en base a 13 atributos. Estos atributos miden distintos componentes químicos, siendo los siguientes:
 
 1) Alcohol
 2) Malic acid
@@ -403,9 +403,12 @@ Vamos a usar el conjunto de datos ``wine``, un dataset orientado a la clasificac
 12) OD280/OD315 of diluted wines
 13) Proline
 
-Todos las variables on numéricas y miden la cantidad encontrada de cada componente.
-En nuestro caso ignoraremos la clase de prediccion y las etiquetas de valores anómalos proporcionadas en el dataset. 
-(HACER COMPARATIVA AL FINAL CON LAS ETIQUETAS)
+Todos las variables son numéricas y miden la cantidad encontrada de cada componente.
+En nuestro caso ignoraremos la clase de prediccion y las etiquetas de valores anómalos proporcionadas en el dataset.
+
+Es necesario mencionar que no cada vino distinto (cada instancia) únicamente viene identificada por su posición en la tabla. Es decir, no tenemos un nombre o algún identificador para referenciarla.
+Por tanto, cuando hablemos de instancias concretas durante la práctica se mencionará únicamente la "clave" del vino en cuestión y no su nombre.
+Esto implica que en los apartados con la etiqueta ``# COMPLETAR`` se incluirá el cálculo de los nombres pero aparecerá su salida comentada para no repetir.
 
 Referencias:
 http://odds.cs.stonybrook.edu/wine-dataset/
@@ -433,19 +436,23 @@ Medidas estadísticas
 summary(datos.num)
 ```
 
-Todas contienen valores reales por lo que no eliminamos ninguna más
+```{r}
+datos.num %>% apply(2, table)
+```
 
-Finalmente, eliminamos todas aquellas filas que tengan algún valor nulo (NO HABÍA):
+
 ```{r}
 datos.num <- na.omit(datos.num)
 ```
+
+Todas contienen valores reales (con variedad) y sin valores nulos, por lo que no eliminamos ninguna más
 
 # Detección de outliers en una dimensión
 ## Outliers IQR
 
 Los métodos IQR teóricamente solo se deben aplicar a distribuciones normales, pero también pueden funcionar si la forma de la distribución no es rara (multimodal, uniforme...).
 
-Mostramos histograma de cada variable
+De cara a elegir aquellas variables, mostramos histograma de cada una:
 ```{r}
 par(mfrow = c(2,3))
 c(1:ncol(datos.num)) %>% sapply(function(x) hist(datos.num[,x], 
@@ -453,10 +460,11 @@ c(1:ncol(datos.num)) %>% sapply(function(x) hist(datos.num[,x],
                                                  xlab=names(datos.num)[x]))
 ```
 
-En general la mayoría de variables parecen seguir distribuciones no muy raras, excepto en X.12 que parece ser bimodal.
+En general la mayoría de variables parecen seguir distribuciones no muy raras, excepto en ``ÒD280`` que parece ser bimodal.
 
-Comprobamos normalidad con el test de Shapiro
-Lo hacemos aunque haya posibles outliers, solo es para hacernos una idea de si las variables que hemos visto que más se parecen son rechazadas por un test estadístico (posiblemente lo harían por outliers IQR)
+De cara a elegir una de estas variables, y por tener un criterio más de desempate, aplicamos un test de normalidad a cada una.
+<!-- Lo hacemos aunque haya posibles outliers, solo es para hacernos una idea de si las variables que hemos visto que más se parecen son rechazadas por un test estadístico (posiblemente lo harían por outliers IQR) -->
+<!-- INCLUIR -->
 ```{r}
 print("Shapiro test, p-values:")
 sapply(datos.num, function(x) {
@@ -464,8 +472,8 @@ sapply(datos.num, function(x) {
 )
 ```
 
-Puesto que en este apartado no vamos a usarlas todas, elegimos las que más se asemejan a una normal, o al menos, las que el test de Shapiro no puede asegurar que no son normales.
-Por tanto, nos quedamos con X.8, Alcalinity, X.3, X.1 -> Definitivamente, Alcalinity, la que tiene el p-value más alto
+Vemos que existen varias a las que el test no rechaza. De aquellas, elegimos la que obtiene mayor p-value (``Alcalinity``), que vimos en el histograma que se asemeja bastante a una normal.
+
 ```{r}
 indice.columna <- 4
 columna        <- datos.num[, indice.columna]
@@ -474,7 +482,8 @@ nombre.columna <- names(datos.num) [indice.columna]
 
 ### Obtención de los outliers IQR
 
-Calculamos los cuartiles
+Calculamos los cuartiles:
+<!-- INCLUIR -->
 ```{r}
 cuartil.primero <- quantile(columna, .25, names = F)
 cuartil.tercero <- quantile(columna, .75, names = F)
@@ -490,7 +499,8 @@ cat("\nIQR: ")
 iqr
 ```
 
-Calulamos los extremos
+Y calulamos los extremos:
+<!-- INCLUIR -->
 ```{r}
 extremo.superior.outlier.IQR <- cuartil.tercero + 1.5 * iqr
 extremo.inferior.outlier.IQR <- cuartil.primero - 1.5 * iqr
@@ -506,7 +516,8 @@ extremo.inferior.outlier.IQR.extremo
 ```
 
 
-Construimos vectores lógicos indicando si cada instancia es o no un outlier (normal o extremo)
+Construimos vectores lógicos indicando si cada instancia es o no un outlier (normal o extremo):
+<!-- INCLUIR -->
 ```{r}
 son.outliers.IQR <- columna < extremo.inferior.outlier.IQR | columna > extremo.superior.outlier.IQR
 son.outliers.IQR.extremos <- columna < extremo.inferior.outlier.IQR.extremo | columna > extremo.superior.outlier.IQR.extremo
@@ -520,6 +531,39 @@ sum(son.outliers.IQR.extremos)
 ```
 
 ### Índices y valores de los outliers IQR
+
+Obtenemos ahora los índices de las instancias que se detectan como outliers con el método IQR
+<!-- INCLUIR -->
+```{r}
+claves.outliers.IQR <- which(son.outliers.IQR)
+df.outliers.IQR <- datos.num[claves.outliers.IQR,]
+nombres.outliers.IQR <- row.names(df.outliers.IQR) 
+valores.outliers.IQR <- columna[claves.outliers.IQR]
+
+claves.outliers.IQR.extremos <- which(son.outliers.IQR.extremos)
+df.outliers.IQR.extremos <- datos.num[claves.outliers.IQR.extremos,]
+nombres.outliers.IQR.extremos <- row.names(df.outliers.IQR.extremos) 
+valores.outliers.IQR.extremos <- columna[claves.outliers.IQR.extremos]
+```
+
+```{r}
+claves.outliers.IQR
+df.outliers.IQR
+# nombres.outliers.IQR
+valores.outliers.IQR
+```
+
+```{r}
+claves.outliers.IQR.extremos
+df.outliers.IQR.extremos
+# nombres.outliers.IQR.extremos
+valores.outliers.IQR.extremos
+```
+
+### Cómputo de los outliers IQR con funciones
+<!-- QUITAR APARTADO -->
+
+La misma información anterior podemos calcularlas con las funciones proporcionadas:
 ```{r}
 son.outliers.IQR     = son_outliers_IQR(datos.num, indice.columna)
 # head(son.outliers.IQR)
@@ -547,8 +591,9 @@ claves.outliers.IQR.extremos
 
 ### Desviación de los outliers con respecto a la media de la columna
 
-Si partimos de una variable X cuya distribución no es normal, el método de z-score no obtiene una N(0,1), pero si la distribución de X no es demasiado rara, los datos que así obtengamos nos darán información útil sobre si los registros son usuales o no. Para ilustrarlo, apliquemos el método z-score a la variable mpg. Para ello, usamos la función scale:
+Calcularemos ahora la desviación de cada outlier respecto a la media de su columna.
 
+Para ello, aplicaremos el método z-score para aproximar la distribución a una N(0,1) y observaremos los valores de cada outlier en la variable seleccionada (``Alcalinity``).
 ```{r}
 datos.num.norm = scale(datos.num)
 head(datos.num.norm)
@@ -556,53 +601,81 @@ head(datos.num.norm)
 columna.norm   = datos.num.norm[, indice.columna]
 ```
 
-Obtenemos los valores normalizados de los outliers
+Mostramos primeramente un gráfico de la variable:
+```{r}
+ajusteNormal = fitdist(columna , "norm")
+denscomp (ajusteNormal,  xlab = nombre.columna)
+```
+
+
+Obtenemos los valores normalizados de los outliers:
+<!-- INCLUIR -->
 ```{r}
 valores.outliers.IQR.norm <- columna.norm[claves.outliers.IQR]
+names(valores.outliers.IQR.norm) <- claves.outliers.IQR
 
 valores.outliers.IQR.norm
 ```
 
-<!-- Son muy grandes, no? Estan por encima del 99% de lo que sería una normal -->
+Apreciamos que las instancias 11 y 25 toman valores mucho más alejados que 73 y 79.
+Aún así, ninguno llega a considerarse extremo en una N(0,1) puesto que no son más grandes que +-4.69.
+Hacemos notar también que si la variable Alcalinity se aproximara perfectamente a una N(0,1) las instancias 73 y 79 no se considerarían outliers, por estar por debajo del umbral +-2.68.
 
-Vamos a ver ahora el comportamiento de los outliers en la columna seleccionada con respecto al resto de columnas. Para ello, basta con seleccionar los datos correspondientes del conjunto de datos normalizado. En nuestro caso, sólo tenemos un outlier IQR en la columna seleccionada. Nos debe salir lo siguiente:
-
+Mostramos ahora el comportamiento de estos outliers con el resto de columnas (normalizadas):
+<!-- INCLUIR -->
 ```{r}
 datos.num.norm.outliers.IQR <- datos.num.norm[claves.outliers.IQR,]
+rownames(datos.num.norm.outliers.IQR) <- claves.outliers.IQR
 
-datos.num.norm.outliers.IQR
+datos.num.norm.outliers.IQR %>% as.data.frame()
 ```
 
-<!-- ANALIZAR -->
+Vemos que las instancias 11 y 73 tienen adicionalmente un valor extremo en la columnas ``Ash``, la 25 obtiene otro en Mag y la 79 es la única que parece tener un valor excesivamente grande en una sola columna (no lo podemos afirmar de forma estadística puesto que no sabemos si el resto de variables provienen de una normal).
 
-### Gráfico
+### Gráficos
 
-Mostramos en un gráfico los valores de los registros respecto a diferentes variables.
+Mostramos en un gráfico los valores de los registros respecto a diferentes variables, concretamente Alcalinity-Alcohol, Alcalinity-Ash y Alcalinity-Mag.
+<!-- INCLUIR -->
 ```{r}
-# plot_2_colores(datos.num.norm[], claves.outliers.IQR)
 plot_2_colores(datos.num.norm[,c(4,1)], claves.outliers.IQR)
 plot_2_colores(datos.num.norm[,c(4,3)], claves.outliers.IQR)
+plot_2_colores(datos.num.norm[,c(4,5)], claves.outliers.IQR)
 ```
 
-<!-- Con las variables X.1 y Alcalinity se nota como se alejan de la distribución -->
+Notamos que en las tres gráficas los outliers se ubican alejados de la nube de puntos, tal y como habíamos visto, 3 puntos por arriba del eje de las abscisas y 1 por debajo.
 
-<!-- No tenemos extremos -->
+No tenemos valores extremos, pero si los tuviéramos los mostraríamos con la sentencia:
+<!-- INCLUIR -->
+```{r}
+plot_2_colores(datos.num.norm[,c(4,1)], claves.outliers.IQR.extremos)
+```
 
 ### Diagrama de cajas
 
+Mostramos diagramas de cajas con los outliers destacados:
+<!-- INCLUIR -->
 ```{r}
 diag_caja_outliers_IQR(datos.num.norm, 4)
 ```
-
+<!-- INCLUIR -->
 ```{r}
+# La función original tiene un fallo, solo muestra la última clave.
+# Para corregirlo, se debe cambiar la línea:
+# for (i in num.claves)
+# Por:
+# for (i in 1:num.claves)
 diag_caja(datos.num.norm, 4, claves.outliers.IQR)
 ```
 
-En todas las variables
+No se muestran los extremos por no tener ninguno.
+
+Mostramos ahora los outlilers en todas las variables:
 ```{r}
 diag_caja_juntos(datos.num, "Outliers", claves.outliers.IQR)
 ```
-Vemos que solo la instancia 11 no tiene un valor anormal en al menos un par de variales
+Como habíamos analizado antes, solo la instancia 79 parece ser un outliers en una sola columna.
+Para el resto, vemos que más o menos habíamos acertado en el resto, solo la 11 parece tambier estar un tanto alejada de su media en la columna ``Proantho``
+<!-- REVISAR ESTA ÚLTIMA FRASE, VER SI EL SALIRSE DE LA RALLA ERA OUTLIER (JURARÍA QUE SÍ) -->
 
 ## Test de hipótesis
 
@@ -1104,7 +1177,7 @@ datos.num.norm[claves.outliers.lof.no.IQR, ] %>% as.data.frame()
 
 # Análisis de resultados
 
-
+(HACER COMPARATIVA AL FINAL CON LAS ETIQUETAS)
 
 
 
