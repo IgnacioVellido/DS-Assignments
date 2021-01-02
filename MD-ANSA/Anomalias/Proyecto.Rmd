@@ -1,19 +1,34 @@
 ---
-title: "Parte práctica: Anomalías"
-author: "Ignacio Vellido"
-date: "12/22/2020"
+title: "Parte práctica: Detección de Anomalías"
+author: "Ignacio Vellido Expósito"
+date: "22/12/2020"
 output: 
   prettydoc::html_pretty:
     theme: hpstr
     toc: true
     highlight: github
     df_print: paged
+    number_sections: true
 ---
 
- Los trozos de código que usted ha de completar (los indicados con COMPLETAR) sí debe mostrarlos en el documento final.
+<style>
+.entry-content {
+    width: 95%;
+    max-width: unset;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
 ```{r setup, include=FALSE}
+options(width = 90)
 knitr::opts_chunk$set(echo = FALSE, results="hold", fig.align="center", 
-                      comment=NA, messages=FALSE)
+                      comment=NA, messages=FALSE, size="small")
 
 library(ggplot2)   # Gr?ficos
 library(fitdistrplus)  # Ajuste de una distribución -> denscomp 
@@ -385,9 +400,9 @@ top_clustering_outliers = function(datos.norm,
 }
 ```
 
-# Dataset y Selección de Variables
+# Introducción
 
-Vamos a usar el conjunto de datos ``wine``, un dataset orientado a la clasificación multiclase de diferentes vinos en base a 13 atributos. Estos atributos miden distintos componentes químicos, siendo los siguientes:
+Vamos a usar el conjunto de datos ``wine``, un dataset orientado a la clasificación multiclase de diferentes vinos en base a 13 atributos. Estos atributos miden distintos componentes químicos:
 
 1) Alcohol
 2) Malic acid
@@ -406,14 +421,21 @@ Vamos a usar el conjunto de datos ``wine``, un dataset orientado a la clasificac
 Todos las variables son numéricas y miden la cantidad encontrada de cada componente.
 En nuestro caso ignoraremos la clase de prediccion y las etiquetas de valores anómalos proporcionadas en el dataset.
 
-Es necesario mencionar que no cada vino distinto (cada instancia) únicamente viene identificada por su posición en la tabla. Es decir, no tenemos un nombre o algún identificador para referenciarla.
-Por tanto, cuando hablemos de instancias concretas durante la práctica se mencionará únicamente la "clave" del vino en cuestión y no su nombre.
-Esto implica que en los apartados con la etiqueta ``# COMPLETAR`` se incluirá el cálculo de los nombres pero aparecerá su salida comentada para no repetir.
-
 Referencias:
+
 http://odds.cs.stonybrook.edu/wine-dataset/
+
 https://archive.ics.uci.edu/ml/datasets/Wine
 
+```
+Es necesario mencionar que cada vino distinto (cada instancia) únicamente viene identificada por su posición en la tabla. Es decir, no tenemos un nombre o algún identificador para referenciarla.
+Por tanto, cuando hablemos de instancias concretas durante la práctica se mencionará únicamente la "clave" del vino en cuestión y no su nombre.
+Esto implica que en los apartados que tenían la etiqueta "# COMPLETAR" se incluirá el cálculo de los nombres pero aparecerá su salida comentada.
+```
+
+# Selección de Variables
+
+El conjunto de datos inicial tiene la siguiente forma:
 ```{r}
 datos <- readMat("./wine.mat") %>% as.data.frame()
 nombres <- c("Alcohol", "Malic", "Ash", "Alcalinity", "Mag", "Phenols", "Flavanoids", "Non-flava", "Proantho", "Color", "Hue", "OD280", "Proline", "Anomaly")
@@ -431,11 +453,12 @@ datos.num <- datos[1:ncol(datos)-1]
 ```
 
 
-Medidas estadísticas
+Y las medidas estadísticas:
 ```{r}
 summary(datos.num)
 ```
 
+Aunque contamos con reales, mostramos también la ocurrencia de cada valor:
 ```{r}
 datos.num %>% apply(2, table)
 ```
@@ -445,27 +468,27 @@ datos.num %>% apply(2, table)
 datos.num <- na.omit(datos.num)
 ```
 
-Todas contienen valores reales (con variedad) y sin valores nulos, por lo que no eliminamos ninguna más
+
+Vemos que cada columna contiene variedad suficiente y sin valores nulos, por lo que no eliminamos ninguna.
 
 # Detección de outliers en una dimensión
 ## Outliers IQR
 
 Los métodos IQR teóricamente solo se deben aplicar a distribuciones normales, pero también pueden funcionar si la forma de la distribución no es rara (multimodal, uniforme...).
 
-De cara a elegir aquellas variables, mostramos histograma de cada una:
-```{r}
+De cara a elegir aquellas variables, mostramos un histograma de cada una:
+```{r  echo=TRUE}
 par(mfrow = c(2,3))
 c(1:ncol(datos.num)) %>% sapply(function(x) hist(datos.num[,x], 
                                                  main="", 
-                                                 xlab=names(datos.num)[x]))
+                                                 xlab=names(datos.num)[x])) -> c
 ```
 
-En general la mayoría de variables parecen seguir distribuciones no muy raras, excepto en ``ÒD280`` que parece ser bimodal.
+En general la mayoría de variables parecen seguir distribuciones no muy raras, excepto ``OD280`` que parece ser bimodal.
 
-De cara a elegir una de estas variables, y por tener un criterio más de desempate, aplicamos un test de normalidad a cada una.
-<!-- Lo hacemos aunque haya posibles outliers, solo es para hacernos una idea de si las variables que hemos visto que más se parecen son rechazadas por un test estadístico (posiblemente lo harían por outliers IQR) -->
+De cara a elegir una de estas variables, y únicamente por tener un criterio más de desempate, aplicamos un test de normalidad a cada una.
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 print("Shapiro test, p-values:")
 sapply(datos.num, function(x) {
   shapiro.test(x)$p.value}
@@ -484,7 +507,7 @@ nombre.columna <- names(datos.num) [indice.columna]
 
 Calculamos los cuartiles:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 cuartil.primero <- quantile(columna, .25, names = F)
 cuartil.tercero <- quantile(columna, .75, names = F)
 iqr <- IQR(columna)
@@ -501,7 +524,7 @@ iqr
 
 Y calulamos los extremos:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 extremo.superior.outlier.IQR <- cuartil.tercero + 1.5 * iqr
 extremo.inferior.outlier.IQR <- cuartil.primero - 1.5 * iqr
 extremo.superior.outlier.IQR.extremo <- cuartil.tercero + 3 * iqr
@@ -509,21 +532,25 @@ extremo.inferior.outlier.IQR.extremo <- cuartil.primero - 3 * iqr
 ```
 
 ```{r}
+cat("Extremo superior: ")
 extremo.superior.outlier.IQR
+cat("Extremo inferior: ")
 extremo.inferior.outlier.IQR
+cat("Extremo superior extremo: ")
 extremo.superior.outlier.IQR.extremo
+cat("Extremo inferior extremo: ")
 extremo.inferior.outlier.IQR.extremo
 ```
 
 
 Construimos vectores lógicos indicando si cada instancia es o no un outlier (normal o extremo):
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 son.outliers.IQR <- columna < extremo.inferior.outlier.IQR | columna > extremo.superior.outlier.IQR
 son.outliers.IQR.extremos <- columna < extremo.inferior.outlier.IQR.extremo | columna > extremo.superior.outlier.IQR.extremo
 ```
 
-```{r}
+```{r echo=T}
 head(son.outliers.IQR)
 head(son.outliers.IQR.extremos)
 sum(son.outliers.IQR)
@@ -534,7 +561,7 @@ sum(son.outliers.IQR.extremos)
 
 Obtenemos ahora los índices de las instancias que se detectan como outliers con el método IQR
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 claves.outliers.IQR <- which(son.outliers.IQR)
 df.outliers.IQR <- datos.num[claves.outliers.IQR,]
 nombres.outliers.IQR <- row.names(df.outliers.IQR) 
@@ -546,17 +573,21 @@ nombres.outliers.IQR.extremos <- row.names(df.outliers.IQR.extremos)
 valores.outliers.IQR.extremos <- columna[claves.outliers.IQR.extremos]
 ```
 
-```{r}
+```{r echo=T}
+cat("Claves outliers IQR: ")
 claves.outliers.IQR
 df.outliers.IQR
 # nombres.outliers.IQR
+cat("Valores outliers IQR: ")
 valores.outliers.IQR
 ```
 
-```{r}
+```{r echo=TRUE}
+cat("Claves outliers IQR extremos: ")
 claves.outliers.IQR.extremos
 df.outliers.IQR.extremos
 # nombres.outliers.IQR.extremos
+cat("Valores outliers IQR extremos: ")
 valores.outliers.IQR.extremos
 ```
 
@@ -594,6 +625,7 @@ claves.outliers.IQR.extremos
 Calcularemos ahora la desviación de cada outlier respecto a la media de su columna.
 
 Para ello, aplicaremos el método z-score para aproximar la distribución a una N(0,1) y observaremos los valores de cada outlier en la variable seleccionada (``Alcalinity``).
+Dataset normalizado:
 ```{r}
 datos.num.norm = scale(datos.num)
 head(datos.num.norm)
@@ -610,7 +642,7 @@ denscomp (ajusteNormal,  xlab = nombre.columna)
 
 Obtenemos los valores normalizados de los outliers:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 valores.outliers.IQR.norm <- columna.norm[claves.outliers.IQR]
 names(valores.outliers.IQR.norm) <- claves.outliers.IQR
 
@@ -618,35 +650,35 @@ valores.outliers.IQR.norm
 ```
 
 Apreciamos que las instancias 11 y 25 toman valores mucho más alejados que 73 y 79.
-Aún así, ninguno llega a considerarse extremo en una N(0,1) puesto que no son más grandes que +-4.69.
-Hacemos notar también que si la variable Alcalinity se aproximara perfectamente a una N(0,1) las instancias 73 y 79 no se considerarían outliers, por estar por debajo del umbral +-2.68.
+Aún así, ninguno llega a considerarse extremo en una N(0,1) puesto que no son más grandes que ±4.69.
+Hacemos notar también que si la variable Alcalinity se aproximara perfectamente a una N(0,1) las instancias 73 y 79 no se considerarían outliers, por estar por debajo del umbral ±2.68.
 
 Mostramos ahora el comportamiento de estos outliers con el resto de columnas (normalizadas):
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 datos.num.norm.outliers.IQR <- datos.num.norm[claves.outliers.IQR,]
 rownames(datos.num.norm.outliers.IQR) <- claves.outliers.IQR
 
 datos.num.norm.outliers.IQR %>% as.data.frame()
 ```
 
-Vemos que las instancias 11 y 73 tienen adicionalmente un valor extremo en la columnas ``Ash``, la 25 obtiene otro en Mag y la 79 es la única que parece tener un valor excesivamente grande en una sola columna (no lo podemos afirmar de forma estadística puesto que no sabemos si el resto de variables provienen de una normal).
+Vemos que las instancias 11 y 73 tienen adicionalmente un valor extremo en la columnas ``Ash``, la 25 obtiene otro en ``Mag`` y la 79 es la única que parece tener un valor excesivamente grande en una sola columna (no lo podemos afirmar de forma estadística puesto que no sabemos si el resto de variables provienen de una normal).
 
 ### Gráficos
 
 Mostramos en un gráfico los valores de los registros respecto a diferentes variables, concretamente Alcalinity-Alcohol, Alcalinity-Ash y Alcalinity-Mag.
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 plot_2_colores(datos.num.norm[,c(4,1)], claves.outliers.IQR)
 plot_2_colores(datos.num.norm[,c(4,3)], claves.outliers.IQR)
 plot_2_colores(datos.num.norm[,c(4,5)], claves.outliers.IQR)
 ```
 
-Notamos que en las tres gráficas los outliers se ubican alejados de la nube de puntos, tal y como habíamos visto, 3 puntos por arriba del eje de las abscisas y 1 por debajo.
+Tal y como habíamos visto, notamos que en las tres gráficas los outliers se ubican alejados de la nube de puntos, 3 puntos por arriba del eje de las abscisas y 1 por debajo.
 
 No tenemos valores extremos, pero si los tuviéramos los mostraríamos con la sentencia:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 plot_2_colores(datos.num.norm[,c(4,1)], claves.outliers.IQR.extremos)
 ```
 
@@ -654,11 +686,11 @@ plot_2_colores(datos.num.norm[,c(4,1)], claves.outliers.IQR.extremos)
 
 Mostramos diagramas de cajas con los outliers destacados:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 diag_caja_outliers_IQR(datos.num.norm, 4)
 ```
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 # La función original tiene un fallo, solo muestra la última clave.
 # Para corregirlo, se debe cambiar la línea:
 # for (i in num.claves)
@@ -674,7 +706,7 @@ Mostramos ahora los outlilers en todas las variables:
 diag_caja_juntos(datos.num, "Outliers", claves.outliers.IQR)
 ```
 Como habíamos analizado antes, solo la instancia 79 parece ser un outliers en una sola columna.
-Para el resto, vemos que más o menos habíamos acertado en el resto, solo la 11 parece tambier estar un tanto alejada de su media en la columna ``Proantho``
+Para el resto, vemos que más o menos habíamos acertado, solo la 11 parece también estar un tanto alejada de su media en la columna ``Proantho``.
 <!-- REVISAR ESTA ÚLTIMA FRASE, VER SI EL SALIRSE DE LA RALLA ERA OUTLIER (JURARÍA QUE SÍ) -->
 
 ## Test de hipótesis
@@ -691,23 +723,23 @@ ajusteNormal = fitdist(columna , "norm")
 denscomp(ajusteNormal,  xlab = nombre.columna)
 ```
 
-Que vemos que se asemeja 
+Los valores extremos pueden ser problemáticos para que la distribución que siga sea normal, pero visualmente apreciamos gran semejanza con la curva.
 
 ### Test de Grubs
 
 Más adelante se aplicará el test de normalidad sobre la variable sin el outlier.
-Antes, basándonos en el gráfico anterior y suponiendo que la distribución es normal, podemos hacer el test de Grubs sobre el valor más alejado de la media:
+Antes, basándonos en el gráfico anterior y suponiendo que la distribución es normal, podemos hacer el test de Grubs sobre el valor más alejado de la media, obteniendo un p-value de:
 ```{r}
 test.de.Grubbs = grubbs.test(columna, two.sided = TRUE)
 test.de.Grubbs$p.value
 ```
 
-Mostramos el valor de la instancia:
+Mostramos adicionalmente el valor de la instancia:
 ```{r}
 valor.posible.outlier = outlier(columna)
 valor.posible.outlier
 ```
-Y su clave
+Y su clave:
 ```{r}
 es.posible.outlier = outlier(columna, logical = TRUE)
 clave.posible.outlier = which( es.posible.outlier == TRUE)
@@ -718,10 +750,11 @@ Tenemos un p-value > 0.05, por lo que el test no rechaza la hipótesis de que el
 
 ### Test de Normalidad
 
-Pasamos los tests de Normalidad al conjunto de datos eliminando previamente el outlier O (instancia 11):
+Pasamos los tests de Normalidad al conjunto de datos eliminando previamente el outlier (instancia 11):
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 datos.sin.outlier = columna[-clave.posible.outlier]
+cat("Datos sin outlier:\n")
 datos.sin.outlier
 
 shapiro.test(datos.sin.outlier)
@@ -730,14 +763,14 @@ goodness_fit = gofstat(ajusteNormal)
 goodness_fit$adtest
 ```
 
-El test de Anderson-Darling no se aplica por tener pocos datos. Para el test de Shapira, esta vez sin el outlier, vemos que ahora el test rechaza (p-value < 0.05) por lo que afirma con significación que la columna no sigue una distribución normal. Tal y como habíamos visto anteriormente, el test con el outlier no rechazaba, por lo que este modificaba la media lo suficiente para hacer creer al estadístico que la distribución era normal.
+El test de Anderson-Darling no se aplica por tener pocos datos. Para el test de Shapiro, esta vez sin el outlier, vemos que ahora se rechaza (p-value < 0.05) por lo que afirma con significación que la columna no sigue una distribución normal. Tal y como habíamos visto anteriormente, el test con el outlier no rechazaba, por lo que este modificaba la media lo suficiente para hacer creer al estadístico que la distribución era normal.
 No deberíamos por tanto aplicar el test de Grubs sobre la columna Alcalinity, pues esta normalidad es una condición necesaria.
 
 Pese a ello, proseguimos con el apartado.
 
 Construímos una función que nos calcula toda la información necesaria para aplicar un test de Grubs sobre una columna.
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 #######################################################################
 # Aplica el test de Grubbs sobre la columna ind.col de datos y devuelve una lista con:
 
@@ -787,7 +820,7 @@ test_Grubbs = function(datos, ind.col, alpha = 0.05) {
 ```
 
 
-Aplicamos la función a nuestro dataset
+Aplicamos la función a nuestro dataset, obteniendo:
 ```{r}
 test.Grubbs.datos.num = test_Grubbs(datos.num, indice.columna)
 
@@ -812,14 +845,15 @@ claves.outliers.IQR.en.mas.de.una.columna =
 claves.outliers.IQR.en.alguna.columna = 
   unique (claves.outliers.IQR.en.alguna.columna)
 
-
+print("Claves outliers IQR en mas de una columna:")
 claves.outliers.IQR.en.mas.de.una.columna
+print("Claves outliers IQR en alguna columna:")
 claves.outliers.IQR.en.alguna.columna 
 ```
 
-Vamos a ver los valores normalizados de algunos de estos outliers:
+Los valores normalizados de algunos de estos outliers son:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 datos.num.norm[claves.outliers.IQR.en.alguna.columna,] %>% head() %>% as.data.frame()
 ```
 
@@ -829,7 +863,7 @@ diag_caja_juntos(datos.num.norm, "Outliers en alguna columna-1", claves.outliers
 diag_caja_juntos(datos.num.norm, "Outliers en alguna columna-2", claves.outliers.IQR.en.alguna.columna[c(F,T)])
 ```
 
-Notamos valores extremadamente altos en Mag y Proline, y solo unas pocas variables con outliers.
+Notamos valores extremadamente altos en Mag y Proline, y solo unas pocas variables sin outliers.
 También vemos que muchos outliers lo son en más de una columna, pero ninguno parece que en más de tres.
 
 Además, apreciamos en Mag (cantidad de Magnesio) valores extremádamente altos, sobre todo en la instancia 47.
@@ -841,12 +875,13 @@ summary(datos.num$Mag)
 ```
 
 De los valores altos en Proline (2,4,9,10) vemos que todos tienen valores similares en el resto de variables.
-La Proline es el amino ácido más abundante en los vinos y parece variar en base al tipo de fermentación que ha sufrido el vino.
+La Proline es el aminoácido más abundante en los vinos y parece variar en base al tipo de fermentación que ha sufrido el vino.
 ```{r}
 datos.num[c(2,4,9,10),]
 ```
 
 Referencia:
+
 https://ojs.openagrar.de/index.php/VITIS/article/view/7459/6882
 
 ### Test de Hipótesis
@@ -854,13 +889,17 @@ https://ojs.openagrar.de/index.php/VITIS/article/view/7459/6882
 Aplicaremos el test de Grubs sobre las columnas que tenemos, pero antes mostramos los gráficos de las distribuciones:
 ```{r}
 par(mfrow = c(2,3))
-datos.num %>% apply(2, function(col) {
-  ajusteNormal = fitdist(col, "norm")
-  denscomp (ajusteNormal,  xlab = "")
-})
+# datos.num %>% apply(2, function(col) {
+#   ajusteNormal = fitdist(col, "norm")
+#   denscomp (ajusteNormal,  xlab = "")
+# })
+c(1:ncol(datos.num)) %>% sapply(function(x) {
+ ajusteNormal = fitdist(datos.num[,x], "norm")
+  denscomp (ajusteNormal,  xlab = names(datos.num)[x])
+}) -> c
 ```
 
-Quitamos la variable pues parece bimodal, pero mantenemos el resto por no ser demasiado ``raras``
+Quitamos la variable OD280 pues parece bimodal, pero mantenemos el resto por no ser demasiado ``raras``.
 <!-- La 2, 10, 13 -->
 <!-- Ante la duda, también la 8? -->
 ```{r}
@@ -870,23 +909,23 @@ datos.num.reducidos <- datos.num[,-12]
 
 Aplicamos el test
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 sapply(1:ncol(datos.num.reducidos), test_Grubbs, datos=datos.num)
 ```
 
 Lo primero que vemos es que tras quitar el valor más alejado de la media en cada columna solo una (Ash) no es rechazada por el test de Shapiro. Por tanto es la única que no contradice la hipótesis de normalidad, pues del resto se afirma con garantía estadística que no lo son.
 
 Del único outlier que debemos mirar con el test de Grubs, vemos que es la instancia 11, que conocíamos que contenía valores extremadamente bajos de los componentes.
-El p-value supera por poco nuestro nivel de significación, por lo que el test no lo rechaza con significación.
+El p-value supera por poco nuestro nivel de significación, por lo que el test no lo rechaza con garantía estadística.
 
 # Outliers Multivariantes
 
 ## Métodos estadísticos basados en la distancia de Mahalanobis
 
-Para que un par de variables siga una distribución normal conjunta ambas deben estar normalmente distribuídas de forma indiviual.
+Para que un par de variables siga una distribución normal conjunta ambas deben estar normalmente distribuídas de forma individual.
 Como el test de normalidad nos deja solo una (Ash), reducidos el nivel de significación a 0.025 para obtener otra variable más (esto no deberíamos aplicarlo en un problema real)
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE, results="default"}
 test <- sapply(1:ncol(datos.num), test_Grubbs, datos=datos.num)
 son.col.normales <- apply(test, 2, function(x) {
   x$es.distrib.norm
@@ -906,15 +945,15 @@ head(datos.num.distrib.norm)
 ```
 
 Aplicamos un test de Normalidad multivariante para comprobar la condición:
-```{r}
+```{r, results="default"}
 test.MVN = mvn(datos.num.distrib.norm, mvnTest = "energy")
 test.MVN$multivariateNormality["MVN"]
 test.MVN$multivariateNormality["p value"]
 ```
 
-El test multivariante no rechaza la hipótesis nula, por lo que no nos asegura que la distribución conjunta de Ash y Non-flava no es normal. Nuestro test indidual nos había dicho que no lo era, aunque recordamos que si no quitámos el valor más alejado de la media no lo negaba (y con este valor MVN hizo el test)
+El test multivariante no rechaza la hipótesis nula, por lo que no nos asegura que la distribución conjunta de Ash y Non-flava no es normal. Nuestro test indidual nos había dicho que no lo era, aunque recordamos que si no quitámos el valor más alejado de la media no lo negaba (y con este valor MVN hizo el test).
 
-No deberíamos por tanto aplicar este método con distancia de Mahalanobis si queremos garantía estadística, pues la condición de que las variables se distribuyan de forma normal era necesaria.
+No deberíamos por tanto aplicar este método con distancia de Mahalanobis si queremos garantía estadística, pues la condición de que las variables se distribuyan de forma normal es necesaria.
 
 ### Tests de hipótesis para detectar outliers
 
@@ -924,19 +963,11 @@ corr.plot(datos.num[,3], datos.num[,8])
 ```
 
 Podemos ver que hay 3 puntos fuera de las elipses, 2 considerablemente más alejados que el tercero.
-También apreciamos que el uso o no de un método robusto no nos cambia significativamente los resultados.
+También apreciamos que el uso o no de un método robusto no nos cambia significativamente la forma de los resultados.
 
-<!-- QUITAR -->
-<!-- Por comparar, mostramos los outliers que se obtenían con estas variables usando el método IQR: -->
-<!-- ```{r} -->
-<!-- plot_2_colores(datos.num.norm[,c(3,8)], claves.outliers.IQR) -->
-<!-- ``` -->
-<!-- Tenemos dos puntos igualmente detectados, y diferencias en el resto. Siendo la nube de puntos algo dispersa, parece que el método con distancia  -->
-
-
-Aplicamos test individual y test múltiple, ajustando el parámetro alpha de forma que corrijamos el FWER
+Aplicamos un test individual y un test múltiple, ajustando el parámetro alpha de forma que corrijamos el FWER:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 set.seed(2)
 
 cerioli.individual <- cerioli2010.fsrmcd.test(datos.num.distrib.norm, signif.alpha = 0.05)
@@ -961,10 +992,11 @@ El test de intersección no nos devuelve ningún outlier, pero el indivual nos s
 ```
 
 
-Si se cumpliera el requisito de distribución normal multivariante, tendrías garantía estadística en la instancia con mayor distancia Mahalanobis.
+Si se cumpliera el requisito de distribución normal multivariante, tendríamos garantía estadística en la instancia con mayor distancia Mahalanobis.
+
 Mostramos las distancias de forma ordenada:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 cerioli.individual$mahdist.rw %>% sort() %>% plot()
 ```
 
@@ -972,7 +1004,7 @@ Apreciando los 4 puntos vistos anteriormente y un segundo conjunto de puntos un 
 
 Si mostramos las claves y las distancias, obtenemos:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 clave.mayor.dist.Mah <- order(cerioli.individual$mahdist.rw, decreasing = TRUE)[1]
 nombre.mayor.dist.Mah <- nombres_filas(datos.num, clave.mayor.dist.Mah)
 
@@ -981,12 +1013,13 @@ clave.mayor.dist.Mah
 # nombre.mayor.dist.Mah
 ```
 
-Si cumpliéramos el requisito de normalidad, concluiríamos con garantía estadística que el registro 11 rechaza la hipótesis y es un outlier. Este punto ya fue detectado como outlier tanto en una como en varias columnas.
+Si cumpliéramos el requisito de normalidad, concluiríamos con garantía estadística que el registro 11 rechaza la hipótesis y es un outlier. 
+<!-- Este punto ya fue detectado como outlier tanto en una como en varias columnas. -->
 
 
 ## Visualización de datos con un Biplot
 
-Mostramos visualmente información resumida del conjunto de datos en dos variables, junto a los outliers detectados medianteme alguna columna con IQR:
+Mostramos visualmente información resumida del conjunto de datos en dos variables, junto a los outliers detectados mediante alguna columna con IQR:
 ```{r}
 biplot.outliers.IQR = biplot_2_colores(datos.num, 
                                        claves.outliers.IQR.en.alguna.columna, 
@@ -995,18 +1028,18 @@ biplot.outliers.IQR = biplot_2_colores(datos.num,
 biplot.outliers.IQR
 ```
 
-Lo primero que debemos notar es que el biplot no explica un alto porcentaje de las varianzas, probablemente por la cantidad de variables, que vuelva difícil explicar la variabilidad de los datos en solo dos componentes. Esto hace que nuestra confianza en los valores mostrados en el biplot no sea muy alta, pues existe una alta variabilidad no mostrada en el gráfico.
-Además vemos que una gran cantidad de outliers se ubican con valores altos en alguna columna, alejados del centro. Solo el outlier detectado 11 se aprecia con valores muy inferiores en un conjunto de variables (Ash, Alcohol, Mag...) pero con valores normales en el resto.
+Lo primero que debemos notar es que el biplot no explica un alto porcentaje de las varianzas, probablemente por la cantidad de variables, que haga difícil explicar la variabilidad de los datos en solo dos componentes. Esto hace que nuestra confianza en los valores mostrados en el biplot no sea muy alta, pues existe una alta variabilidad no mostrada en el gráfico.
+Además, vemos que una gran cantidad de outliers se ubican con valores altos en alguna columna, alejados del centro. Solo la instancia 11 se aprecia con valores muy inferiores en un conjunto de variables (Ash, Alcohol, Mag...) pero con valores normales en el resto.
 
 También apreciamos que las variables están agrupadas en 3 grupos, con correlaciones positivas y negativas entre ellas.
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 corrplot::corrplot(cor(datos.num), type="upper")
 ```
 
 Podemos reducir las variables seleccionadas de cara a obtener una varianza explicada mayor en el biplot:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 biplot.outliers.IQR = biplot_2_colores(datos.num[,-c(1,3,4,5,10,13)], 
                                        claves.outliers.IQR.en.alguna.columna, 
                                        titulo.grupo.a.mostrar = "Outliers IQR",
@@ -1014,21 +1047,21 @@ biplot.outliers.IQR = biplot_2_colores(datos.num[,-c(1,3,4,5,10,13)],
 biplot.outliers.IQR
 ```
 
-No tenemos la información expresada por las variables que hemos quitado, pero en base a estas optenemos una variabilidad explicada del 14.8+54.8=69.6%, y podemos intentar explicar de nuevo los resultados.
+No tenemos la información expresada por las variables que hemos quitado, pero en base a estas obtenemos una variabilidad explicada del 14.8+54.8=69.6%, y podemos intentar interpretar de nuevo los resultados.
 
 Primero vemos que la mayoría de outliers se ubican en la parte izquierda del biplot. Al tener variables correladas, se aprecia que muchos tienen alta cantidad de Phenols, Flavanoilds... mientras contienen bajo grado de Non-Flavanoids. 
 Por otro lado tenemos un par de instancias en la esquina superior izquierda con nuevamente valores altos en varias columnas.
 
 Volvemos a fijarnos en la instancia 11, que en las variables seleccionadas contiene valores mayormente normales. Era en las columnas Alcalinity y Ash donde contenía valores anormalmente bajos. Aún así vemos que la combinación de las variables seleccionadas es algo inusual, pero no demasiado, pues existe algunos puntos cercanos a su área.
 
-Concluímos diciendo que se aprecia enormemente en este dataset que la información proporcionada por un biplot debe ser una ayuda al científico, y un método único en el que basarse para la detección de outliers.
+Concluímos diciendo que se aprecia enormemente en este dataset que la información proporcionada por un biplot debe ser una ayuda al científico, y no el único método en el que basarse para la detección de outliers.
 
 ## Métodos basados en distancias: LOF
 
-La selección de un buen número de vecinos es vital para los métodos basados en vecinos más cercanos. Un valor demasiado grande puede hacernos detectar como outliers nubes con bajo número de puntos, mientras que uno demasiado alto.
-El método LOF basado en densidad paliará en parte estos problemas, pero sigue siendo necesaria una selección cuidadosa.
+La selección de un buen número de vecinos es vital para los métodos basados en vecinos más cercanos. Un valor demasiado grande puede hacernos detectar como outliers nubes con bajo número de puntos, mientras que uno demasiado alto puede ocultar outliers como tales.
+El método LOF basado en densidad paliará en parte estos problemas, pero sigue siendo necesaria una selección cuidadosa de este valor.
 
-En base a las gráficas vistas a lo largo de la práctica, concretamente las de la sección Gráficos REVISAR, vemos a la mayoría de puntos generalmente agrupados en la misma nube, no apreciando multiples agrupaciones diferentes (debemos tener cuidado con esto puesto que así no tenemos en cuenta los outliers con valores anómalos en más de 2 columnas). En base a este razonamiento, elegimos un número de vecinos medianamente alto, de 7.
+En base a las gráficas vistas a lo largo de la práctica, concretamente las de la sección [Gráficos], vemos a la mayoría de puntos generalmente agrupados en la misma nube, no apreciando multiples agrupaciones diferentes (debemos tener cuidado con esto puesto que así no tenemos en cuenta los outliers con valores anómalos en más de 2 columnas). En base a este razonamiento, elegimos un número de vecinos medianamente alto, de 7.
 ```{r}
 num.vecinos.lof = 7
 lof.scores = lofactor(datos.num.norm, k = num.vecinos.lof)
@@ -1036,7 +1069,7 @@ claves.lof.ordenados <- order(lof.scores, decreasing = T)
 ```
 
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 plot(sort(lof.scores, decreasing = T))
 ```
 
@@ -1044,7 +1077,7 @@ Vemos un valor con un alto grado de anomalía y dos conjuntos que lo siguen, el 
 
 Analizamos este punto y el primer conjunto:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 claves.outliers.lof <- order(lof.scores, decreasing = T) %>% head(num.vecinos.lof)
 # nombres.outliers.lof <- nombres_filas(datos.num.norm, claves.outliers.lof)
 
@@ -1059,10 +1092,10 @@ datos.num.norm[claves.outliers.lof, ] %>% as.data.frame()
 
 Lo que más nos llama la atención primeramente es que de este conjunto de instancias la 11, la cuál nos ha aparecido múltiples veces a lo largo de la memoria, es la que menor grado LOF de anomalía tiene.
 
-La que obtiene más es la 73, que también había sido detectada por los métodos anteriores. Visualizando sus datos normalizados, vemos que solo tiene datos alejados en 2 columnas (3 si consideramos Alcalinity).
+La que más obtiene es la 73, que también había sido detectada por los métodos anteriores. Visualizando sus datos normalizados, vemos que solo tiene valores alejados en 2 columnas (3 si consideramos Alcalinity).
 El resto de instancias mayoritariamente solo tienen un valor extremo en una columna, lo que ya les otorga un alto score de LOF.
 
-Analizamos el registro con mayor score de LOF (73) en diagramas de dispersión (puesto que la figura es excesivamente grande con todas las variables, seleccionamos aquellas en las que continee valores extremos)
+Analizamos el registro con mayor score de LOF (73) en diagramas de dispersión (puesto que la figura es excesivamente grande con todas las variables, seleccionamos aquellas en las que contine valores extremos)
 ```{r}
 clave.max.outlier.lof = claves.outliers.lof[1]
 
@@ -1071,8 +1104,8 @@ colores[clave.max.outlier.lof] = "red"
 pairs(datos.num.norm[,-c(2,8,9,10,11,12,13)], pch = 19,  cex = 0.5, col = colores, lower.panel = NULL)
 ```
 
-Las correlaciones las vimos anteriormente, pero se hace notoria la relación Phenols-Flavanoids, con la instancia más baja de lo que sería esperado si siguieramos una línea de regresión sobre esos datos.
-Con Ash-Alcalinity ocurre algo similar, pero el punto se ubica alejado del resto, pero sin contradecir la tendencia.
+Las correlaciones las vimos anteriormente, pero se hace notoria la relación Phenols-Flavanoids, con la instancia 73 más baja de lo que sería esperado si siguieramos una línea de regresión sobre esos datos.
+Con Ash-Alcalinity ocurre algo similar, pero el punto se ubica alejado del resto, sin contradecir la tendencia.
 
 También vemos que los valores de esta instancia se ven extremadamente altos en Ash y Flavanoids, situándolo en las esquinas cuando se muestran estas variables.
 En el resto, en la mayoría de casos el punto está algo alejado del centro de la distribución pero no de manera extrema.
@@ -1086,7 +1119,7 @@ biplot.max.outlier.lof = biplot_2_colores(datos.num.norm[,-c(1,3,4,5,10,13)], cl
 biplot.max.outlier.lof
 ```
 
-Como habíamos mencionado, contiene inusualmente altos en varias variables, pero se sigue ubicando en una zona con gran densidad.
+Como habíamos mencionado, contiene inusualmente valores altos en varias variables, pero se sigue ubicando en una zona con gran densidad.
 
 Otros puntos que se sitúan por esa zona y con scores altos en LOF es el 25 y el 47. Los mostramos:
 ```{r}
@@ -1099,7 +1132,7 @@ En los dos primeros notamos un alto grado de Alcalinity, y en los dos últimos d
 
 ## Métodos basados en Clustering
 
-### Clustering usando k-means
+### Clustering usando K-means
 
 Para esta parte, al no tener clústers predefinidos, seleccionamos un número de 3 y la cantidad de outliers a 5
 ```{r}
@@ -1108,9 +1141,9 @@ num.clusters = 3
 set.seed(2)
 ```
 
-Construímos el modelo k-means:
+Construímos el modelo K-means:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 modelo.kmeans <- kmeans(datos.num.norm, num.clusters)
 asignaciones.clustering.kmeans <- modelo.kmeans$cluster
 centroides.normalizados <- modelo.kmeans$centers
@@ -1127,7 +1160,7 @@ centroides.desnormalizados %>% as.data.frame()
 
 Función para calcular los outliers:
 <!-- INCLUIR -->
-```{r}
+```{r echo=T}
 #######################################################################
 # Calcula las distancias de los datos a los centroides
 # y se queda con los primeros (tantos como indica num.outliers)
@@ -1175,10 +1208,10 @@ biplot_outliers_clustering(datos.num,
                            claves.outliers = claves.outliers.kmeans)
 ```
 
-No mostramos el biplot con el número reducido de columnas pues la separación en clústers ha hecho uso de todas.
+No mostramos el biplot con el número reducido de columnas pues la separación en clústers ha hecho uso de todas las variables.
 
 Apreciamos que se detecta un solo outlier en los grupos 1 y 3, estando estos bastante alejados de la nube de puntos a la que pertenecen.
-Respcecto a los del grupo 2, este es un clúster bastante disperso en este biplot (recordamos que la varianza explicada es baja), pero los outliers están alejados de su centroide.
+Respecto a los del grupo 2, este es un clúster bastante disperso en este biplot (recordamos que la varianza explicada es baja), y los outliers están alejados de su centroide.
 
 <!-- ---------------------------------------- -->
 
@@ -1221,11 +1254,14 @@ biplot_outliers_clustering(datos.num,
                            claves.outliers = claves.outliers.kmeans)
 ```
 
-Coinciden los outliers 73, 11 y 21. Recordamos que estas instancias tenían valores muy extremos en al menos una de las variables.
-Vemos que se ha mantenido un clúster con la misma agrupación que con k=3, y los otros dos se han dividido en dos partes.
-Hacemos notar que el outlier 110, que hubiera pertenecido al clúster 5, al haberse este particionado ya no lo tenemos como uno de los 5 puntos con mayor distancia, puesto que el clúster se ha acercado a su posición.
-Tenemos también dos nuevos puntos (25 y 48), el 25 lo vemos cerca de su clúster. Es probable que el biplot no nos muestre la información que lo convierta en un valor anómalo.
-Respecto al 48, lo tenemos muy cerca del centro del biplot. No es el único punto en esta zona, aunque está ligeramente desplazado hacia arriba. Es posible que tenga una combinación anómala, o que una vez más la información del biplot sea insuficiente.
+Vemos que:
+
+- Coinciden los outliers 73, 11 y 21. Recordamos que estas instancias tenían valores muy extremos en al menos una de las variables.
+- Se ha mantenido un clúster con la misma agrupación que con k=3, y los otros dos se han dividido en dos partes.
+- El outlier 110, que hubiera pertenecido al clúster 5, al haberse este particionado ya no lo tenemos como uno de los 5 puntos con mayor distancia, puesto que el centroide se ha acercado a su posición.
+- Tenemos también dos nuevos puntos (25 y 48):
+  - El 25 lo vemos cerca de lo que sería su centroide. Es probable que el biplot no nos muestre la información que lo convierta en un valor anómalo.
+  - Respecto al punto 48, lo tenemos muy cerca del centro del biplot. No es el único punto en esta zona, aunque está ligeramente desplazado hacia arriba. Es posible que tenga una combinación anómala, o que una vez más la información del biplot sea insuficiente.
 
 <!-- ---------------------------------------- -->
 
@@ -1239,11 +1275,11 @@ La 25 y la 11 en 2.
 La 21 y la 48 solo tienen un valor extremo en una columna, la de Magnesio.
 Hacemos notar que la información de este biplot no era muy buena porque vemos que la flecha del Magnesio se ubica en el centro apuntando hacia arriba y las instancias 21 y 48, que tienen una alta cantidad de este componente, se encuentran paralelamente cerca del centro del biplot.
 
-Vemos también que el orden de las distancias de los outliers se corresponde con el número de columnas en las que son valores extremos estas instancias. Solo 25 tiene una distancia menor a 21, pero podemos apreciar que 21 tiene valores no extremos, pero alejados del centro de la distribución en la mayoría de columnas.
+Vemos también que en general el orden de las distancias de los outliers se corresponde con el número de columnas en las que son valores extremos estas instancias. Solo 25 tiene una distancia menor a 21, pero podemos apreciar que 21 tiene valores no extremos, pero alejados del centro de la distribución en la mayoría de columnas, lo que haga aumentar su grado de anomalía.
 
 ### Clustering usando medoides
 
-Seguiremos usando 5 clústers para el método PAM:
+Seguiremos usando 5 clústers para el método PAM.
 ```{r}
 set.seed(2)
 matriz.distancias = dist(datos.num.norm)
@@ -1259,12 +1295,16 @@ medoides.normalizados = datos.num.norm[nombres.medoides, ] %>% as.data.frame()
 
 # nombres.medoides
 medoides
+```
+
+Y sus valores normalizados:
+```{r}
 medoides.normalizados
 ```
 
 Calculamos los 5 posibles outliers:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 top.outliers.pam = top_clustering_outliers(datos.num.norm , 
                                               asignaciones.clustering.pam, 
                                               medoides.normalizados, 
@@ -1277,14 +1317,14 @@ claves.outliers.pam
 ```
 Y creamos un biplot:
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE}
 biplot_outliers_clustering(datos.num, 
                            titulo = "Outliers PAM",
                            asignaciones.clustering = asignaciones.clustering.pam,
                            claves.outliers = claves.outliers.pam)
 ```
 
-Lo primero que notamos es unos clústers totalmente diferentes a los del método K-means. En este caso tenemos una única agrupación a la derecha y 3 clústers en la parte centro-inferior izquierda.
+Lo primero que notamos es un conjunto de clústers totalmente diferente a los del método K-means. En este caso tenemos una única agrupación a la derecha y 3 clústers en la parte centro-inferior izquierda.
 Esto ha hecho que le punto 11, que ha sido detectado como outliers por todos los métodos anteriores, ya no lo sea.
 
 En este caso los outlier se ubican en la parte izquierda, no muy alejados de sus nubes de puntos pero si con valores extremos en al menos alguna de las componentes principales del biplot.
@@ -1295,34 +1335,34 @@ Mostramos un diagrama de cajas con estos puntos:
 diag_caja_juntos(datos.num, "Outliers PAM", claves.outliers.pam)
 ```
 
-Todos tienen valores extremos más de una columna excepto la 62, que tiene cantidades normales de todos los componentes excepto una gran acumulación de Proantho.
+Todos tienen valores extremos en más de una columna excepto la 62, que únicamente tiene una gran acumulación de Proantho.
 
 ### Análisis de los outliers multivariantes puros
 
 Calculamos aquellos outliers que no lo son para una variable separadamente
 <!-- INCLUIR -->
-```{r}
+```{r echo=TRUE, results="default"}
 claves.outliers.lof.no.IQR <- setdiff(claves.outliers.lof, claves.outliers.IQR.en.alguna.columna)
 nombres.outliers.lof.no.IQR <- nombres_filas(datos.num, claves.outliers.lof.no.IQR)
 
+# nombres.outliers.lof.no.IQR
 claves.outliers.IQR.en.alguna.columna
 claves.outliers.lof
 claves.outliers.lof.no.IQR
-# nombres.outliers.lof.no.IQR
 ```
 
 Vemos que no obtenemos ningún outlier puramente multivariable, todos son extremos en alguna de ellas.
 
 En el método LOF vimos que había 3 conjuntos de puntos con scores altos, con un total de 9 instancias.
 Volvemos a calcular los outliers LOF aumentando el umbral a 9 puntos, y buscamos los multivarialbes puros:
-```{r}
+```{r, echo=T, results="default"}
 claves.outliers.lof.no.IQR <- setdiff(claves.lof.ordenados %>% head(9), claves.outliers.IQR.en.alguna.columna)
 nombres.outliers.lof.no.IQR <- nombres_filas(datos.num, claves.outliers.lof.no.IQR)
 
+# nombres.outliers.lof.no.IQR
 claves.outliers.IQR.en.alguna.columna
 claves.lof.ordenados %>% head(11)
 claves.outliers.lof.no.IQR
-# nombres.outliers.lof.no.IQR
 ```
 
 Mostramos el biplot de los outliers puros:
@@ -1340,13 +1380,12 @@ Mostramos sus valores normalizados:
 datos.num.norm[claves.outliers.lof.no.IQR, ] %>% as.data.frame()
 ```
 
-Y vemos como no contiene ninguna cantidad extrema de ningún componente.
-
+Y vemos como no contiene ninguna cantidad extrema de ningún componente:
 ```{r}
 diag_caja_juntos(datos.num, "Outliers multivariables puros", claves.outliers.lof.no.IQR)
 ```
 
-A partir del diagrama de cajas apreciamos que aunque no tienen un valor extremo en ninguna de las variables, en la mayoría contienen una cantidad fuera del 1al3 cuartil (REFORMULAR). Esto sea lo que probablemente haga aumentar el score de LOF y presente un alto grado de anomalía.
+A partir del diagrama de cajas apreciamos que aunque no tienen un valor extremo en ninguna de las variables, en la mayoría contienen una cantidad un tanto alejada del centro de la distribución. Este hecho sea lo que probablemente haga aumentar el score de LOF y presente un alto grado de anomalía.
 
 # Análisis de resultados
 
