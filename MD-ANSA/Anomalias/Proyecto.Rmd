@@ -1389,14 +1389,63 @@ A partir del diagrama de cajas apreciamos que aunque no tienen un valor extremo 
 
 # Análisis de resultados
 
-(HACER COMPARATIVA AL FINAL CON LAS ETIQUETAS)
+__Conjunto de datos__
 
+Se ha trabajado con el dataset _wine_, que codifica la cantidad de diversos componentes en varios vinos italianos.
+Todas las variables son numéricas y con suficiente variabilidad, por lo que no se ha eliminado ninguna.
 
-PODEMOS DECIR QUE 11 ES UN VERDADERO OUTLIER, TODOS LOS MÉTODOS LO DETECTAN?
+Hemos aplicado la normalización por z-score en aquellos métodos que así lo han requerido.
 
+__Outliers en una variable__
 
+- __Método IQR__
 
+No hemos encontrado outliers extremos pero sí hay 4 outliers no extremos.
 
+La instancia 11 es un vino con bajas cantidades de la mayoría de componentes, siendo extremo IQR en múltiples de ellas.
 
+El resto de outliers solo se disparan por arriba, con la 73 contando con valores altos de Ash y Alcalinity.
+La 25 y 79 tienen valores altos de Alcalinity pero no extremadamente alejados de sus medias.
 
+Existen al menos alguna instancia con valores altos en prácticamente todas las variables, aunque estos se acumulan más en las columnas de Magnesio y Proline.
 
+Aunque sean vinos del mismo país, las diferentes formas de cultivo en las regiones y los diferentes terrenos hagan que los vinos acumulen una mayor cantidad de ciertos componentes.
+También es posible que el tiempo de fermetación afecte a las cantidades, con mayor grado en Ash y Alcohol.
+
+No se aprecia ninguna característica común que agrupe a varios vinos.
+
+- __Test de Hipótesis__
+
+Para el test de normalidad se elimina la variable OD280 por tener una forma asemejada a una bimodal.
+El test de Shapiro-Wilks nos rechaza con significación todas las columnas menos Ash.
+
+Contamos con un p-value alto (0.0127) para el outlier de esta columna (instancia 11), por lo que no podemos afirmar con garantía estadística que lo sea.
+
+__Outliers multivariantes__
+
+- __Visualización con biplot__
+
+Contamos con un número alto de variables y el biplot no nos saca una variabilidad explicada alta (51.3%), eliminando un conjunto alto de ellas conseguimos un porcentaje de 69.8%, pero la representación deja de ser fidedigna puesto que se han eliminado columnas usadas para calcular los outliers.
+
+- __Métodos estadísticos usando la distancia de Mahalanobis__
+
+Se han lanzado los métodos para obtener información pese a que no existía ninguna distribución Normal multivariante. Se ha reducido el valor de significación para elegir una columna más, aplicando finalmente los métodos con la distribución conjunta Ash-Non-Flava.
+La distribución conjunta de las variables mpg, hp, wt, qsec no es una Normal multivariante. Por lo tanto, no deberíamos aplicar el método basado en la distancia de Mahalanobis. De todas formas, lo hemos lanzado para ver si detectamos algún valor que, aunque no pueda considerarse un outlier con garantía estadística, al menos proporcione alguna información interesante.
+
+El test de intersección no devuelve ningún outlier, mientras que el test individual devuelve 4 outliers, todos detectados previamente con el método IQR. 
+La instancia con mayor distancia de Mahalanobis era la 11, que como hemos comentado contiene valores extremadamente bajos en múltiples componentes. Al no cumplir los requisitos de normalidad, este método no puede afirmar con garantía estadística que sea un outlier.
+
+- __LOF__
+
+El gráfico de scores mostró 3 grupos diferentes: un valor muy alto, un conjunto de 6 puntos y uno de 2.
+De los 7 puntos con mayor grado de anomalía, todos tenían un valor extremo en al menos una columna, lo que les otorga una score alto.
+
+En base al método LOF se detectar un outlier multivariante puro en el tercer grupo de puntos. Esta instancia, la 23, contienen valores altos ligeramente alejados de las media en la mayoría de las columnas, ubicándose en torno al centro de la distribución solo en la variable Color.
+
+- __Métodos basados en clustering__
+
+Con el método K-means en 3 particiones en vinos detectados previamente. Una segunda ejecución ampliando el número de clúster a 5 nos ha cambiado las instancias con mayor distancia a su centroide, manteniéndose la 73, 11 y 21.
+
+Hemos notado cierta tendencia a que el orden de estos puntos se correspone con el número de columnas en las que son valores extremos. Solo una instancia interesante, la 25, no contiene valores anómalos pero si un tanto superiores a la media en cada uno de los componentes.
+
+Haciendo uso de medoides solo se han detectado instancias ya descubiertas.

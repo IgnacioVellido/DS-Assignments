@@ -2132,7 +2132,7 @@ Aplicamos un test de Normalidad multivariante para comprobar la condición:
 </div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["p value"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"0.087"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["p value"],"name":[1],"type":["dbl"],"align":["right"]}],"data":[{"1":"0.084"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>El test multivariante no rechaza la hipótesis nula, por lo que no nos asegura que la distribución conjunta de Ash y Non-flava no es normal. Nuestro test indidual nos había dicho que no lo era, aunque recordamos que si no quitámos el valor más alejado de la media no lo negaba (y con este valor MVN hizo el test).</p>
@@ -2451,8 +2451,45 @@ Mostramos sus valores normalizados:
 </div>
 <div id="análisis-de-resultados" class="section level1">
 <h1><span class="header-section-number">5</span> Análisis de resultados</h1>
-<p>(HACER COMPARATIVA AL FINAL CON LAS ETIQUETAS)</p>
-<p>PODEMOS DECIR QUE 11 ES UN VERDADERO OUTLIER, TODOS LOS MÉTODOS LO DETECTAN?</p>
+<p><strong>Conjunto de datos</strong></p>
+<p>Se ha trabajado con el dataset <em>wine</em>, que codifica la cantidad de diversos componentes en varios vinos italianos. Todas las variables son numéricas y con suficiente variabilidad, por lo que no se ha eliminado ninguna.</p>
+<p>Hemos aplicado la normalización por z-score en aquellos métodos que así lo han requerido.</p>
+<p><strong>Outliers en una variable</strong></p>
+<ul>
+<li><strong>Método IQR</strong></li>
+</ul>
+<p>No hemos encontrado outliers extremos pero sí hay 4 outliers no extremos.</p>
+<p>La instancia 11 es un vino con bajas cantidades de la mayoría de componentes, siendo extremo IQR en múltiples de ellas.</p>
+<p>El resto de outliers solo se disparan por arriba, con la 73 contando con valores altos de Ash y Alcalinity. La 25 y 79 tienen valores altos de Alcalinity pero no extremadamente alejados de sus medias.</p>
+<p>Existen al menos alguna instancia con valores altos en prácticamente todas las variables, aunque estos se acumulan más en las columnas de Magnesio y Proline.</p>
+<p>Aunque sean vinos del mismo país, las diferentes formas de cultivo en las regiones y los diferentes terrenos hagan que los vinos acumulen una mayor cantidad de ciertos componentes. También es posible que el tiempo de fermetación afecte a las cantidades, con mayor grado en Ash y Alcohol.</p>
+<p>No se aprecia ninguna característica común que agrupe a varios vinos.</p>
+<ul>
+<li><strong>Test de Hipótesis</strong></li>
+</ul>
+<p>Para el test de normalidad se elimina la variable OD280 por tener una forma asemejada a una bimodal. El test de Shapiro-Wilks nos rechaza con significación todas las columnas menos Ash.</p>
+<p>Contamos con un p-value alto (0.0127) para el outlier de esta columna (instancia 11), por lo que no podemos afirmar con garantía estadística que lo sea.</p>
+<p><strong>Outliers multivariantes</strong></p>
+<ul>
+<li><strong>Visualización con biplot</strong></li>
+</ul>
+<p>Contamos con un número alto de variables y el biplot no nos saca una variabilidad explicada alta (51.3%), eliminando un conjunto alto de ellas conseguimos un porcentaje de 69.8%, pero la representación deja de ser fidedigna puesto que se han eliminado columnas usadas para calcular los outliers.</p>
+<ul>
+<li><strong>Métodos estadísticos usando la distancia de Mahalanobis</strong></li>
+</ul>
+<p>Se han lanzado los métodos para obtener información pese a que no existía ninguna distribución Normal multivariante. Se ha reducido el valor de significación para elegir una columna más, aplicando finalmente los métodos con la distribución conjunta Ash-Non-Flava. La distribución conjunta de las variables mpg, hp, wt, qsec no es una Normal multivariante. Por lo tanto, no deberíamos aplicar el método basado en la distancia de Mahalanobis. De todas formas, lo hemos lanzado para ver si detectamos algún valor que, aunque no pueda considerarse un outlier con garantía estadística, al menos proporcione alguna información interesante.</p>
+<p>El test de intersección no devuelve ningún outlier, mientras que el test individual devuelve 4 outliers, todos detectados previamente con el método IQR. La instancia con mayor distancia de Mahalanobis era la 11, que como hemos comentado contiene valores extremadamente bajos en múltiples componentes. Al no cumplir los requisitos de normalidad, este método no puede afirmar con garantía estadística que sea un outlier.</p>
+<ul>
+<li><strong>LOF</strong></li>
+</ul>
+<p>El gráfico de scores mostró 3 grupos diferentes: un valor muy alto, un conjunto de 6 puntos y uno de 2. De los 7 puntos con mayor grado de anomalía, todos tenían un valor extremo en al menos una columna, lo que les otorga una score alto.</p>
+<p>En base al método LOF se detectar un outlier multivariante puro en el tercer grupo de puntos. Esta instancia, la 23, contienen valores altos ligeramente alejados de las media en la mayoría de las columnas, ubicándose en torno al centro de la distribución solo en la variable Color.</p>
+<ul>
+<li><strong>Métodos basados en clustering</strong></li>
+</ul>
+<p>Con el método K-means en 3 particiones en vinos detectados previamente. Una segunda ejecución ampliando el número de clúster a 5 nos ha cambiado las instancias con mayor distancia a su centroide, manteniéndose la 73, 11 y 21.</p>
+<p>Hemos notado cierta tendencia a que el orden de estos puntos se correspone con el número de columnas en las que son valores extremos. Solo una instancia interesante, la 25, no contiene valores anómalos pero si un tanto superiores a la media en cada uno de los componentes.</p>
+<p>Haciendo uso de medoides solo se han detectado instancias ya descubiertas.</p>
 </div>
 </div><!-- /.entry-content -->
 </article>
