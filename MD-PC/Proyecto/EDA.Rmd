@@ -1,0 +1,396 @@
+---
+title: "EDA"
+author: "Ignacio Vellido Expósito"
+date: "22/12/2020"
+output: 
+  prettydoc::html_pretty:
+    theme: hpstr
+    toc: true
+    highlight: github
+    df_print: paged
+    number_sections: true
+---
+
+<style>
+.entry-content {
+    width: 95%;
+    max-width: unset;
+}
+pre {
+  overflow-x: train_values;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(tidyverse)
+library(ggplot2)
+library(cowplot)  # plot_grid
+library(corrplot) # corr y corrplot
+library(reshape2) # melt
+library(dlookr) # normality
+library(caret)  # preprocess
+library(moments)  # skewness
+library(car)  # scatterplotMatrix
+library(MASS) # fit
+library(GGally) # ggpairs
+```
+
+# Introducción
+
+## Problem description
+
+We're trying to predict the ordinal variable damage_grade, which represents a level of damage to the building that was hit by the earthquake. There are 3 grades of the damage:
+
+1 represents low damage
+2 represents a medium amount of damage
+3 represents almost complete destruction
+
+The dataset mainly consists of information on the buildings' structure and their legal ownership. Each row in the dataset represents a specific building in the region that was hit by Gorkha earthquake.
+
+There are 39 columns in this dataset, where the building_id column is a unique and random identifier. The remaining 38 features are described in the section below. Categorical variables have been obfuscated random lowercase ascii characters. The appearance of the same character in distinct columns does not imply the same original value.
+
+
+Description
+
+- geo_level_1_id, geo_level_2_id, geo_level_3_id (type: int): geographic region in which building exists, from largest (level 1) to most specific sub-region (level 3). Possible values: level 1: 0-30, level 2: 0-1427, level 3: 0-12567.
+- count_floors_pre_eq (type: int): number of floors in the building before the earthquake.
+- age (type: int): age of the building in years.
+- area_percentage (type: int): normalized area of the building footprint.
+- height_percentage (type: int): normalized height of the building footprint.
+- land_surface_condition (type: categorical): surface condition of the land where the building was built. Possible values: n, o, t.
+- foundation_type (type: categorical): type of foundation used while building. Possible values: h, i, r, u, w.
+- roof_type (type: categorical): type of roof used while building. Possible values: n, q, x.
+- ground_floor_type (type: categorical): type of the ground floor. Possible values: f, m, v, x, z.
+- other_floor_type (type: categorical): type of constructions used in higher than the ground floors (except of roof). Possible values: j, q, s, x.
+- position (type: categorical): position of the building. Possible values: j, o, s, t.
+- plan_configuration (type: categorical): building plan configuration. Possible values: a, c, d, f, m, n, o, q, s, u.
+- has_superstructure_adobe_mud (type: binary): flag variable that indicates if the superstructure was made of Adobe/Mud.
+- has_superstructure_mud_mortar_stone (type: binary): flag variable that indicates if the superstructure was made of Mud Mortar - Stone.
+- has_superstructure_stone_flag (type: binary): flag variable that indicates if the superstructure was made of Stone.
+- has_superstructure_cement_mortar_stone (type: binary): flag variable that indicates if the superstructure was made of Cement Mortar - Stone.
+- has_superstructure_mud_mortar_brick (type: binary): flag variable that indicates if the superstructure was made of Mud Mortar - Brick.
+- has_superstructure_cement_mortar_brick (type: binary): flag variable that indicates if the superstructure was made of Cement Mortar - Brick.
+- has_superstructure_timber (type: binary): flag variable that indicates if the superstructure was made of Timber.
+- has_superstructure_bamboo (type: binary): flag variable that indicates if the superstructure was made of Bamboo.
+- has_superstructure_rc_non_engineered (type: binary): flag variable that indicates if the superstructure was made of non-engineered reinforced concrete.
+- has_superstructure_rc_engineered (type: binary): flag variable that indicates if the superstructure was made of engineered reinforced concrete.
+- has_superstructure_other (type: binary): flag variable that indicates if the superstructure was made of any other material.
+- legal_ownership_status (type: categorical): legal ownership status of the land where building was built. Possible values: a, r, v, w.
+- count_families (type: int): number of families that live in the building.
+- has_secondary_use (type: binary): flag variable that indicates if the building was used for any secondary purpose.
+- has_secondary_use_agriculture (type: binary): flag variable that indicates if the building was used for agricultural purposes.
+- has_secondary_use_hotel (type: binary): flag variable that indicates if the building was used as a hotel.
+- has_secondary_use_rental (type: binary): flag variable that indicates if the building was used for rental purposes.
+- has_secondary_use_institution (type: binary): flag variable that indicates if the building was used as a location of any institution.
+- has_secondary_use_school (type: binary): flag variable that indicates if the building was used as a school.
+- has_secondary_use_industry (type: binary): flag variable that indicates if the building was used for industrial purposes.
+- has_secondary_use_health_post (type: binary): flag variable that indicates if the building was used as a health post.
+- has_secondary_use_gov_office (type: binary): flag variable that indicates if the building was used fas a government office.
+- has_secondary_use_use_police (type: binary): flag variable that indicates if the building was used as a police station.
+- has_secondary_use_other (type: binary): flag variable that indicates if the building was secondarily used for other purposes.
+
+## Performance metric
+
+We are predicting the level of damage from 1 to 3. The level of damage is an ordinal variable meaning that ordering is important. This can be viewed as a classification or an ordinal regression problem. (Ordinal regression is sometimes described as an problem somewhere in between classification and regression.)
+
+To measure the performance of our algorithms, we'll use the F1 score which balances the precision and recall of a classifier.
+
+## Submission format
+
+The format for the submission file is two columns with the building_id and the damage_grade. The data type of damage_grade is an integer __with values of 1,2,3__, so make sure there is no decimal point and no other numbers in your submission. For example 1 would be valid, and 1.0 would not.
+
+
+Referencia:
+
+- https://www.drivendata.org/competitions/57/nepal-earthquake/page/136/#features_list
+
+---------------------------------------------------------------------------------------------------------------------
+
+# Hipótesis de partida
+
+---------------------------------------------------------------------------------------------------------------------
+
+Cargamos los datos:
+```{r}
+train_values <- read_csv("data/train_values.csv")
+train_labels <- read_csv("data/train_labels.csv")
+test_values  <- read_csv("data/test_values.csv")
+names <- colnames(train_values)
+```
+
+Quitamos los IDs de fila
+Pasamos ids como rownames
+```{r}
+train_values.ids <- train_values$building_id
+train_values$building_id <- NULL
+
+test_values.ids <- test_values$building_id
+test_values$building_id <- NULL
+```
+
+Convertimos a categóricas aquellas que lo son
+```{r}
+# Las de tipo carácter
+train_values[sapply(train_values, is.character)] <- 
+  lapply(train_values[sapply(train_values, is.character)], as.factor)
+
+test_values[sapply(test_values, is.character)] <- 
+  lapply(test_values[sapply(test_values, is.character)], as.factor)
+
+# Específicas
+train_values$count_floors_pre_eq <- train_values$count_floors_pre_eq %>% 
+  factor(sort(unique(train_values$count_floors_pre_eq)), ordered = T)
+
+test_values$count_floors_pre_eq <- test_values$count_floors_pre_eq %>% 
+  factor(sort(unique(test_values$count_floors_pre_eq)), ordered = T)
+
+# Las binarias
+for (i in c(16:26,29:39)) {
+  train_values[[names[i]]] <- train_values[[names[i]]] %>% as.factor()
+  test_values[[names[i]]]  <- test_values[[names[i]]] %>% as.factor()
+}
+
+# Las etiquetas
+train_labels$damage_grade <- train_labels$damage_grade %>% as.ordered()
+
+factores <- c(9:26,29:39)
+```
+
+```{r}
+head(train_values)
+head(train_labels)
+head(test_values)
+```
+Guardamos las numéricas por un lado, y el resto por otro
+```{r}
+train_values.numeric <- select_if(train_values, is.numeric)
+train_values.nonNumeric <- select_if(train_values, negate(is.numeric))
+
+names.numeric <- colnames(train_values.numeric)
+names.nonNumeric <- colnames(train_values.nonNumeric)
+```
+
+
+#### Análisis univariable
+
+Hacemos summary para sacar datos de relevancia
+```{r}
+summary(train_values) %>% unclass() %>% as.data.frame()
+```
+
+El dataset no cuenta con valores repetidos
+```{r}
+sum(duplicated(train_values))
+```
+
+Ni missing values
+```{r}
+sum(is.na(train_values))
+```
+
+```{r}
+# ggpairs(train_values.numeric)
+
+# svg("myPlotMatrix.svg", height = 7, width = 7)
+# g <- ggpairs(train_values.numeric)
+# print(g)
+# dev.off()
+```
+
+
+Vamos a sacar plots de cada variable para verlo mejor
+```{r}
+# ggplot(gather(train_values.numeric), aes(value)) +
+#   geom_histogram(bins = 15, color="white") +
+#   facet_wrap(~key, scales = 'free_x') +
+#   theme_light() +
+#   theme(strip.background = element_rect(fill="grey", size=2))+
+#   theme(strip.text = element_text(colour = 'black')) +
+#   labs(title="Histogramas de cada variable", x = "")
+```
+
+Una a una
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+bins <- c(10,10,15,15,14,18)
+plt <- list(length = length(names.numeric))
+
+for (i in 1:length(names.numeric)) {
+  ggplot(train_values.numeric, aes_string(x=names.numeric[i])) + 
+    geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
+    geom_density(alpha=.3, fill="black", size=1) +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("Histograma %s", names.numeric[i]), x=""))
+}
+
+# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+plt <- list(length = length(names.nonNumeric))
+
+for (i in 1:length(names.nonNumeric)) {
+  train_values.nonNumeric[,i] %>% 
+    bind_cols(train_labels[2]) %>% 
+    group_by(damage_grade) %>% 
+    ggplot(aes_string(x=names.nonNumeric[i], fill="damage_grade")) + 
+      geom_bar() +
+      labs(title="", x="", y="") +
+      theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("Histograma %s", names.nonNumeric[i]), x=""))
+}
+```
+
+Parece que hay algunas variables categóricas con demasiadas instancias de un tipo
+```{r}
+train_values.nonNumeric %>% apply(2,table)
+```
+
+Porcentajes
+```{r}
+train_values.nonNumeric %>% 
+  apply(2, function(x) {
+      t <- round(prop.table(table(x))*100,2)
+      print(t)
+      
+      if (!is_empty(t[which(t>=90)]))
+        print("Quitar columna")
+      else {
+        cat("Remove: ")
+        print(t[which(t<=0.1)])
+      }
+      
+      cat("-----------------------------")
+    }
+  )
+```
+
+Si valor con % >= 90 -> La columna no debería estar aportando mucha información
+Si valor con % <= 0.1 -> El elemento no apenas aporta
+
+
+```{r}
+colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
+plt <- list(length = length(names.numeric))
+
+for (i in 1:length(names.numeric)) {
+  ggplot(train_values.numeric, aes_string(x=names.numeric[i])) + 
+    geom_boxplot(fill = colors[i]) +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("Boxplot %s", names.numeric[i]), x=""))
+}
+
+# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+
+```{r}
+scale(train_values.numeric) %>%
+  as.data.frame %>% 
+  melt() %>% 
+  ggplot(aes(x=variable, y=value)) + 
+    geom_boxplot() +
+    labs(title="Boxplot con mismo rango") +
+    theme(axis.text.x = element_text(angle = 90))
+```
+
+Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
+```{r}
+scale(train_values.numeric) %>% apply(2, IQR)
+```
+
+También podemos ver la distancia entre mínimos y máximos
+```{r}
+scale(train_values.numeric) %>% apply(2, range) %>% apply(2, dist)
+```
+
+--------------------------------------------------------------------------------
+
+### Análisis sobre las distribuciones
+
+Hemos comentado antes que no apreciamos semejanzas con una distribución normal en algunas de las variables, lo comprobamos con un test estadístico (Shapiro-Wilk test):
+```{r}
+normality(train_values.numeric) %>% filter(p_value < 0.05)
+```
+
+Ninguna de las variables numéricas es normal.
+
+Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
+```{r}
+x<-rnorm(100, mean=0, sd=1)
+
+plt <- list(length = length(names.numeric))
+
+for (i in 1:length(names.numeric)) {
+  ggplot(train_values.numeric, aes_string(sample=names.numeric[i])) + 
+    stat_qq(alpha=.3, fill=colors[i], size=1) +
+    stat_qq_line() +
+    labs(title="", x="", y="") +
+    theme_light() -> plt[[i]]
+  
+  print(plt[[i]] + labs(title=sprintf("QQ-plot %s", names.numeric[i]), x=""))
+}
+
+# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
+```
+
+Skewness:
+```{r}
+skewCols <- find_skewness(train_values)
+colnames(train_values)[skewCols]
+```
+
+-------------------------------------------------------------
+
+### Transformaciones
+
+Habrá que estandarizar los datos, pues no se pierde nada.
+
+-----------------------------------------------------------
+
+### Outliers
+
+
+-----------------------------------------------------------
+
+### Análisis de correlación
+
+Solo de las variables numéricas
+
+Corrplot
+```{r}
+cor(train_values.numeric) %>% 
+  corrplot.mixed(tl.pos="lt", upper="color", mar=c(0,0,1,0))
+```
+
+No hay correlación
+
+```{r}
+# scatterplotMatrix(train_values.numeric, pch=20, col="deepskyblue")
+```
+
+---------------------------------------------------------------------------
+
+### Tratamiento de variables
+
+
+--------------------------------------------------------------------------
+
+### Ordenaciones
+
+
+--------------------------------------------------------------------------
+
+#### Resolución de hipótesis
