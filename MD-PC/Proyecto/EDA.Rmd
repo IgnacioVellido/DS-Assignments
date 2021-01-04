@@ -37,7 +37,6 @@ library(dlookr) # normality
 library(caret)  # preprocess
 library(moments)  # skewness
 library(car)  # scatterplotMatrix
-library(MASS) # fit
 library(GGally) # ggpairs
 ```
 
@@ -198,7 +197,7 @@ table(train_values.numeric$count_families)
 Plots numéricas
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(13,10,15,15)
+bins <- c(13,30,35,26,15)
 plt <- list(length = length(names.numeric))
 
 for (i in 1:length(names.numeric)) {
@@ -255,7 +254,8 @@ train_values.nonNumeric[,-c(2,3)] %>%
 ```
 
 Si valor con % >= 90 -> La columna no debería estar aportando mucha información
-Si valor con % <= 0.1 -> El elemento no apenas aporta
+
+Si valor con % <= 0.1 -> El elemento apenas aporta
 
 Boxplots
 ```{r}
@@ -364,7 +364,7 @@ No hay correlación
 
 --------------------------------------------------------------------------
 
-## Duplicados
+# Duplicados
 
 El dataset cuenta con valores repetidos
 ```{r}
@@ -387,16 +387,40 @@ Siempre se puede estandarizar los datos, no se pierde nada.
 
 --------------------------------------------------------------------------
 
+# Outliers
+
+En age hay valores muy altos.
+```{r}
+table(train_values$age)
+```
+
+El porcentaje de 995 es pequeño pero habría que mirarlos, por la edad es posible que tengan características comunes
+```{r}
+old_buildings <- train_values %>% filter(age == 995)
+old_buildings %>% head()
+```
+
+Con duplicados
+```{r}
+sum(duplicated(old_buildings))
+```
+
+--------------------------------------------------------------------------
+
 # Conclusiones
 
 - Hay variables extremadamente desbalanceadas. Para reglas/árboles no estaría mal mirarlas, para el resto se podrían quitar (quizás los IDs no, no sé)
 - Nada de correlación ni de normalidad
-- Clases desbalanceadas, sobre todo la de grado 1
+- Clases desbalanceadas, sobre todo la de grado 1 (habría que ver si al ser todos los datos del mismo terremoto las más alejadas del epicentro son las menos afectadas)
 - Mayoría de variables categóricas/binarias
 - Mogollón de instancias, cuidado al graficar
 - ~16mil instancias duplicadas, pero son edificios diferentes. Es posible que sean de una misma urbanización/zona de una ciudad. 
-Sorprendía que se repitieran por el count_families, pero la mayoría son de 1 sola (supongo que serán casas)
-Habría que ver qué hacer con estos duplicados.
+
+  Sorprendía que se repitieran por el count_families, pero la mayoría son de 1 sola (supongo que serán casas).
+  
+  Habría que ver qué hacer con estos duplicados.
 - Los geo_level_2 y 3 quizás se pueden agrupar por intervalos, o directamente quitar. 
 - Para árboles/reglas, las flags se deberían agrupar
-- Age también se podría agrupar en intervalos
+- Age también se podría agrupar en intervalos si fuera necesario
+- Puede que haya valores perdidos no codificados como NA (quizás en age con 0 y 995)
+- Los geo_levels deberían ser imporantes para la clasificación, la zona debería afectar bastante. Ahora bien, suponiendo que ids consecutivos son zonas cercanas, no se aprecia relación alguna

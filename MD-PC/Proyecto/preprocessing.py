@@ -11,6 +11,11 @@ Preprocesamiento
 - Los árboles son robustos al ruido, así que las variables extremadamente 
 desbalanceadas no deberían hacer mucho daño. Considerar si quitar o no según el
 coste computacional que haya en principio.
+- Age de 995 mantenerlo, a ver si el árbol consigue algo del estilo if age>200 ...
+
+- Quizá la distancia, al ser datos del mismo terremoto sea muy relevante. 
+Se podría reflejar en una combinación de las has_structure y geom_ids 
+(el epicentro estaría por unos valores concretos de geom_id)
 """
 
 Deshaciendo variables dummy
