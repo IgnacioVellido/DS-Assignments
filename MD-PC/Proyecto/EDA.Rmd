@@ -114,54 +114,37 @@ Referencia:
 
 ---------------------------------------------------------------------------------------------------------------------
 
-# Hipótesis de partida
-
----------------------------------------------------------------------------------------------------------------------
-
 Cargamos los datos:
 ```{r}
 train_values <- read_csv("data/train_values.csv")
 train_labels <- read_csv("data/train_labels.csv")
 test_values  <- read_csv("data/test_values.csv")
-names <- colnames(train_values)
 ```
 
 Quitamos los IDs de fila
-Pasamos ids como rownames
 ```{r}
 train_values.ids <- train_values$building_id
 train_values$building_id <- NULL
 
 test_values.ids <- test_values$building_id
 test_values$building_id <- NULL
+
+# Guardamos nombres de columna
+names <- colnames(train_values)
 ```
 
 Convertimos a categóricas aquellas que lo son
 ```{r}
-# Las de tipo carácter
-train_values[sapply(train_values, is.character)] <- 
-  lapply(train_values[sapply(train_values, is.character)], as.factor)
+#  1:3 -> IDs de posición geográfica
+factores <- c(1:3,8:26,28:38)
 
-test_values[sapply(test_values, is.character)] <- 
-  lapply(test_values[sapply(test_values, is.character)], as.factor)
-
-# Específicas
-train_values$count_floors_pre_eq <- train_values$count_floors_pre_eq %>% 
-  factor(sort(unique(train_values$count_floors_pre_eq)), ordered = T)
-
-test_values$count_floors_pre_eq <- test_values$count_floors_pre_eq %>% 
-  factor(sort(unique(test_values$count_floors_pre_eq)), ordered = T)
-
-# Las binarias
-for (i in c(16:26,29:39)) {
+for (i in factores) {
   train_values[[names[i]]] <- train_values[[names[i]]] %>% as.factor()
   test_values[[names[i]]]  <- test_values[[names[i]]] %>% as.factor()
 }
 
 # Las etiquetas
 train_labels$damage_grade <- train_labels$damage_grade %>% as.ordered()
-
-factores <- c(9:26,29:39)
 ```
 
 ```{r}
@@ -169,6 +152,7 @@ head(train_values)
 head(train_labels)
 head(test_values)
 ```
+
 Guardamos las numéricas por un lado, y el resto por otro
 ```{r}
 train_values.numeric <- select_if(train_values, is.numeric)
@@ -179,63 +163,56 @@ names.nonNumeric <- colnames(train_values.nonNumeric)
 ```
 
 
-#### Análisis univariable
+--------------------------------------------------------------------------
+
+# Análisis univariable
 
 Hacemos summary para sacar datos de relevancia
 ```{r}
 summary(train_values) %>% unclass() %>% as.data.frame()
 ```
 
-El dataset no cuenta con valores repetidos
+El dataset cuenta con valores repetidos
 ```{r}
 sum(duplicated(train_values))
 ```
 
-Ni missing values
+Pero sin missing values (solo NA, quizás haya codificación de missing value con otro valor)
 ```{r}
 sum(is.na(train_values))
 ```
 
+Table de variables numéricas
 ```{r}
-# ggpairs(train_values.numeric)
-
-# svg("myPlotMatrix.svg", height = 7, width = 7)
-# g <- ggpairs(train_values.numeric)
-# print(g)
-# dev.off()
+cat("Age")
+table(train_values.numeric$age)
+cat("Floors")
+table(train_values.numeric$count_floors_pre_eq)
+cat("Families")
+table(train_values.numeric$count_families)
 ```
 
 
-Vamos a sacar plots de cada variable para verlo mejor
-```{r}
-# ggplot(gather(train_values.numeric), aes(value)) +
-#   geom_histogram(bins = 15, color="white") +
-#   facet_wrap(~key, scales = 'free_x') +
-#   theme_light() +
-#   theme(strip.background = element_rect(fill="grey", size=2))+
-#   theme(strip.text = element_text(colour = 'black')) +
-#   labs(title="Histogramas de cada variable", x = "")
-```
+--------------------------------------------------------------------------
 
-Una a una
+Plots numéricas
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
-bins <- c(10,10,15,15,14,18)
+bins <- c(13,10,15,15)
 plt <- list(length = length(names.numeric))
 
 for (i in 1:length(names.numeric)) {
   ggplot(train_values.numeric, aes_string(x=names.numeric[i])) + 
     geom_histogram(aes(y=..density..), bins=bins[i], color="white", fill=colors[i]) +
-    geom_density(alpha=.3, fill="black", size=1) +
+    geom_density(alpha=.3, fill="black", size=.5) +
     labs(title="", x="", y="") +
     theme_light() -> plt[[i]]
   
   print(plt[[i]] + labs(title=sprintf("Histograma %s", names.numeric[i]), x=""))
 }
-
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
+Categóricas
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
 plt <- list(length = length(names.nonNumeric))
@@ -249,18 +226,18 @@ for (i in 1:length(names.nonNumeric)) {
       labs(title="", x="", y="") +
       theme_light() -> plt[[i]]
   
-  print(plt[[i]] + labs(title=sprintf("Histograma %s", names.nonNumeric[i]), x=""))
+  print(plt[[i]] + labs(title=sprintf("Bar %s", names.nonNumeric[i]), x=""))
 }
 ```
 
 Parece que hay algunas variables categóricas con demasiadas instancias de un tipo
 ```{r}
-train_values.nonNumeric %>% apply(2,table)
+train_values.nonNumeric[,-c(2,3)] %>% apply(2,table)
 ```
 
 Porcentajes
 ```{r}
-train_values.nonNumeric %>% 
+train_values.nonNumeric[,-c(2,3)] %>% 
   apply(2, function(x) {
       t <- round(prop.table(table(x))*100,2)
       print(t)
@@ -280,7 +257,7 @@ train_values.nonNumeric %>%
 Si valor con % >= 90 -> La columna no debería estar aportando mucha información
 Si valor con % <= 0.1 -> El elemento no apenas aporta
 
-
+Boxplots
 ```{r}
 colors <- c("chocolate", "deepskyblue1", "plum1", "hotpink4", "orange", "springgreen4")
 plt <- list(length = length(names.numeric))
@@ -293,11 +270,9 @@ for (i in 1:length(names.numeric)) {
   
   print(plt[[i]] + labs(title=sprintf("Boxplot %s", names.numeric[i]), x=""))
 }
-
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
-
+Boxplot con mismo rango
 ```{r}
 scale(train_values.numeric) %>%
   as.data.frame %>% 
@@ -308,28 +283,40 @@ scale(train_values.numeric) %>%
     theme(axis.text.x = element_text(angle = 90))
 ```
 
-Podemos comparar los rangos intercuartiles si estandarizamos antes el dataset
+Rangos intercuartiles
 ```{r}
 scale(train_values.numeric) %>% apply(2, IQR)
 ```
 
-También podemos ver la distancia entre mínimos y máximos
+Distancia entre mínimos y máximos
 ```{r}
 scale(train_values.numeric) %>% apply(2, range) %>% apply(2, dist)
 ```
 
 --------------------------------------------------------------------------------
 
-### Análisis sobre las distribuciones
+Plots primeras instancias
+```{r}
+scatterplotMatrix(train_values.numeric %>% head(1000), pch=20, col="deepskyblue")
+```
 
-Hemos comentado antes que no apreciamos semejanzas con una distribución normal en algunas de las variables, lo comprobamos con un test estadístico (Shapiro-Wilk test):
+```{r}
+ggpairs(train_values.numeric %>% head(1000))
+```
+
+
+--------------------------------------------------------------------------------
+
+# Análisis sobre las distribuciones
+
+Shapiro-Wilk Normality test:
 ```{r}
 normality(train_values.numeric) %>% filter(p_value < 0.05)
 ```
 
 Ninguna de las variables numéricas es normal.
 
-Vamos a mostrarlo con gráficos Q-Q para verlo mejor:
+Gráficos Q-Q para verlo mejor:
 ```{r}
 x<-rnorm(100, mean=0, sd=1)
 
@@ -344,8 +331,6 @@ for (i in 1:length(names.numeric)) {
   
   print(plt[[i]] + labs(title=sprintf("QQ-plot %s", names.numeric[i]), x=""))
 }
-
-# plot_grid(plotlist=plt, ncol=2, labels = names, label_size = 8)
 ```
 
 Skewness:
@@ -356,18 +341,16 @@ colnames(train_values)[skewCols]
 
 -------------------------------------------------------------
 
-### Transformaciones
+Clases desbalanceadas
+```{r}
+table(train_labels$damage_grade)
+cat("\nPorcentajes:")
+round(prop.table(table(train_labels$damage_grade))*100,2)
+```
 
-Habrá que estandarizar los datos, pues no se pierde nada.
+-------------------------------------------------------------
 
------------------------------------------------------------
-
-### Outliers
-
-
------------------------------------------------------------
-
-### Análisis de correlación
+# Análisis de correlación
 
 Solo de las variables numéricas
 
@@ -379,20 +362,41 @@ cor(train_values.numeric) %>%
 
 No hay correlación
 
+--------------------------------------------------------------------------
+
+## Duplicados
+
+El dataset cuenta con valores repetidos
 ```{r}
-# scatterplotMatrix(train_values.numeric, pch=20, col="deepskyblue")
+sum(duplicated(train_values))
 ```
 
----------------------------------------------------------------------------
+Muchas intancias duplicadas, hay que ver qué hacer con ellas
+```{r}
+train_values[which(duplicated(train_values)),] %>% arrange(geo_level_3_id)
 
-### Tratamiento de variables
-
-
---------------------------------------------------------------------------
-
-### Ordenaciones
-
+cat("Count_families de duplicados:\n")
+train_values[which(duplicated(train_values)),]$count_families %>% table()
+```
 
 --------------------------------------------------------------------------
 
-#### Resolución de hipótesis
+# Transformaciones
+
+Siempre se puede estandarizar los datos, no se pierde nada.
+
+--------------------------------------------------------------------------
+
+# Conclusiones
+
+- Hay variables extremadamente desbalanceadas. Para reglas/árboles no estaría mal mirarlas, para el resto se podrían quitar (quizás los IDs no, no sé)
+- Nada de correlación ni de normalidad
+- Clases desbalanceadas, sobre todo la de grado 1
+- Mayoría de variables categóricas/binarias
+- Mogollón de instancias, cuidado al graficar
+- ~16mil instancias duplicadas, pero son edificios diferentes. Es posible que sean de una misma urbanización/zona de una ciudad. 
+Sorprendía que se repitieran por el count_families, pero la mayoría son de 1 sola (supongo que serán casas)
+Habría que ver qué hacer con estos duplicados.
+- Los geo_level_2 y 3 quizás se pueden agrupar por intervalos, o directamente quitar. 
+- Para árboles/reglas, las flags se deberían agrupar
+- Age también se podría agrupar en intervalos
