@@ -17,7 +17,59 @@ coste computacional que haya en principio.
 Se podría reflejar en una combinación de las has_structure y geom_ids 
 (el epicentro estaría por unos valores concretos de geom_id)
 """
+################################################################################
+# Libraries
+################################################################################
 
+import random
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Preprocesamiento
+from sklearn.preprocessing import Normalizer
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.neighbors import KNeighborsClassifier
+
+################################################################################
+# Load data
+################################################################################
+
+train_values = pd.read_csv("data/train_values.csv")
+test_values  = pd.read_csv("data/test_values.csv")
+train_labels = pd.read_csv("data/train_labels.csv")
+
+preprocessed_train = train_values
+preprocessed_test = test_values
+
+################################################################################
+# Write data
+################################################################################
+
+# preprocessed_train.to_csv("data/preprocessed_train.csv")
+# preprocessed_test.to_csv("data/preprocessed_test.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
 Deshaciendo variables dummy
 ```{r}
 MultChoiceCondense<-function(vars,indata){
@@ -64,4 +116,4 @@ train_values$has_secondary_use <- MultChoiceCondense(condense, train_values)
 train_values$has_superstructure %>% head(100) %>% as.data.frame()
 # train_values$has_secondary_use_agriculture %>% head(100)
 train_values %>% head()
-```
+"""
