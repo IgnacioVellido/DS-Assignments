@@ -1,7 +1,7 @@
 ---
 title: "EDA"
 author: "Ignacio Vellido Expósito"
-date: "22/12/2020"
+date: "1/2/2021"
 output: 
   prettydoc::html_pretty:
     theme: hpstr
@@ -360,7 +360,13 @@ cor(train_values.numeric) %>%
   corrplot.mixed(tl.pos="lt", upper="color", mar=c(0,0,1,0))
 ```
 
-No hay correlación
+Cierta correlación entre dos variables (nº de plantas y porcentaje de altura)
+```{r}
+ggplot(train_values.numeric, aes(y=height_percentage, x=count_floors_pre_eq)) +
+  geom_point() +
+  theme_light()
+```
+
 
 --------------------------------------------------------------------------
 
@@ -410,7 +416,7 @@ sum(duplicated(old_buildings))
 # Conclusiones
 
 - Hay variables extremadamente desbalanceadas. Para reglas/árboles no estaría mal mirarlas, para el resto se podrían quitar (quizás los IDs no, no sé)
-- Nada de correlación ni de normalidad
+- Nada de normalidad, cierta correlación en dos columnas
 - Clases desbalanceadas, sobre todo la de grado 1 (habría que ver si al ser todos los datos del mismo terremoto las más alejadas del epicentro son las menos afectadas)
 - Mayoría de variables categóricas/binarias
 - Mogollón de instancias, cuidado al graficar
