@@ -38,18 +38,50 @@ library(partykit)
 # library(corrplot) # corr y corrplot
 # library(reshape2) # melt
 # library(dlookr) # normality
-library(caret)  # preprocess
+# library(caret)  # preprocess
 # library(moments)  # skewness
 # library(car)  # scatterplotMatrix
 # library(MASS) # fit
+
+set.seed(2)
 ```
 
 Se puede usar J48 (basados en C4.5, con medida de entropía) y tree (basado en CART, árboles binarios con criterio según GINI (MIRAR APUNTES TEORÍA))
 
 ---------------------------------------------------------------------------------------------------------------------
 
+Metodología:
+
+- Realización de un EDA para descubrir información de interés. Conclusiones (entre otras):
+  - Variables extremadamente desbalanceadas (más del 90%), poca información nueva aportada por ellas.
+  - Sin distribuciones normales
+  - Correlación solo en dos columnas (Altura y Nº de plantas)
+  - Clases desbalanceadas, la de grado 1 se encuentra .
+  - ~16mil instancias duplicadas, pero de edificios diferentes. Es posible que sean de una misma urbanización/zona de una ciudad. Sorprendía que se repitieran por el count_families, pero la mayoría son de 1 sola (posiblemente sean casas).
+  - Puede que haya valores perdidos no codificados como NA.
+  - Los IDs de posición geográfica deberían ser relevantes para el problema (un solo terremoto). Ahora bien, suponiendo que IDs consecutivos son zonas cercanas, no se aprecia relación alguna.
+
+- Preprocesamiento inicial, agrupación de variables binarias en una. De esta manera no se pierde información alguna y mantenemos la misma expresividad en los árboles.
+- Puesto que se cuentan con muchas instancias, separación de un 20% para evaluación local.
+- Ejecución de los algoritmos de aprendizaje con selección de hiperparámetros por CV. Se prueba con los siguientes:
+  -
+  -
+- Evaluación de los modelos, resultados en training
+  - C4.5
+    - Precisión:
+    - Recall:
+  - CART
+    - Precisión:
+    - Recall:
+- Se envía ?? a DrivenData con la predicción de test, resultados:
+  - Precisión:
+  - Recall:
+
+---------------------------------------------------------------------------------------------------------------------
+
 Funciones
 ```{r}
+# Calcula accuracy
 accuracy <- function(bag.datos){
   return (sum (sapply(1:length(bag.datos$y), function(x){
     if (is.na(bag.datos$predicted[x]))
@@ -60,20 +92,184 @@ accuracy <- function(bag.datos){
       0
   }))/length(bag.datos$y))
 }
+
+################################################################################
+
+# Muestra matriz de confusión y accuracy
+compare_pred <- function(pred, labels) {
+  table(pred, labels) %>% print()
+  
+  postResample(pred = pred, obs = labels) %>% print()
+}
 ```
 
 ---------------------------------------------------------------------------------------------------------------------
 
 Cargar conjuntos de datos preprocesados
+```{r}
+trn_values <- read_csv("data/preprocessed_train.csv")
+trn_labels <- read_csv("data/train_labels.csv")
+tst_values  <- read_csv("data/preprocessed_test.csv")
 
-Separar train/test o aplicar formateo si necesario
+names <- colnames(trn_values)
+```
 
-EVALUAR CON PRECISION Y RECALL
+```{r}
+trn_values
+trn_labels
+tst_values
+```
+
+
+Cambiar lectura por defecto de read_csv (pasar a factors)
+```{r}
+#  1:3 -> IDs de posición geográfica
+factores <- c(1:3,8:15,17:18)
+
+for (i in factores) {
+  trn_values[[names[i]]] <- trn_values[[names[i]]] %>% as.factor()
+  tst_values[[names[i]]] <- tst_values[[names[i]]] %>% as.factor()
+}
+
+# Las etiquetas
+trn_labels$damage_grade <- trn_labels$damage_grade %>% as.ordered()
+
+# Añadir labels a train
+train <- bind_cols(trn_values, trn_labels$damage_grade)
+colnames(train)[19] <- "labels"
+```
+
+```{r}
+# trn_values
+# trn_labels
+train
+tst_values
+```
+
+Separamos un 20% para validar localmente
+```{r}
+size <- floor(0.8 * nrow(train))
+
+index <- sample(1:nrow(train), size = size)
+
+val <- train[index,]
+train  <- train[-index,]
+```
+
+
+```{r}
+summary(train)
+```
 
 ---------------------------------------------------------------------------------------------------------------------
 Con tree
 
 Probar con todas las variables
+```{r}
+# Construir un arbol que clasifica la especie en base al resto de variables
+tree.trn <- tree(labels~.-has_superstructure-geo_level_2_id-geo_level_3_id, train)
+
+summary(tree.trn)
+```
+
+```{r}
+plot(tree.trn)
+text(tree.trn)
+```
+
+```{r}
+tree.trn
+```
+
+
+```{r}
+# Aplico el arbol sobre el conjunto de validación
+tree.pred <- predict(tree.trn, val, type ="class")
+```
+
+
+```{r}
+# Visualizo la matriz de confusion
+compare_pred(tree.pred, val$labels)
+```
+
+```{r}
+# Podar el arbol usando cv
+set.seed(2)
+cv.trn <- cv.tree(tree.trn, FUN=prune.misclass )
+
+cv.trn
+```
+
+
+```{r}
+# Ahora podamos el arbol con prune.misclass
+prune.trn <- prune.misclass(tree.trn, best = 3)
+par(mfrow = c(1,1))
+plot(prune.trn)
+text(prune.trn, pretty =0)
+```
+
+
+```{r}
+# Como se comportara este arbol en su capacidad de prediccion
+tree.pred <- predict(prune.trn , val, type="class")
+
+compare_pred(tree.pred, val$labels)
+```
+
+
+```{r}
+# Ahora podemos modificar el tamanio del arbol modificando best
+prune.trn <- prune.misclass(tree.trn, best = 4)
+plot(prune.trn)
+text(prune.trn, pretty=0)
+tree.pred <- predict(prune.trn, val, type="class")
+
+compare_pred(tree.pred, val$labels)
+```
+
+
+##################################################################
+#          Usando RWeka y C4.5
+##################################################################
+
+```{r}
+# J48 es la implementacion de C4.5 en Weka, y su uso es similar
+# al de la funcion "tree" vista anteriormente en este script.
+# Vemos un ejemplo de uso sobre "iris"
+modelC4.5 <- J48(labels~., data=train)
+
+modelC4.5.pred <- predict(modelC4.5, val)
+
+modelC4.5$classifier$toSummaryString()
+
+## Fit J48 tree with reduced error pruning
+# m5 <- J48(diabetes ~ ., data = PimaIndiansDiabetes,control = Weka_control(R = TRUE))
+```
+
+Si no se puede puede que sea por tener muchas hojas
+```{r}
+plot(modelC4.5)
+```
+
+```{r}
+modelC4.5.pred %>% head()
+```
+
+
+```{r}
+resul = as.data.frame(cbind(predicted = modelC4.5.pred, y=val$labels))
+accuracy(resul)
+```
+
+
+```{r}
+# Si queremos hacer una validacion cruzada usando RWeka
+# modelC4.5 = J48(labels~., data=train)
+cv_resul <- evaluate_Weka_classifier(modelC4.5, numFolds=10)
+cv_resul
+```
 
 Evaluar en test
 
@@ -100,121 +296,3 @@ Como extra, probar con:
 # RWeka tambien proporciona 3 algoritmos mas
 # LMT implementa "Logistic Model Trees"
 # M5P una version mejorada de C4.5
-
----------------------------------------------------------------------------------------------------------------------
-
-```{r}
-set.seed (2)
-train=sample (1:nrow(iris), 100)
-iris.test=iris [-train ,]
-```
-
-```{r}
-# Construir un arbol que clasifica la especie en base al resto de variables
-tree.iris = tree(Species~.,iris)
-
-summary(tree.iris)
-```
-
-
-```{r}
-plot(tree.iris)
-text(tree.iris)
-```
-
-
-```{r}
-tree.iris
-```
-
-
-```{r}
-# Construyo el arbol sobre el conjunto de entrenamiento
-tree.iris =tree(Species~. ,iris ,subset =train )
-
-# Aplico el arbol sobre el conjunto de test
-tree.pred =predict (tree.iris ,iris.test ,type ="class")
-
-# Visualizo la matriz de confusion
-table(tree.pred , iris.test[,5])
-```
-
-
-```{r}
-# Podar el arbol usando cv
-set.seed (3)
-cv.iris = cv.tree(tree.iris ,FUN=prune.misclass )
-names(cv.iris )
-cv.iris
-```
-
-
-```{r}
-# Ahora podamos el arbol con prune.misclass
-prune.iris =prune.misclass (tree.iris ,best =3)
-par(mfrow =c(1,1))
-plot(prune.iris)
-text(prune.iris ,pretty =0)
-```
-
-
-```{r}
-# Como se comportara este arbol en su capacidad de prediccion
-tree.pred=predict (prune.iris , iris.test ,type="class")
-table(tree.pred ,iris.test[,5])
-```
-
-
-```{r}
-# Ahora podemos modificar el tamanio del arbol modificando best
-prune.iris =prune.misclass (tree.iris ,best =4)
-plot(prune.iris)
-text(prune.iris ,pretty =0)
-tree.pred=predict (prune.iris , iris.test ,type="class")
-table(tree.pred ,iris.test[,5])
-```
-
-
-##################################################################
-#          Usando RWeka y C4.5
-##################################################################
-
-```{r}
-# La biblioteca RWeka implementa algunos algoritmos de clasificacion basados en arboles de decision.
-# El mas conocido de ellos es C4.5
-
-?J48
-```
-
-
-```{r}
-# J48 es la implementacion de C4.5 en Weka, y su uso es similar
-# al de la funcion "tree" vista anteriormente en este script.
-# Vemos un ejemplo de uso sobre "iris"
-modelC4.5 = J48(Species~., data=iris, subset=train)
-
-modelC4.5.pred = predict(modelC4.5, iris.test)
-```
-
-```{r}
-plot(modelC4.5)
-```
-
-```{r}
-modelC4.5.pred
-```
-
-
-```{r}
-resul = as.data.frame(cbind(predicted = modelC4.5.pred, y=iris.test[,5]))
-accuracy(resul)
-```
-
-
-```{r}
-# Si queremos hacer una validacion cruzada usando RWeka para C4.5 y
-# la base de datos "iris", se haria de la siguiente forma
-modelC4.5 = J48(Species~., data=iris)
-cv_resul = evaluate_Weka_classifier(modelC4.5,numFolds=10)
-cv_resul
-```
