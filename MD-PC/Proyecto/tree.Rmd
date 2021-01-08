@@ -80,10 +80,22 @@ Metodología:
   - Precisión:
   - Recall:
 
-- Preprocesamiento 2: Limpieza de ruido, selección de características
-SELECCIÓN DE INSTANCIAS MIRAR TAMBIÉN, SE PROBÓ CON 80-20 PERO SIGUE SIENDO DEMASIADO PARA TREE, SE PASA A 70-30.
-SE ELIMINAN INSTANCIAS REPETIDAS PUESTO QUE PARA ÁRBOLES NO APORTAN INFORMACIÓN ADICIONAL (RECORDANDO QUE LOS ERAN EDIFICIOS DIFERENTES, PERO LOS IDS LOS QUITAMOS)
+ASÍ TARDA MUCHO EN ENTRENAR
+- Hay un límite en el nº de características para tree, se quitan geo_id_2 y geo_id_3
+- has_superstucture también, aunque se podrían mantener las variables originales
+- Se aumenta partición de validación a 30%
+- Se quitan variables muy desbalanceadas: 
+(REVISAR QUE EN LAS CATEGORÍAS DESBALANCEADAS NO PREDOMINE UNA ETIQUETA)
+  plan_configuration (se podrían mantener las etiquetas q y p)
+  legal_ownership_status (idem con r y a)
+- Se podrían quitar variables de has_superstructure y has_secondary
 
+- Agrupar geo_level_id_1 ??
+
+- Preprocesamiento 2: Limpieza de ruido, selección de características
+
+Las instancias duplicadas afectan a los árboles según la medida que se use. En este caso sí, y por tanto se le da más peso a la información que está duplicada.
+Podemos probar dejándola y sin ella, deberían dar resultados diferentes
 
 (Para C4.5 si hubiera datos perdidos los ignora, pero no tenemos ninguno codificado como tal, aunque eso no implica que lo estén con otra codificación)
 
@@ -194,9 +206,15 @@ train
 tst_values
 ```
 
-Separamos un 20% para validar localmente
+Quitar duplicados
 ```{r}
-size <- floor(0.8 * nrow(train))
+sum(duplicated(train))
+```
+
+
+Separamos un 30% para validar localmente
+```{r}
+size <- floor(0.7 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -213,9 +231,15 @@ summary(train)
 Con tree
 
 Probar con todas las variables
+(Se acaban usando "geo_level_1_id"  "foundation_type" "roof_type", tiene sentido)
 ```{r}
 # Construir un arbol que clasifica la especie en base al resto de variables
-tree.trn <- tree(labels~.-has_superstructure-geo_level_2_id-geo_level_3_id, train)
+tree.trn <- tree(labels~.
+                  -has_superstructure
+                  -geo_level_2_id
+                  -geo_level_3_id
+                  -legal_ownership_status
+                  -plan_configuration, train)
 
 summary(tree.trn)
 ```
@@ -263,7 +287,7 @@ text(prune.trn, pretty =0)
 
 ```{r}
 # Como se comportara este arbol en su capacidad de prediccion
-tree.pred <- predict(prune.trn , val, type="class")
+tree.pred <- predict(prune.trn, val, type="class")
 
 compare_pred(tree.pred, val$labels)
 ```
@@ -296,7 +320,12 @@ Evaluar con CV
 # J48 es la implementacion de C4.5 en Weka, y su uso es similar
 # al de la funcion "tree" vista anteriormente en este script.
 # Vemos un ejemplo de uso sobre "iris"
-modelC4.5 <- J48(labels~., data=train)
+modelC4.5 <- J48(labels~.
+                  -has_superstructure
+                  -geo_level_2_id
+                  -geo_level_3_id
+                  -legal_ownership_status
+                  -plan_configuration, data=train)
 
 modelC4.5.pred <- predict(modelC4.5, val)
 
@@ -319,6 +348,8 @@ plot(modelC4.5)
 ```{r}
 resul = as.data.frame(cbind(predicted = modelC4.5.pred, y=val$labels))
 accuracy(resul)
+
+compare_pred(modelC4.5.pred, val$labels)
 ```
 
 
@@ -329,6 +360,84 @@ cv_resul <- evaluate_Weka_classifier(modelC4.5, numFolds=10)
 cv_resul
 ```
 
+---------------------------------------------------------------------------------------------------------------------
+
+EDA (AGAIN)
+
+Vemos los ids de geo2 de una misma geo1
+```{r}
+trn_values %>% filter(geo_level_1_id == 1) %>% select(geo_level_2_id) %>% table() -> x
+x <- names(x[x != 0])
+x
+```
+
+Las geo no siguen un orden
+
+Buscamos intersección con otro geo1
+```{r}
+trn_values %>% filter(geo_level_1_id == 2) %>% select(geo_level_2_id) %>% table() -> y
+y <- names(y[y != 0])
+y
+intersect(y, x)
+```
+
+No intersecan, se pueden quitar geo_2 y geo_3.
+Tienen demasiadas categorías diferentes para los árboles
+
+
+```{r}
+df <- bind_cols(trn_values, trn_labels$damage_grade)
+colnames(df)[19] <- "labels"
+```
+
+
+Miramos variables con muchas categorías
+-plan_configuration
+```{r}
+df %>% select(plan_configuration) %>% table()
+
+df %>% filter(plan_configuration == "a") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "c") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "f") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "m") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "n") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "o") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "s") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "u") %>% select(labels) %>% table()
+```
+Todas se pueden quitar, contienen valores de las tres clases (no determinan ninguna)
+Por tanto se puede quitar la variable entera
+
+-has_superstructure
+-legal_ownership_status
+```{r}
+df %>% select(legal_ownership_status) %>% table()
+
+df %>% filter(legal_ownership_status == "a") %>% select(labels) %>% table()
+df %>% filter(legal_ownership_status == "r") %>% select(labels) %>% table()
+df %>% filter(legal_ownership_status == "w") %>% select(labels) %>% table()
+```
+
+Idem, se pueden quitar. Además se nota la proporción de las etiquetas desbalanceadas.
+
+
+Altura y nº de plantas altamente correladas, categorizamos nº de plantas
+```{r}
+df$count_floors_pre_eq %>% table()
+```
+
+Revisamos esas categorías con pocas instancias
+```{r}
+df %>% filter(count_floors_pre_eq == 5) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 6) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 7) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 8) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 9) %>% select(labels) %>% table() %>% prop.table()
+```
+Solo una instancia con 9, y las anteriores no siguen el mismo patrón (que todas sufrieran el mismo tipo de daño)
+Como tenemos proporciones muy similares, juntamos las +5 con ella
+
+Hay robustez al ruido en los árboles, por ahora no la miramos
 ---------------------------------------------------------------------------------------------------------------------
 
 Como extra, probar con:
