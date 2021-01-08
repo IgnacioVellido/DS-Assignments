@@ -30,15 +30,17 @@ knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center",
                       comment=NA, messages=FALSE)
 library(tidyverse)
 library(ggplot2)
+
 library(tree)
 library(RWeka)
 library(partykit)
+
+# library(caret)  # scores
 
 # library(cowplot)  # plot_grid
 # library(corrplot) # corr y corrplot
 # library(reshape2) # melt
 # library(dlookr) # normality
-# library(caret)  # preprocess
 # library(moments)  # skewness
 # library(car)  # scatterplotMatrix
 # library(MASS) # fit
@@ -66,6 +68,7 @@ Metodología:
 - Ejecución de los algoritmos de aprendizaje con selección de hiperparámetros por CV. Se prueba con los siguientes:
   -
   -
+  - Problema: Algunas variables categóricas cuentan con demasiadas categorías para CART
 - Evaluación de los modelos, resultados en training
   - C4.5
     - Precisión:
@@ -76,6 +79,13 @@ Metodología:
 - Se envía ?? a DrivenData con la predicción de test, resultados:
   - Precisión:
   - Recall:
+
+- Preprocesamiento 2: Limpieza de ruido, selección de características
+SELECCIÓN DE INSTANCIAS MIRAR TAMBIÉN, SE PROBÓ CON 80-20 PERO SIGUE SIENDO DEMASIADO PARA TREE, SE PASA A 70-30.
+SE ELIMINAN INSTANCIAS REPETIDAS PUESTO QUE PARA ÁRBOLES NO APORTAN INFORMACIÓN ADICIONAL (RECORDANDO QUE LOS ERAN EDIFICIOS DIFERENTES, PERO LOS IDS LOS QUITAMOS)
+
+
+(Para C4.5 si hubiera datos perdidos los ignora, pero no tenemos ninguno codificado como tal, aunque eso no implica que lo estén con otra codificación)
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -95,11 +105,48 @@ accuracy <- function(bag.datos){
 
 ################################################################################
 
+# Calcula el F1 score micro. Función adaptada de la versión macro de:
+# https://stackoverflow.com/questions/8499361/easy-way-of-counting-precision-recall-and-f1-score-in-r/8502026
+f1_score <- function(predicted, expected, positive.class="1") {
+    res <- list()
+    
+    # predicted <- factor(as.character(predicted), levels=unique(as.character(expected)))
+    # expected  <- as.factor(expected)
+    cm = as.matrix(table(expected, predicted))
+    
+    tp <- diag(cm)
+    fp <- cm[lower.tri(cm)]
+    fn <- cm[upper.tri(cm)]
+
+    res$precision <- tp / (tp + fp)
+    res$recall <- tp / (tp + fn)
+    
+    # res$precision <- sum(tp / (tp + fp))
+    # res$precision <- ifelse(is.na(res$precision), 0, res$precision)
+    # res$recall <- sum(tp / (tp + fn))
+    
+    # res$precision <- diag(cm) / colSums(cm)
+    # res$recall <- diag(cm) / rowSums(cm)
+    
+    f1 <-  ifelse(res$precision + res$recall == 0, 0,
+                  2 * res$precision * res$recall / (res$precision + res$recall))
+
+    #Assuming that F1 is zero when it's not possible compute it
+    f1[is.na(f1)] <- 0
+
+    #Binary F1 or Multi-class macro-averaged F1
+    res$f1 <- ifelse(nlevels(expected) == 2, f1[positive.class], mean(f1))
+
+    res
+}
+
+################################################################################
+
 # Muestra matriz de confusión y accuracy
-compare_pred <- function(pred, labels) {
-  table(pred, labels) %>% print()
+compare_pred <- function(predicted, expected) {
+  table(expected, predicted) %>% print()
   
-  postResample(pred = pred, obs = labels) %>% print()
+  f1_score(predicted, expected) %>% print()
 }
 ```
 
@@ -132,7 +179,8 @@ for (i in factores) {
 }
 
 # Las etiquetas
-trn_labels$damage_grade <- trn_labels$damage_grade %>% as.ordered()
+# trn_labels$damage_grade <- trn_labels$damage_grade %>% as.ordered()
+trn_labels$damage_grade <- trn_labels$damage_grade %>% as.factor()
 
 # Añadir labels a train
 train <- bind_cols(trn_values, trn_labels$damage_grade)
@@ -152,8 +200,8 @@ size <- floor(0.8 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
-val <- train[index,]
-train  <- train[-index,]
+val <- train[-index,]
+train  <- train[index,]
 ```
 
 
@@ -193,15 +241,17 @@ tree.pred <- predict(tree.trn, val, type ="class")
 compare_pred(tree.pred, val$labels)
 ```
 
+
+Poda a priori ?
 ```{r}
 # Podar el arbol usando cv
 set.seed(2)
-cv.trn <- cv.tree(tree.trn, FUN=prune.misclass )
+cv.trn <- cv.tree(tree.trn, FUN=prune.misclass)
 
 cv.trn
 ```
 
-
+Poda a posterior ?
 ```{r}
 # Ahora podamos el arbol con prune.misclass
 prune.trn <- prune.misclass(tree.trn, best = 3)
@@ -229,10 +279,18 @@ tree.pred <- predict(prune.trn, val, type="class")
 compare_pred(tree.pred, val$labels)
 ```
 
+Evaluar en test
 
-##################################################################
-#          Usando RWeka y C4.5
-##################################################################
+Probar con diferentes tamaños
+
+Evaluar en test (incluir matriz confusión, precision y recall)
+
+Aplicar CV
+
+---------------------------------------------------------------------------------------------------------------------
+Repetir con J48
+
+Evaluar con CV
 
 ```{r}
 # J48 es la implementacion de C4.5 en Weka, y su uso es similar
@@ -254,7 +312,7 @@ plot(modelC4.5)
 ```
 
 ```{r}
-modelC4.5.pred %>% head()
+# modelC4.5.pred %>% head()
 ```
 
 
@@ -269,25 +327,6 @@ accuracy(resul)
 # modelC4.5 = J48(labels~., data=train)
 cv_resul <- evaluate_Weka_classifier(modelC4.5, numFolds=10)
 cv_resul
-```
-
-Evaluar en test
-
-Probar con diferentes tamaños
-
-Evaluar en test (incluir matriz confusión, precision y recall)
-
-Seleccionar variables más interesantes
-
-Aplicar CV
-
----------------------------------------------------------------------------------------------------------------------
-Repetir con J48
-
-Evaluar con CV
-```{r}
-# cv_resul = evaluate_Weka_classifier(modelWeka, numFolds=10)
-# cv_resul
 ```
 
 ---------------------------------------------------------------------------------------------------------------------
