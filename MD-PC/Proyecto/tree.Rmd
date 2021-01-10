@@ -307,24 +307,24 @@ Probar con todas las variables
 <!-- tree(labels~.-has_superstructure, train) -->
 ```{r}
 # Construir un arbol que clasifica la especie en base al resto de variables
-tree.trn <- tree(labels~., train)
+cart_tree <- tree(labels~., train)
 
-summary(tree.trn)
+summary(cart_tree)
 ```
 
 ```{r}
-plot(tree.trn)
-text(tree.trn)
+plot(cart_tree)
+text(cart_tree)
 ```
 
 ```{r}
-tree.trn
+cart_tree
 ```
 
 
 ```{r}
 # Aplico el arbol sobre el conjunto de validación
-tree.pred <- predict(tree.trn, val, type ="class")
+cart_predict <- predict(cart_tree, val, type ="class")
 ```
 
 <!-- Con v2 -->
@@ -347,103 +347,120 @@ tree.pred <- predict(tree.trn, val, type ="class")
 
 ```{r}
 # Visualizo la matriz de confusion
-compare_pred(tree.pred, val$labels)
+compare_pred(cart_predict, val$labels)
 ```
 
-
-Poda a priori ?
+Podar el arbol usando CV ?
 ```{r}
-# Podar el arbol usando cv
 set.seed(2)
-cv.trn <- cv.tree(tree.trn, FUN=prune.misclass)
+cv.trn <- cv.tree(cart_tree, FUN=prune.misclass)
 
 cv.trn
 ```
 
-Poda a posterior ?
+Poda manual (Sería elegir un tamaño de árbol basado en lo anterior)
+POR AHORA NO SE PODA, YA ES PEQUEÑO DE POR SÍ
 ```{r}
-# Ahora podamos el arbol con prune.misclass
-prune.trn <- prune.misclass(tree.trn, best = 3)
-par(mfrow = c(1,1))
-plot(prune.trn)
-text(prune.trn, pretty =0)
+# prune.trn <- prune.misclass(tree.trn, best = 3)
+# par(mfrow = c(1,1))
+# plot(prune.trn)
+# text(prune.trn, pretty =0)
 ```
 
-
+Evaluar árbol podado
 ```{r}
 # Como se comportara este arbol en su capacidad de prediccion
-tree.pred <- predict(prune.trn, val, type="class")
-
-compare_pred(tree.pred, val$labels)
+# tree.pred <- predict(prune.trn, val, type="class")
+# 
+# compare_pred(tree.pred, val$labels)
 ```
 
-
+Sería para probar con otra poda
 ```{r}
 # Ahora podemos modificar el tamanio del arbol modificando best
-prune.trn <- prune.misclass(tree.trn, best = 4)
-plot(prune.trn)
-text(prune.trn, pretty=0)
-tree.pred <- predict(prune.trn, val, type="class")
-
-compare_pred(tree.pred, val$labels)
+# prune.trn <- prune.misclass(cart_tree, best = 4)
+# plot(prune.trn)
+# text(prune.trn, pretty=0)
+# tree.pred <- predict(prune.trn, val, type="class")
+# 
+# compare_pred(tree.pred, val$labels)
 ```
 
-Evaluar en test
-
-Probar con diferentes tamaños
-
-Evaluar en test (incluir matriz confusión, precision y recall)
-
-Aplicar CV
-
 ---------------------------------------------------------------------------------------------------------------------
-Repetir con J48
-
-Evaluar con CV
+## J48
 
 ```{r}
 # J48 es la implementacion de C4.5 en Weka, y su uso es similar
 # al de la funcion "tree" vista anteriormente en este script.
 # Vemos un ejemplo de uso sobre "iris"
-modelC4.5 <- J48(labels~.
-                  -has_superstructure
-                  -geo_level_2_id
-                  -geo_level_3_id
-                  -legal_ownership_status
-                  -plan_configuration, data=train)
+c45_tree <- J48(labels~., data=train)
 
-modelC4.5.pred <- predict(modelC4.5, val)
+c45_predict <- predict(c45_tree, val)
 
-modelC4.5$classifier$toSummaryString()
+c45_tree$classifier$toSummaryString()
 
 ## Fit J48 tree with reduced error pruning
 # m5 <- J48(diabetes ~ ., data = PimaIndiansDiabetes,control = Weka_control(R = TRUE))
 ```
 
-Si no se puede puede que sea por tener muchas hojas
+Si no se puede puede que sea por tener muchas hojas (solo si es pequeño)
 ```{r}
-plot(modelC4.5)
-```
-
-```{r}
-# modelC4.5.pred %>% head()
+# plot(c45_tree)
 ```
 
 
 ```{r}
-resul = as.data.frame(cbind(predicted = modelC4.5.pred, y=val$labels))
+resul = as.data.frame(cbind(predicted = c45_predict, y=val$labels))
+cat("Accuracy global:\n")
 accuracy(resul)
 
-compare_pred(modelC4.5.pred, val$labels)
+compare_pred(c45_predict, val$labels)
 ```
 
-
+Evaluar con CV
 ```{r}
 # Si queremos hacer una validacion cruzada usando RWeka
-# modelC4.5 = J48(labels~., data=train)
 cv_resul <- evaluate_Weka_classifier(modelC4.5, numFolds=10)
 cv_resul
 ```
+
+<!-- https://stats.stackexchange.com/questions/49226/how-to-interpret-f-measure-values -->
+
+---------------------------------------------------------------------------------------------------------------------
+
+Predecir conjunto de test
+```{r}
+# CART
+cart_test <- predict(cart_tree, tst_values, type ="class") %>% as.data.frame()
+colnames(cart_test) <- "damage_grade"
+
+c45_test <- predict(c45_tree, tst_values) %>% as.data.frame()
+colnames(c45_test) <- "damage_grade"
+```
+
+
+```{r}
+cart_test %>% head()
+c45_test %>% head()
+```
+
+Leer IDs de test
+```{r}
+buildings_ids <- read_csv("./data/test_values.csv")[,1]
+buildings_ids
+```
+
+Guardar resultados
+```{r}
+buildings_ids %>% 
+  bind_cols(cart_test) %>% 
+  write_csv("./out/cart.csv")
+
+buildings_ids %>% 
+  bind_cols(c45_test) %>% 
+  write_csv("./out/c45.csv")
+```
+
 
 ---------------------------------------------------------------------------------------------------------------------
 
