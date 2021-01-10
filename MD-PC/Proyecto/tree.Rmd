@@ -103,6 +103,7 @@ Podemos probar dejándola y sin ella, deberían dar resultados diferentes
 2. Selección de variables: Eliminando una correlada y las geo2y3 por tener demasiadas categorías (entre otras, mirar cuáles). Eliminación de duplicados y partición 70-30 con validación.
 3. Sigue costando mucho, se quedan más de 124979 instancias. Se usa método de CNN (Condensed Nearest Neighbor) para seleccionar instancias (Condensed Nearest Neighbor selects the subset of instances that are able to correctly classifing the original datasets using a one-nearest neighbor rule.). ES POSIBLE QUE ESTEMOS REDUCIENDO EL BALANCEO CON ESTO, MIRARLO.
 Se aplica un one-hot-encoding de manera que se puedan aplicar las distancias de estos métodos, en otro caso no se puede aplicar. Se consigue reducir hasta un ...
+4. Selección de instancias con método ENN tras seleccionar características con método filter de chi2. Previamente realizado un onehotencoding para poder aplicar los métodos pues se basan en distancias. Se habían eliminado variables correladas y las geo2y3 en base a lo mencionado anteriormente.
 
 PROBAR CON DUPLICADOS Y SIN DUPLICADOS
 Por un lado, queremos mantener los duplicados pues afecta a las medidas de GINI y entropía, de esta manera la información repetida se ve reflejada en los árboles pues se favorece la correcta etiquetación de estos. Por otro lado, al tener tan cantidad de instancias duplicadas podemos perder expresividad en árboles al contar con tantas columnas (y en unas pruebas iniciales se veía que sí, no se etiquetaba nunca la clase 1).
@@ -200,25 +201,33 @@ trn_labels
 tst_values
 ```
 
+```{r}
+#  1:3 -> IDs de posición geográfica
+# V1
+# factores <- c(1,8:15,17:18)
+
+# v2
+# factores <- c("geo_level_1_id",
+#               # "count_floors_pre_eq",
+#               # "age",
+#               # "area_percentage",
+#               "land_surface_condition",
+#               "foundation_type",
+#               "roof_type",
+#               "ground_floor_type",
+#               "other_floor_type",
+#               "position",
+#               # "count_families",
+#               "has_superstructure",
+#               "has_secondary")
+
+# v3
+factores <- c(3:ncol(trn_values))
+```
+
 
 Cambiar lectura por defecto de read_csv (pasar a factors)
 ```{r}
-#  1:3 -> IDs de posición geográfica
-# factores <- c(1,8:15,17:18)
-factores <- c("geo_level_1_id",
-              # "count_floors_pre_eq",
-              # "age",
-              # "area_percentage",
-              "land_surface_condition",
-              "foundation_type",
-              "roof_type",
-              "ground_floor_type",
-              "other_floor_type",
-              "position",
-              # "count_families",
-              "has_superstructure",
-              "has_secondary")
-
 for (i in factores) {
   # trn_values[[names[i]]] <- trn_values[[names[i]]] %>% as.factor()
   # tst_values[[names[i]]] <- tst_values[[names[i]]] %>% as.factor()
@@ -242,22 +251,21 @@ tst_values
 
 <!-- Quitar duplicados aquí -->
 ```{r}
-sum(duplicated(train))
-train <- unique(train)
-sum(duplicated(train))
+# sum(duplicated(train))
+# train <- unique(train)
+# sum(duplicated(train))
 ```
 
-Seleccionando instancias con CNN
+<!-- Seleccionando instancias con CNN -->
 ```{r}
-data <- ubCNN(X=input, Y= output)
-newData <- cbind(data$X, data$Y)
+# data <- ubCNN(X=input, Y= output)
+# newData <- cbind(data$X, data$Y)
 ```
 
 
-
-Separamos un 30% para validar localmente
+Separamos un 10% para validar localmente
 ```{r}
-size <- floor(0.7 * nrow(train))
+size <- floor(0.9 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -269,6 +277,12 @@ train  <- train[index,]
 ```{r}
 summary(train)
 ```
+
+Ahora están igualadas todas las clases
+```{r}
+table(train$labels)
+```
+
 
 ---------------------------------------------------------------------------------------------------------------------
 Con tree
@@ -289,9 +303,11 @@ Probar con todas las variables
 <!--                   -legal_ownership_status -->
 <!--                   -plan_configuration, train) -->
 <!-- Demasiado tiempo computacional -->
+<!-- v2 -->
+<!-- tree(labels~.-has_superstructure, train) -->
 ```{r}
 # Construir un arbol que clasifica la especie en base al resto de variables
-tree.trn <- tree(labels~.-has_superstructure, train)
+tree.trn <- tree(labels~., train)
 
 summary(tree.trn)
 ```
@@ -310,6 +326,23 @@ tree.trn
 # Aplico el arbol sobre el conjunto de validación
 tree.pred <- predict(tree.trn, val, type ="class")
 ```
+
+<!-- Con v2 -->
+<!-- predicted -->
+<!-- expected     1     2     3 -->
+<!--        1     0  7493    37 -->
+<!--        2     0 43325  1207 -->
+<!--        3     0 20266  5853 -->
+<!-- $precision -->
+<!--         1         2         3  -->
+<!--       NaN 1.0000000 0.2240897  -->
+
+<!-- $recall -->
+<!--         1         2         3  -->
+<!-- 0.0000000 0.9991467 0.8290368  -->
+
+<!-- $f1 -->
+<!-- [1] 0.4507956 -->
 
 
 ```{r}
