@@ -123,6 +123,15 @@ TENIENDO VARIABLES CATEGÓRICAS LA MAYORÍA DE MÉTODOS DE UNDERSAMPLING NO SE P
 
 ---------------------------------------------------------------------------------------------------------------------
 
+Submissions
+1. Preprocesamiento v3, sin podas
+  - CART: 0.5754
+  - C4.5: 0.3364
+  
+2. PARA SUBMISSION 2, Añadir todo lo geo1
+
+---------------------------------------------------------------------------------------------------------------------
+
 Funciones
 ```{r}
 # Calcula accuracy
@@ -398,9 +407,6 @@ c45_tree <- J48(labels~., data=train)
 c45_predict <- predict(c45_tree, val)
 
 c45_tree$classifier$toSummaryString()
-
-## Fit J48 tree with reduced error pruning
-# m5 <- J48(diabetes ~ ., data = PimaIndiansDiabetes,control = Weka_control(R = TRUE))
 ```
 
 Si no se puede puede que sea por tener muchas hojas (solo si es pequeño)
@@ -420,7 +426,21 @@ compare_pred(c45_predict, val$labels)
 Evaluar con CV
 ```{r}
 # Si queremos hacer una validacion cruzada usando RWeka
-cv_resul <- evaluate_Weka_classifier(modelC4.5, numFolds=10)
+cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=10)
+cv_resul
+```
+
+```{r}
+set.seed(2)
+## Fit J48 tree with reduced error pruning
+c45_prune <- J48(labels ~ ., data=train, control=Weka_control(R = TRUE, B=T))
+ 
+c45_tree$classifier$toSummaryString()
+```
+
+
+```{r}
+cv_resul <- evaluate_Weka_classifier(c45_prune, numFolds=10)
 cv_resul
 ```
 
