@@ -113,6 +113,91 @@ Referencia:
 
 ---------------------------------------------------------------------------------------------------------------------
 
+EDA (AGAIN)
+
+```{r}
+trn_values <- read_csv("data/train_values.csv")
+trn_labels <- read_csv("data/train_labels.csv")
+```
+
+Vemos los ids de geo2 de una misma geo1
+```{r}
+trn_values %>% filter(geo_level_1_id == 1) %>% select(geo_level_2_id) %>% table() -> x
+x <- names(x[x != 0])
+x
+```
+
+Las geo no siguen un orden
+
+Buscamos intersección con otro geo1
+```{r}
+trn_values %>% filter(geo_level_1_id == 2) %>% select(geo_level_2_id) %>% table() -> y
+y <- names(y[y != 0])
+y
+intersect(y, x)
+```
+
+No intersecan, se pueden quitar geo_2 y geo_3.
+Tienen demasiadas categorías diferentes para los árboles
+
+
+```{r}
+df <- bind_cols(trn_values, trn_labels$damage_grade)
+colnames(df)[ncol(df)] <- "labels"
+df$labels <- as.ordered(df$labels)
+```
+
+
+Miramos variables con muchas categorías
+-plan_configuration
+```{r}
+df %>% select(plan_configuration) %>% table()
+
+df %>% filter(plan_configuration == "a") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "c") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "f") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "m") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "n") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "o") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "s") %>% select(labels) %>% table()
+df %>% filter(plan_configuration == "u") %>% select(labels) %>% table()
+```
+Todas se pueden quitar, contienen valores de las tres clases (no determinan ninguna)
+Por tanto se puede quitar la variable entera
+
+-has_superstructure
+-legal_ownership_status
+```{r}
+df %>% select(legal_ownership_status) %>% table()
+
+df %>% filter(legal_ownership_status == "a") %>% select(labels) %>% table()
+df %>% filter(legal_ownership_status == "r") %>% select(labels) %>% table()
+df %>% filter(legal_ownership_status == "w") %>% select(labels) %>% table()
+```
+
+Idem, se pueden quitar. Además se nota la proporción de las etiquetas desbalanceadas.
+
+
+Altura y nº de plantas altamente correladas, categorizamos nº de plantas
+```{r}
+df$count_floors_pre_eq %>% table()
+```
+
+Revisamos esas categorías con pocas instancias
+```{r}
+df %>% filter(count_floors_pre_eq == 5) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 6) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 7) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 8) %>% select(labels) %>% table() %>% prop.table()
+df %>% filter(count_floors_pre_eq == 9) %>% select(labels) %>% table() %>% prop.table()
+```
+Solo una instancia con 9, y las anteriores no siguen el mismo patrón (que todas sufrieran el mismo tipo de daño)
+Como tenemos proporciones muy similares, juntamos las +5 con ella
+
+Hay robustez al ruido en los árboles, por ahora no la miramos
+
+---------------------------------------------------------------------------------------------------------------------
+
 Cargamos los datos:
 ```{r}
 train_values <- read_csv("data/train_values.csv")

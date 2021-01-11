@@ -198,7 +198,7 @@ compare_pred <- function(predicted, expected) {
 Cargar conjuntos de datos preprocesados
 ```{r}
 trn_values <- read_csv("data/preprocessed_train.csv")
-trn_labels <- read_csv("data/train_labels.csv")
+trn_labels <- read_csv("data/preprocessed_train_labels.csv")
 tst_values  <- read_csv("data/preprocessed_test.csv")
 
 names <- colnames(trn_values)
@@ -231,7 +231,10 @@ tst_values
 #               "has_secondary")
 
 # v3
-factores <- c(3:ncol(trn_values))
+# factores <- c(3:ncol(trn_values))
+
+# Cuidado que count_families está incluído
+factores <- c(5:ncol(trn_values))
 ```
 
 
@@ -272,9 +275,9 @@ tst_values
 ```
 
 
-Separamos un 10% para validar localmente
+Separamos un 10% para validar localmente (CAMBIADO)
 ```{r}
-size <- floor(0.9 * nrow(train))
+size <- floor(0.15 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -370,30 +373,26 @@ cv.trn
 Poda manual (Sería elegir un tamaño de árbol basado en lo anterior)
 POR AHORA NO SE PODA, YA ES PEQUEÑO DE POR SÍ
 ```{r}
-# prune.trn <- prune.misclass(tree.trn, best = 3)
-# par(mfrow = c(1,1))
-# plot(prune.trn)
-# text(prune.trn, pretty =0)
+prune.trn <- prune.misclass(cart_tree, best = 6)
+par(mfrow = c(1,1))
+plot(prune.trn)
+text(prune.trn, pretty =0)
 ```
 
 Evaluar árbol podado
 ```{r}
 # Como se comportara este arbol en su capacidad de prediccion
-# tree.pred <- predict(prune.trn, val, type="class")
-# 
-# compare_pred(tree.pred, val$labels)
+tree.pred <- predict(prune.trn, val, type="class")
+
+compare_pred(tree.pred, val$labels)
 ```
 
-Sería para probar con otra poda
+Duplicados
 ```{r}
-# Ahora podemos modificar el tamanio del arbol modificando best
-# prune.trn <- prune.misclass(cart_tree, best = 4)
-# plot(prune.trn)
-# text(prune.trn, pretty=0)
-# tree.pred <- predict(prune.trn, val, type="class")
-# 
-# compare_pred(tree.pred, val$labels)
+# sum(duplicated(train))
+head(train)
 ```
+
 
 ---------------------------------------------------------------------------------------------------------------------
 ## J48
@@ -431,17 +430,19 @@ cv_resul
 ```
 
 ```{r}
-set.seed(2)
-## Fit J48 tree with reduced error pruning
-c45_prune <- J48(labels ~ ., data=train, control=Weka_control(R = TRUE, B=T))
- 
-c45_tree$classifier$toSummaryString()
+# set.seed(2)
+# ## Fit J48 tree with reduced error pruning
+# c45_prune <- M5P(labels ~ ., data=train, control=Weka_control(R = TRUE))
+#  
+# c45_tree$classifier$toSummaryString()
+# 
+# head(train)
 ```
 
 
 ```{r}
-cv_resul <- evaluate_Weka_classifier(c45_prune, numFolds=10)
-cv_resul
+# cv_resul <- evaluate_Weka_classifier(c45_prune, numFolds=10)
+# cv_resul
 ```
 
 <!-- https://stats.stackexchange.com/questions/49226/how-to-interpret-f-measure-values -->
@@ -464,6 +465,19 @@ cart_test %>% head()
 c45_test %>% head()
 ```
 
+El desbalanceo parece estar afectando a la clasificación, la 1 se etiqueta más que la 3
+```{r}
+table(cart_test)
+table(c45_test)
+```
+
+Pero sigue la tendencia de el conjunto de validación
+```{r}
+table(cart_predict)
+table(c45_predict)
+table(val$labels)
+```
+
 Leer IDs de test
 ```{r}
 buildings_ids <- read_csv("./data/test_values.csv")[,1]
@@ -481,85 +495,6 @@ buildings_ids %>%
   write_csv("./out/c45.csv")
 ```
 
-
----------------------------------------------------------------------------------------------------------------------
-
-EDA (AGAIN)
-
-Vemos los ids de geo2 de una misma geo1
-```{r}
-trn_values %>% filter(geo_level_1_id == 1) %>% select(geo_level_2_id) %>% table() -> x
-x <- names(x[x != 0])
-x
-```
-
-Las geo no siguen un orden
-
-Buscamos intersección con otro geo1
-```{r}
-trn_values %>% filter(geo_level_1_id == 2) %>% select(geo_level_2_id) %>% table() -> y
-y <- names(y[y != 0])
-y
-intersect(y, x)
-```
-
-No intersecan, se pueden quitar geo_2 y geo_3.
-Tienen demasiadas categorías diferentes para los árboles
-
-
-```{r}
-df <- bind_cols(trn_values, trn_labels$damage_grade)
-colnames(df)[19] <- "labels"
-```
-
-
-Miramos variables con muchas categorías
--plan_configuration
-```{r}
-df %>% select(plan_configuration) %>% table()
-
-df %>% filter(plan_configuration == "a") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "c") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "f") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "m") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "n") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "o") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "s") %>% select(labels) %>% table()
-df %>% filter(plan_configuration == "u") %>% select(labels) %>% table()
-```
-Todas se pueden quitar, contienen valores de las tres clases (no determinan ninguna)
-Por tanto se puede quitar la variable entera
-
--has_superstructure
--legal_ownership_status
-```{r}
-df %>% select(legal_ownership_status) %>% table()
-
-df %>% filter(legal_ownership_status == "a") %>% select(labels) %>% table()
-df %>% filter(legal_ownership_status == "r") %>% select(labels) %>% table()
-df %>% filter(legal_ownership_status == "w") %>% select(labels) %>% table()
-```
-
-Idem, se pueden quitar. Además se nota la proporción de las etiquetas desbalanceadas.
-
-
-Altura y nº de plantas altamente correladas, categorizamos nº de plantas
-```{r}
-df$count_floors_pre_eq %>% table()
-```
-
-Revisamos esas categorías con pocas instancias
-```{r}
-df %>% filter(count_floors_pre_eq == 5) %>% select(labels) %>% table() %>% prop.table()
-df %>% filter(count_floors_pre_eq == 6) %>% select(labels) %>% table() %>% prop.table()
-df %>% filter(count_floors_pre_eq == 7) %>% select(labels) %>% table() %>% prop.table()
-df %>% filter(count_floors_pre_eq == 8) %>% select(labels) %>% table() %>% prop.table()
-df %>% filter(count_floors_pre_eq == 9) %>% select(labels) %>% table() %>% prop.table()
-```
-Solo una instancia con 9, y las anteriores no siguen el mismo patrón (que todas sufrieran el mismo tipo de daño)
-Como tenemos proporciones muy similares, juntamos las +5 con ella
-
-Hay robustez al ruido en los árboles, por ahora no la miramos
 ---------------------------------------------------------------------------------------------------------------------
 
 Como extra, probar con:
