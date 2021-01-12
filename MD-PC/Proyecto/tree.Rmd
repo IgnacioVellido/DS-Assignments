@@ -121,6 +121,18 @@ TENIENDO VARIABLES CATEGÓRICAS LA MAYORÍA DE MÉTODOS DE UNDERSAMPLING NO SE P
 <!-- https://machinelearningmastery.com/undersampling-algorithms-for-imbalanced-classification/ -->
 <!-- https://github.com/scikit-learn-contrib/imbalanced-learn -->
 
+Parece que C4.5 funciona mejor con más datos y variables, probablemente porque hace proda tras conseguir el árbol. CART por el contrario no, se queda con un árbol pequeño así que la selección de instancias/características debe ser buena.
+C4.5 crea árboles muy complejos, al contrario que CART
+
+<!-- https://www.quora.com/What-are-the-differences-between-ID3-C4-5-and-CART -->
+Datos ruidosos pueden generar overfitting en C4.5
+
+All variables, C4.5, partitions:
+- 15% = 62.61% val, 0.6571 f1
+- 50% = 63.68% val, 0.6638 f1
+- 80% = 64.34% val, 0.6686 f1
+- 100% = 64.67% val
+
 ---------------------------------------------------------------------------------------------------------------------
 
 Submissions
@@ -128,7 +140,23 @@ Submissions
   - CART: 0.5754
   - C4.5: 0.3364
   
-2. PARA SUBMISSION 2, Añadir todo lo geo1
+2. Diferentes cosas a cada algoritmo, ver Python
+  - CART: 0.5426
+  - C4.5: 0.6581 (todas las variables, eliminación de instancias de forma aleatoria, manteniendo desbalanceo de datos, y usando este conjunto separado como validación. De las particiones resultantes, se elige la de 15% por dejarnos un número de instancias suficiente y un descenso en calidad muy pequeño) 
+  Se demuestra que para cada algoritmo debemoso llevar un preprocesamiento diferente.
+
+C4.5  
+3. Probando C4.5 con mayor conjunto de datos, pero igual que punto 2. Nos mejora, es posible que como hace pruning tras construir el árbol incluso una partición mayor funcione mejor
+0.6778
+
+4. El mejor de los anteriores, pero count families como ordinal. Aumento al 95%
+Submission: 0.6836
+F1: 0.6814
+CV accuracy: 64.67%
+
+5. Selección de características (quizás agrupamiento), sin selección de instancias, con porcentaje de validación pequeño
+  <!-- Para la siguiente, eliminar puntos ruidosos y mantener todas las variables. Quizás eliminar con tomek links o algún método que reduzca poco los datos y mantenga el balanceo, para luego agrupar las varibles del one-hot-encoding y probar con un gran número de instancias. (Count families está como categórica) -->
+  
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -233,8 +261,8 @@ tst_values
 # v3
 # factores <- c(3:ncol(trn_values))
 
-# Cuidado que count_families está incluído
-factores <- c(5:ncol(trn_values))
+# Cuidado que count_families está incluído (la 22)
+factores <- c(5:21, 23:ncol(trn_values))
 ```
 
 
@@ -277,7 +305,7 @@ tst_values
 
 Separamos un 10% para validar localmente (CAMBIADO)
 ```{r}
-size <- floor(0.15 * nrow(train))
+size <- floor(0.95 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -395,6 +423,8 @@ head(train)
 
 
 ---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
 ## J48
 
 ```{r}
@@ -425,7 +455,7 @@ compare_pred(c45_predict, val$labels)
 Evaluar con CV
 ```{r}
 # Si queremos hacer una validacion cruzada usando RWeka
-cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=10)
+cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=5)
 cv_resul
 ```
 
@@ -447,6 +477,7 @@ cv_resul
 
 <!-- https://stats.stackexchange.com/questions/49226/how-to-interpret-f-measure-values -->
 
+---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 
 Predecir conjunto de test
@@ -486,9 +517,9 @@ buildings_ids
 
 Guardar resultados
 ```{r}
-buildings_ids %>% 
-  bind_cols(cart_test) %>% 
-  write_csv("./out/cart.csv")
+# buildings_ids %>% 
+#   bind_cols(cart_test) %>% 
+#   write_csv("./out/cart.csv")
 
 buildings_ids %>% 
   bind_cols(c45_test) %>% 
