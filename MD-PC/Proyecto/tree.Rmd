@@ -28,6 +28,9 @@ pre code {
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
                       comment=NA, messages=FALSE)
+
+options(java.parameters = "-Xmx6000m")
+
 library(tidyverse)
 library(ggplot2)
 
@@ -158,6 +161,53 @@ CV accuracy: 64.67%
   <!-- Para la siguiente, eliminar puntos ruidosos y mantener todas las variables. Quizás eliminar con tomek links o algún método que reduzca poco los datos y mantenga el balanceo, para luego agrupar las varibles del one-hot-encoding y probar con un gran número de instancias. (Count families está como categórica) -->
   
 
+v7 - Probando con un oversampling con SMOTE seguido de un undersampling con ENN nos desbalancea la clase mayoritaria
+(1               75398
+3               39579
+2               10400)
+Buenos resultados en validación (del 5%), pobres en submission 5: 0.5064
+POSIBLE OVERFITTING
+
+
+v8 - Solo con SMOTE, conjuntos balanceados (300000 instancias en total). Random Undersampling de 35%
+[1] "Number of leaves: 10641\nSize of the tree: 19169\n". Sub 6: 0.58
+POSIBLE OVERFITTING
+$precision
+        1         2         3 
+0.8599427 0.8882590 0.7733822 
+
+$recall
+        1         2         3 
+0.9203354 0.9548657 0.7183099 
+
+$f1
+[1] 0.8514343
+
+v9 - SMOTE sin one-hot. Sub 7: 0.5703
+
+[1] "Number of leaves: 12790\nSize of the tree: 21501\n"
+predicted
+expected     1     2     3
+       1 22564  1916   686
+       2  4148 13425  7645
+       3  1520  4993 18779
+$precision
+        1         2         3 
+0.8447140 0.8982937 0.7899630 
+
+$recall
+        1         2         3 
+0.9217320 0.9513854 0.7106797 
+
+$f1
+[1] 0.8512829
+
+Predice mucho la clase 3
+c45_test
+    1     2     3 
+18273 30009 38586
+
+
 ---------------------------------------------------------------------------------------------------------------------
 
 Funciones
@@ -239,7 +289,11 @@ tst_values
 ```
 
 ```{r}
-#  1:3 -> IDs de posición geográfica
+colnames(trn_values)
+```
+
+
+```{r}
 # V1
 # factores <- c(1,8:15,17:18)
 
@@ -262,7 +316,13 @@ tst_values
 # factores <- c(3:ncol(trn_values))
 
 # Cuidado que count_families está incluído (la 22)
-factores <- c(5:21, 23:ncol(trn_values))
+# factores <- c(5:21, 23:ncol(trn_values))
+
+# V7 y 8
+factores <- c(4:14, 15:ncol(trn_values))
+
+# v9
+factores <- c(1,5:21,23:ncol(trn_values))
 ```
 
 
@@ -296,16 +356,10 @@ tst_values
 # sum(duplicated(train))
 ```
 
-<!-- Seleccionando instancias con CNN -->
-```{r}
-# data <- ubCNN(X=input, Y= output)
-# newData <- cbind(data$X, data$Y)
-```
-
 
 Separamos un 10% para validar localmente (CAMBIADO)
 ```{r}
-size <- floor(0.95 * nrow(train))
+size <- floor(0.75 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -455,7 +509,7 @@ compare_pred(c45_predict, val$labels)
 Evaluar con CV
 ```{r}
 # Si queremos hacer una validacion cruzada usando RWeka
-cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=5)
+cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=3)
 cv_resul
 ```
 
@@ -483,8 +537,8 @@ cv_resul
 Predecir conjunto de test
 ```{r}
 # CART
-cart_test <- predict(cart_tree, tst_values, type ="class") %>% as.data.frame()
-colnames(cart_test) <- "damage_grade"
+# cart_test <- predict(cart_tree, tst_values, type ="class") %>% as.data.frame()
+# colnames(cart_test) <- "damage_grade"
 
 c45_test <- predict(c45_tree, tst_values) %>% as.data.frame()
 colnames(c45_test) <- "damage_grade"
@@ -492,19 +546,19 @@ colnames(c45_test) <- "damage_grade"
 
 
 ```{r}
-cart_test %>% head()
+# cart_test %>% head()
 c45_test %>% head()
 ```
 
 El desbalanceo parece estar afectando a la clasificación, la 1 se etiqueta más que la 3
 ```{r}
-table(cart_test)
+# table(cart_test)
 table(c45_test)
 ```
 
 Pero sigue la tendencia de el conjunto de validación
 ```{r}
-table(cart_predict)
+# table(cart_predict)
 table(c45_predict)
 table(val$labels)
 ```
