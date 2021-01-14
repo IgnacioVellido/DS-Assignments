@@ -38,174 +38,8 @@ library(tree)
 library(RWeka)
 library(partykit)
 
-# library(caret)  # scores
-
-# library(cowplot)  # plot_grid
-# library(corrplot) # corr y corrplot
-# library(reshape2) # melt
-# library(dlookr) # normality
-# library(moments)  # skewness
-# library(car)  # scatterplotMatrix
-# library(MASS) # fit
-
 set.seed(2)
 ```
-
-Se puede usar J48 (basados en C4.5, con medida de entropía) y tree (basado en CART, árboles binarios con criterio según GINI (MIRAR APUNTES TEORÍA))
-
----------------------------------------------------------------------------------------------------------------------
-
-Metodología:
-
-- Realización de un EDA para descubrir información de interés. Conclusiones (entre otras):
-  - Variables extremadamente desbalanceadas (más del 90%), poca información nueva aportada por ellas.
-  - Sin distribuciones normales
-  - Correlación solo en dos columnas (Altura y Nº de plantas)
-  - Clases desbalanceadas, la de grado 1 se encuentra .
-  - ~16mil instancias duplicadas, pero de edificios diferentes. Es posible que sean de una misma urbanización/zona de una ciudad. Sorprendía que se repitieran por el count_families, pero la mayoría son de 1 sola (posiblemente sean casas).
-  - Puede que haya valores perdidos no codificados como NA.
-  - Los IDs de posición geográfica deberían ser relevantes para el problema (un solo terremoto). Ahora bien, suponiendo que IDs consecutivos son zonas cercanas, no se aprecia relación alguna.
-
-- Preprocesamiento inicial, agrupación de variables binarias en una. De esta manera no se pierde información alguna y mantenemos la misma expresividad en los árboles.
-- Puesto que se cuentan con muchas instancias, separación de un 20% para evaluación local.
-- Ejecución de los algoritmos de aprendizaje con selección de hiperparámetros por CV. Se prueba con los siguientes:
-  -
-  -
-  - Problema: Algunas variables categóricas cuentan con demasiadas categorías para CART
-- Evaluación de los modelos, resultados en training
-  - C4.5
-    - Precisión:
-    - Recall:
-  - CART
-    - Precisión:
-    - Recall:
-- Se envía ?? a DrivenData con la predicción de test, resultados:
-  - Precisión:
-  - Recall:
-
-ASÍ TARDA MUCHO EN ENTRENAR
-- Hay un límite en el nº de características para tree, se quitan geo_id_2 y geo_id_3
-- has_superstucture también, aunque se podrían mantener las variables originales
-- Se aumenta partición de validación a 30%
-- Se quitan variables muy desbalanceadas: 
-(REVISAR QUE EN LAS CATEGORÍAS DESBALANCEADAS NO PREDOMINE UNA ETIQUETA)
-  plan_configuration (se podrían mantener las etiquetas q y p)
-  legal_ownership_status (idem con r y a)
-- Se podrían quitar variables de has_superstructure y has_secondary
-
-- Agrupar geo_level_id_1 ??
-
-- Preprocesamiento 2: Limpieza de ruido, selección de características
-
-Las instancias duplicadas afectan a los árboles según la medida que se use. En este caso sí, y por tanto se le da más peso a la información que está duplicada.
-Podemos probar dejándola y sin ella, deberían dar resultados diferentes
-
-(Para C4.5 si hubiera datos perdidos los ignora, pero no tenemos ninguno codificado como tal, aunque eso no implica que lo estén con otra codificación)
-
-1. Preprocesamiento mínimo, agrupación de variables sin pérdida de información. Intento de aprendizaje con todas las variables posibles. Problemas: limítación de etiquetas en variables categóricas y alto coste computacional.
-2. Selección de variables: Eliminando una correlada y las geo2y3 por tener demasiadas categorías (entre otras, mirar cuáles). Eliminación de duplicados y partición 70-30 con validación.
-3. Sigue costando mucho, se quedan más de 124979 instancias. Se usa método de CNN (Condensed Nearest Neighbor) para seleccionar instancias (Condensed Nearest Neighbor selects the subset of instances that are able to correctly classifing the original datasets using a one-nearest neighbor rule.). ES POSIBLE QUE ESTEMOS REDUCIENDO EL BALANCEO CON ESTO, MIRARLO.
-Se aplica un one-hot-encoding de manera que se puedan aplicar las distancias de estos métodos, en otro caso no se puede aplicar. Se consigue reducir hasta un ...
-4. Selección de instancias con método ENN tras seleccionar características con método filter de chi2. Previamente realizado un onehotencoding para poder aplicar los métodos pues se basan en distancias. Se habían eliminado variables correladas y las geo2y3 en base a lo mencionado anteriormente.
-
-PROBAR CON DUPLICADOS Y SIN DUPLICADOS
-Por un lado, queremos mantener los duplicados pues afecta a las medidas de GINI y entropía, de esta manera la información repetida se ve reflejada en los árboles pues se favorece la correcta etiquetación de estos. Por otro lado, al tener tan cantidad de instancias duplicadas podemos perder expresividad en árboles al contar con tantas columnas (y en unas pruebas iniciales se veía que sí, no se etiquetaba nunca la clase 1).
-Tenemos en cuenta además que al seleccionar características aumenta el número de duplicados en el dataset.
-(También se tienen en cuenta las clases de salida al eliminar duplicados)
-
-Excesivo número de intstancias nos permite reservar una mayor parte para validación
-
-TENIENDO VARIABLES CATEGÓRICAS LA MAYORÍA DE MÉTODOS DE UNDERSAMPLING NO SE PUEDEN APLICAR (A NO SER QUE SE HAGA UN ONE HOT ENCONDING)
-<!-- https://towardsdatascience.com/categorical-encoding-using-label-encoding-and-one-hot-encoder-911ef77fb5bd -->
-<!-- https://scikit-learn.org/stable/modules/feature_selection.html -->
-<!-- https://www.rdocumentation.org/packages/unbalanced/versions/2.0 --> 2015
-<!-- https://rdrr.io/cran/NoiseFiltersR/f/README.md --> 2016
-<!-- https://rdrr.io/cran/UBL/ --> 2017
-<!-- https://machinelearningmastery.com/undersampling-algorithms-for-imbalanced-classification/ -->
-<!-- https://github.com/scikit-learn-contrib/imbalanced-learn -->
-
-Parece que C4.5 funciona mejor con más datos y variables, probablemente porque hace proda tras conseguir el árbol. CART por el contrario no, se queda con un árbol pequeño así que la selección de instancias/características debe ser buena.
-C4.5 crea árboles muy complejos, al contrario que CART
-
-<!-- https://www.quora.com/What-are-the-differences-between-ID3-C4-5-and-CART -->
-Datos ruidosos pueden generar overfitting en C4.5
-
-All variables, C4.5, partitions:
-- 15% = 62.61% val, 0.6571 f1
-- 50% = 63.68% val, 0.6638 f1
-- 80% = 64.34% val, 0.6686 f1
-- 100% = 64.67% val
-
----------------------------------------------------------------------------------------------------------------------
-
-Submissions
-1. Preprocesamiento v3, sin podas
-  - CART: 0.5754
-  - C4.5: 0.3364
-  
-2. Diferentes cosas a cada algoritmo, ver Python
-  - CART: 0.5426
-  - C4.5: 0.6581 (todas las variables, eliminación de instancias de forma aleatoria, manteniendo desbalanceo de datos, y usando este conjunto separado como validación. De las particiones resultantes, se elige la de 15% por dejarnos un número de instancias suficiente y un descenso en calidad muy pequeño) 
-  Se demuestra que para cada algoritmo debemoso llevar un preprocesamiento diferente.
-
-C4.5  
-3. Probando C4.5 con mayor conjunto de datos, pero igual que punto 2. Nos mejora, es posible que como hace pruning tras construir el árbol incluso una partición mayor funcione mejor
-0.6778
-
-4. El mejor de los anteriores, pero count families como ordinal. Aumento al 95%
-Submission: 0.6836
-F1: 0.6814
-CV accuracy: 64.67%
-
-5. Selección de características (quizás agrupamiento), sin selección de instancias, con porcentaje de validación pequeño
-  <!-- Para la siguiente, eliminar puntos ruidosos y mantener todas las variables. Quizás eliminar con tomek links o algún método que reduzca poco los datos y mantenga el balanceo, para luego agrupar las varibles del one-hot-encoding y probar con un gran número de instancias. (Count families está como categórica) -->
-  
-
-v7 - Probando con un oversampling con SMOTE seguido de un undersampling con ENN nos desbalancea la clase mayoritaria
-(1               75398
-3               39579
-2               10400)
-Buenos resultados en validación (del 5%), pobres en submission 5: 0.5064
-POSIBLE OVERFITTING
-
-
-v8 - Solo con SMOTE, conjuntos balanceados (300000 instancias en total). Random Undersampling de 35%
-[1] "Number of leaves: 10641\nSize of the tree: 19169\n". Sub 6: 0.58
-POSIBLE OVERFITTING
-$precision
-        1         2         3 
-0.8599427 0.8882590 0.7733822 
-
-$recall
-        1         2         3 
-0.9203354 0.9548657 0.7183099 
-
-$f1
-[1] 0.8514343
-
-v9 - SMOTE sin one-hot. Sub 7: 0.5703
-
-[1] "Number of leaves: 12790\nSize of the tree: 21501\n"
-predicted
-expected     1     2     3
-       1 22564  1916   686
-       2  4148 13425  7645
-       3  1520  4993 18779
-$precision
-        1         2         3 
-0.8447140 0.8982937 0.7899630 
-
-$recall
-        1         2         3 
-0.9217320 0.9513854 0.7106797 
-
-$f1
-[1] 0.8512829
-
-Predice mucho la clase 3
-c45_test
-    1     2     3 
-18273 30009 38586
 
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -231,8 +65,6 @@ accuracy <- function(bag.datos){
 f1_score <- function(predicted, expected, positive.class="1") {
     res <- list()
     
-    # predicted <- factor(as.character(predicted), levels=unique(as.character(expected)))
-    # expected  <- as.factor(expected)
     cm = as.matrix(table(expected, predicted))
     
     tp <- diag(cm)
@@ -241,13 +73,6 @@ f1_score <- function(predicted, expected, positive.class="1") {
 
     res$precision <- tp / (tp + fp)
     res$recall <- tp / (tp + fn)
-    
-    # res$precision <- sum(tp / (tp + fp))
-    # res$precision <- ifelse(is.na(res$precision), 0, res$precision)
-    # res$recall <- sum(tp / (tp + fn))
-    
-    # res$precision <- diag(cm) / colSums(cm)
-    # res$recall <- diag(cm) / rowSums(cm)
     
     f1 <-  ifelse(res$precision + res$recall == 0, 0,
                   2 * res$precision * res$recall / (res$precision + res$recall))
@@ -329,14 +154,11 @@ factores <- c(1,5:21,23:ncol(trn_values))
 Cambiar lectura por defecto de read_csv (pasar a factors)
 ```{r}
 for (i in factores) {
-  # trn_values[[names[i]]] <- trn_values[[names[i]]] %>% as.factor()
-  # tst_values[[names[i]]] <- tst_values[[names[i]]] %>% as.factor()
   trn_values[[i]] <- trn_values[[i]] %>% as.factor()
   tst_values[[i]] <- tst_values[[i]] %>% as.factor()
 }
 
 # Las etiquetas
-# trn_labels$damage_grade <- trn_labels$damage_grade %>% as.ordered()
 trn_labels$damage_grade <- trn_labels$damage_grade %>% as.factor()
 
 # Añadir labels a train
@@ -357,7 +179,7 @@ tst_values
 ```
 
 
-Separamos un 10% para validar localmente (CAMBIADO)
+Separamos un para validar localmente
 ```{r}
 size <- floor(0.75 * nrow(train))
 
@@ -368,42 +190,29 @@ train  <- train[index,]
 ```
 
 
-```{r}
-summary(train)
-```
-
-Ahora están igualadas todas las clases
+Comprobar desbalanceo de clases
 ```{r}
 table(train$labels)
 ```
 
 
+Datos summary
+```{r}
+summary(train)
+```
+
 ---------------------------------------------------------------------------------------------------------------------
 Con tree
+---------------------------------------------------------------------------------------------------------------------
 
-Probar con todas las variables
-(Se acaban usando "geo_level_1_id"  "foundation_type" "roof_type", tiene sentido)
-<!-- Prueba 1: -->
-<!-- tree(labels~. -->
-<!--                   -has_superstructure -->
-<!--                   -geo_level_2_id -->
-<!--                   -geo_level_3_id, train) -->
-<!-- Demasiado tiempo computacional -->
-<!-- Prueba 2 -->
-<!-- tree(labels~. -->
-<!--                   -has_superstructure -->
-<!--                   -geo_level_2_id -->
-<!--                   -geo_level_3_id -->
-<!--                   -legal_ownership_status -->
-<!--                   -plan_configuration, train) -->
-<!-- Demasiado tiempo computacional -->
-<!-- v2 -->
-<!-- tree(labels~.-has_superstructure, train) -->
 ```{r}
 # Construir un arbol que clasifica la especie en base al resto de variables
 cart_tree <- tree(labels~., train)
 
 summary(cart_tree)
+
+# Mostrar árbol por texto
+# cart_tree
 ```
 
 ```{r}
@@ -411,40 +220,16 @@ plot(cart_tree)
 text(cart_tree)
 ```
 
-```{r}
-cart_tree
-```
 
-
+Analizar resultados
 ```{r}
 # Aplico el arbol sobre el conjunto de validación
 cart_predict <- predict(cart_tree, val, type ="class")
-```
 
-<!-- Con v2 -->
-<!-- predicted -->
-<!-- expected     1     2     3 -->
-<!--        1     0  7493    37 -->
-<!--        2     0 43325  1207 -->
-<!--        3     0 20266  5853 -->
-<!-- $precision -->
-<!--         1         2         3  -->
-<!--       NaN 1.0000000 0.2240897  -->
-
-<!-- $recall -->
-<!--         1         2         3  -->
-<!-- 0.0000000 0.9991467 0.8290368  -->
-
-<!-- $f1 -->
-<!-- [1] 0.4507956 -->
-
-
-```{r}
-# Visualizo la matriz de confusion
 compare_pred(cart_predict, val$labels)
 ```
 
-Podar el arbol usando CV ?
+Ver posibles podas mediante CV
 ```{r}
 set.seed(2)
 cv.trn <- cv.tree(cart_tree, FUN=prune.misclass)
@@ -452,8 +237,7 @@ cv.trn <- cv.tree(cart_tree, FUN=prune.misclass)
 cv.trn
 ```
 
-Poda manual (Sería elegir un tamaño de árbol basado en lo anterior)
-POR AHORA NO SE PODA, YA ES PEQUEÑO DE POR SÍ
+Poda manual
 ```{r}
 prune.trn <- prune.misclass(cart_tree, best = 6)
 par(mfrow = c(1,1))
@@ -469,17 +253,9 @@ tree.pred <- predict(prune.trn, val, type="class")
 compare_pred(tree.pred, val$labels)
 ```
 
-Duplicados
-```{r}
-# sum(duplicated(train))
-head(train)
-```
-
-
 ---------------------------------------------------------------------------------------------------------------------
+J48
 ---------------------------------------------------------------------------------------------------------------------
-
-## J48
 
 ```{r}
 # J48 es la implementacion de C4.5 en Weka, y su uso es similar
@@ -487,18 +263,18 @@ head(train)
 # Vemos un ejemplo de uso sobre "iris"
 c45_tree <- J48(labels~., data=train)
 
-c45_predict <- predict(c45_tree, val)
-
 c45_tree$classifier$toSummaryString()
 ```
 
-Si no se puede puede que sea por tener muchas hojas (solo si es pequeño)
+Para graficar en caso de que el árbol sea pequeño
 ```{r}
 # plot(c45_tree)
 ```
 
-
+Predicción
 ```{r}
+c45_predict <- predict(c45_tree, val)
+
 resul = as.data.frame(cbind(predicted = c45_predict, y=val$labels))
 cat("Accuracy global:\n")
 accuracy(resul)
@@ -513,64 +289,51 @@ cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=3)
 cv_resul
 ```
 
-```{r}
-# set.seed(2)
-# ## Fit J48 tree with reduced error pruning
-# c45_prune <- M5P(labels ~ ., data=train, control=Weka_control(R = TRUE))
-#  
-# c45_tree$classifier$toSummaryString()
-# 
-# head(train)
-```
-
-
-```{r}
-# cv_resul <- evaluate_Weka_classifier(c45_prune, numFolds=10)
-# cv_resul
-```
-
-<!-- https://stats.stackexchange.com/questions/49226/how-to-interpret-f-measure-values -->
-
 ---------------------------------------------------------------------------------------------------------------------
+Escribir resultados
 ---------------------------------------------------------------------------------------------------------------------
 
 Predecir conjunto de test
+CART
 ```{r}
-# CART
-# cart_test <- predict(cart_tree, tst_values, type ="class") %>% as.data.frame()
-# colnames(cart_test) <- "damage_grade"
+cart_test <- predict(cart_tree, tst_values, type ="class") %>% as.data.frame()
+colnames(cart_test) <- "damage_grade"
 
-c45_test <- predict(c45_tree, tst_values) %>% as.data.frame()
-colnames(c45_test) <- "damage_grade"
-```
+cart_test %>% head()
 
+print("Predicciones test")
+table(cart_test)
 
-```{r}
-# cart_test %>% head()
-c45_test %>% head()
-```
+print("Predicciones val")
+table(cart_predict)
 
-El desbalanceo parece estar afectando a la clasificación, la 1 se etiqueta más que la 3
-```{r}
-# table(cart_test)
-table(c45_test)
-```
-
-Pero sigue la tendencia de el conjunto de validación
-```{r}
-# table(cart_predict)
-table(c45_predict)
+print("Etiquetas val")
 table(val$labels)
 ```
 
-Leer IDs de test
+C4.5
 ```{r}
-buildings_ids <- read_csv("./data/test_values.csv")[,1]
-buildings_ids
+c45_test <- predict(c45_tree, tst_values) %>% as.data.frame()
+colnames(c45_test) <- "damage_grade"
+
+c45_test %>% head()
+
+print("Predicciones test")
+table(c45_test)
+
+print("Predicciones val")
+table(c45_predict)
+
+print("Etiquetas val")
+table(val$labels)
 ```
 
 Guardar resultados
 ```{r}
+# Leer IDs de test
+buildings_ids <- read_csv("./data/test_values.csv")[,1]
+buildings_ids
+
 # buildings_ids %>% 
 #   bind_cols(cart_test) %>% 
 #   write_csv("./out/cart.csv")
@@ -579,10 +342,3 @@ buildings_ids %>%
   bind_cols(c45_test) %>% 
   write_csv("./out/c45.csv")
 ```
-
----------------------------------------------------------------------------------------------------------------------
-
-Como extra, probar con:
-# RWeka tambien proporciona 3 algoritmos mas
-# LMT implementa "Logistic Model Trees"
-# M5P una version mejorada de C4.5
