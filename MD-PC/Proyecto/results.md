@@ -1,6 +1,19 @@
-TODO:
+prune.missclass usa el classification error rate
 
+Gráficos:
+- Piechart desbalanceo, pre y post procesamiento
+- Tamaños de árboles (o mejor tabla)
+- Progressión de F1, val y test (una para cada algoritmo)
+- Violinplot ?
+
+El árbol CART inicial sobre todas las variables nos decía que los predictores más importantes era geo_1, num_floors ... (revisar)
+
+Tal y como se describe más adelante, la creación de las ramificaciones de los árboles se consigue mediante el algoritmo de recursive binary splitting. Este algoritmo identifica y evalúa las posibles divisiones de cada predictor acorde a una determinada medida (RSS, Gini, entropía…). Los predictores continuos tienen mayor probabilidad de contener, solo por azar, algún punto de corte óptimo, por lo que suelen verse favorecidos en la creación de los árboles.
+
+TODO:
+Selección de características sin onehot
 v10 - Discretizar variables numéricas (age, area_percentage). count_families y count_floors considerarlas como categóricas. Probar con todas
+Comprobar la desviación típica (o summary) antes y después de smote
 
 - Tomek
 - Discretización
@@ -49,7 +62,7 @@ v10 - Discretizar variables numéricas (age, area_percentage). count_families y 
 4. Se parte del punto 3 y se aumenta el número de características a 15.
    - Se considera utilizar geo1 entero, pero no somos el experto, por lo que tomar la decisión en base a nuestra suposición a lo mejor no es buena idea.
     - Resultados malísimos en C4.5 probablemente causando overfitting por estos duplicados.
-    - Se decide llevar preprocesamientos diferentes para cada algoritmo.
+    - Se decide llevar preprocesamientos diferentes para cada algoritmo. Cuando obtenemos demasiadas instancias, el método "tree" de R falla.
 
 5. Idem. pero con mutual_info_classif
    - Se prueba con diferentes tamaños de particiones, nos quedamos con 80%.
@@ -105,20 +118,23 @@ c45_test
 
 # Submissions
 
-|            | Version |      | F1 Test |        | F1 Val  |        | Nº de hojas |        |
-|------------|---------|------|---------|--------|---------|--------|-------------|--------|
-| Submission | CART    | C4.5 | CART    | C4.5   | CART    | C4.5   | CART        | C4.5   |
-| 1          | 3       | 3    | 0.5754  | 0.3364 |         |        |             |        |
-| 2          | 4       | 4    | 0.5426  | 0.6581 |         |        |             |        |
-| 3          |         | 5    |         | 0.6778 |         |        |             |        |
-| 4          |         | 6    |         | 0.6836 |         | 0.6814 |             |        |
-| 5          |         | 7    |         | 0.5064 |         |        |             |        |
-| 6          |         | 8    |         | 0.5812 |         | 0.8514 |             | 10.641 |
-| 7          |         | 9    |         | 0.5703 |         | 0.8512 |             | 12.790 |
-| 8          |         |      |         |        |         |        |             |        |
-| 9          |         |      |         |        |         |        |             |        |
-| 10         |         |      |         |        |         |        |             |        |
+|            | Version |      | F1 Test |        | F1 Val  |        | Nº de hojas |        | Nº instancias | % Val       | CV % accuracy K=5 C4.5 |
+|------------|---------|------|---------|--------|---------|--------|-------------|--------|---------------|-------------| ---------------------- |
+| Submission | CART    | C4.5 | CART    | C4.5   | CART    | C4.5   | CART        | C4.5   |               | CART | C4.5 |
+| 1          | 3       | 3    | 0.4959  | 0.3364 | 0.9066  | 0.9593 | 23          | 724    | 81.120        | 20   | 20   | 92.29                  |
+| 2          | 4       | 4    | 0.5356  | 0.6581 | 0.8855  | 0.9553 | 42          | 1.387  | 79.920        | 20   | 20   | 90.81                  |
+| 3          |         | 5    |         | 0.6778 | 0.8756  | 0.9425 | 25          | 571    | 74.973        | 20   | 20   | 89.18                  |
+| 4          |         | 6    |         | 0.6836 |         | 0.6814 |             |        |               |      |  5   |
+| 5          |         | 7    |         | 0.5064 |         | 0.8724 |             | 3.896  | 125.377       |      |  5   | 93.20                  |
+| 6          |         | 8    |         | 0.5812 |         | 0.9328 |             | 10.641 | 302.703       |      | 35   | 72.17                  |
+| 7          |         | 9    |         | 0.5703 |         | 0.8512 |             | 12.790 | 302.703       |      | 35   | 70.23                  |
+| 8          |         |      |         |        |         |        |             |        |               |      |      |
+| 9          |         |      |         |        |         |        |             |        |               |      |      |
+| 10         |         |      |         |        |         |        |             |        |               |      |      |
 
+Empty cell = No submission
+
+CART1 Y CART2 se tuvieron que repetir por errores en la construcción del árbol (C4.5 1 se repitó para ver que no había fallos, y da el mismo resultado)
 
 # Conclusiones 
 
@@ -178,3 +194,4 @@ Trees
 - https://stats.stackexchange.com/questions/28029/training-a-decision-tree-against-unbalanced-data
 - https://weka.8497.n7.nabble.com/Producing-a-perfect-decision-tree-using-J48-td11751.html
 - https://datascience.stackexchange.com/questions/43444/how-to-evaluate-feature-quality-for-decision-tree-model
+- https://www.cienciadedatos.net/documentos/33_arboles_decision_random_forest_gradient_boosting_c50

@@ -37,6 +37,7 @@ library(ggplot2)
 library(tree)
 library(RWeka)
 library(partykit)
+library(ggpubr)
 
 set.seed(2)
 ```
@@ -100,9 +101,9 @@ compare_pred <- function(predicted, expected) {
 
 Cargar conjuntos de datos preprocesados
 ```{r}
-trn_values <- read_csv("data/preprocessed_train.csv")
-trn_labels <- read_csv("data/preprocessed_train_labels.csv")
-tst_values  <- read_csv("data/preprocessed_test.csv")
+trn_values <- read_csv("data/v9 - preprocessed_train.csv")
+trn_labels <- read_csv("data/v9 - preprocessed_train_labels.csv")
+tst_values  <- read_csv("data/v9 - preprocessed_test.csv")
 
 names <- colnames(trn_values)
 ```
@@ -137,14 +138,17 @@ colnames(trn_values)
 #               "has_superstructure",
 #               "has_secondary")
 
-# v3
+# v3 y v4
 # factores <- c(3:ncol(trn_values))
+
+# v5
+# factores <- c(1, 3:ncol(trn_values))
 
 # Cuidado que count_families está incluído (la 22)
 # factores <- c(5:21, 23:ncol(trn_values))
 
 # V7 y 8
-factores <- c(4:14, 15:ncol(trn_values))
+# factores <- c(4:14, 15:ncol(trn_values))
 
 # v9
 factores <- c(1,5:21,23:ncol(trn_values))
@@ -181,7 +185,7 @@ tst_values
 
 Separamos un para validar localmente
 ```{r}
-size <- floor(0.75 * nrow(train))
+size <- floor(0.65 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -206,18 +210,66 @@ Con tree
 ---------------------------------------------------------------------------------------------------------------------
 
 ```{r}
-# Construir un arbol que clasifica la especie en base al resto de variables
-cart_tree <- tree(labels~., train)
+set.seed(2)
+
+# El árbol se crece al máximo posible para luego aplicar el pruning
+arbol <- tree(labels ~ .,data = train,
+                mincut  = 1,
+                minsize = 2,
+                mindev  = 0
+              )
+
+# Búsqueda por validación cruzada
+cv_tree <- cv.tree(arbol, FUN = prune.misclass, K = 5)
+
+summary(cv_tree)
+```
+
+De https://www.cienciadedatos.net/documentos/33_arboles_decision_random_forest_gradient_boosting_c50#%C3%81rboles_de_clasificaci%C3%B3n
+
+Tamaño óptimo encontrado:
+```{r}
+best_size <- rev(cv_tree$size)[which.min(rev(cv_tree$dev))]
+cat("Mejor tamaño: ")
+best_size
+```
+
+
+```{r}
+resultados_cv <- data.frame(n_nodos = cv_tree$size, clas_error = cv_tree$dev,
+                            alpha = cv_tree$k)
+
+p1 <- ggplot(data = resultados_cv, aes(x = n_nodos, y = clas_error)) +
+      geom_line() + 
+      geom_point() +
+      geom_vline(xintercept = best_size, color = "red") +
+      labs(title = " Error de clasificación vs \n tamaño del árbol") +
+      theme_bw() 
+  
+p2 <- ggplot(data = resultados_cv, aes(x = alpha, y = clas_error)) +
+      geom_line() + 
+      geom_point() +
+      labs(title = " Error de clasificación vs \n penalización alpha") +
+      theme_bw() 
+
+ggarrange(p1, p2)
+```
+
+Guardar mejor árbol
+```{r}
+cart_tree <- prune.misclass(
+                  tree = arbol,
+                  best = best_size
+               )
 
 summary(cart_tree)
-
-# Mostrar árbol por texto
-# cart_tree
 ```
+
+
 
 ```{r}
 plot(cart_tree)
-text(cart_tree)
+# text(cart_tree)
 ```
 
 
@@ -227,30 +279,6 @@ Analizar resultados
 cart_predict <- predict(cart_tree, val, type ="class")
 
 compare_pred(cart_predict, val$labels)
-```
-
-Ver posibles podas mediante CV
-```{r}
-set.seed(2)
-cv.trn <- cv.tree(cart_tree, FUN=prune.misclass)
-
-cv.trn
-```
-
-Poda manual
-```{r}
-prune.trn <- prune.misclass(cart_tree, best = 6)
-par(mfrow = c(1,1))
-plot(prune.trn)
-text(prune.trn, pretty =0)
-```
-
-Evaluar árbol podado
-```{r}
-# Como se comportara este arbol en su capacidad de prediccion
-tree.pred <- predict(prune.trn, val, type="class")
-
-compare_pred(tree.pred, val$labels)
 ```
 
 ---------------------------------------------------------------------------------------------------------------------
@@ -268,7 +296,14 @@ c45_tree$classifier$toSummaryString()
 
 Para graficar en caso de que el árbol sea pequeño
 ```{r}
-# plot(c45_tree)
+# png("airct.png", res=80, height=800, width=1600) 
+  #  plot(c45_tree, gp = gpar(fontsize = 6),     # font size changed to 6
+  # inner_panel=node_inner,
+  # ip_args=list(
+  #      abbreviate = TRUE, 
+  #      id = FALSE)
+  # )
+# dev.off()
 ```
 
 Predicción
@@ -284,8 +319,9 @@ compare_pred(c45_predict, val$labels)
 
 Evaluar con CV
 ```{r}
+set.seed(2)
 # Si queremos hacer una validacion cruzada usando RWeka
-cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=3)
+cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=5)
 cv_resul
 ```
 
@@ -332,11 +368,10 @@ Guardar resultados
 ```{r}
 # Leer IDs de test
 buildings_ids <- read_csv("./data/test_values.csv")[,1]
-buildings_ids
 
-# buildings_ids %>% 
-#   bind_cols(cart_test) %>% 
-#   write_csv("./out/cart.csv")
+buildings_ids %>%
+  bind_cols(cart_test) %>%
+  write_csv("./out/cart.csv")
 
 buildings_ids %>% 
   bind_cols(c45_test) %>% 
