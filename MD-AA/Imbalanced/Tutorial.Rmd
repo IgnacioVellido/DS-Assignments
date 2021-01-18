@@ -68,22 +68,23 @@ cat("\nImbalance ratio: ")
 imbalanceRatio(dataset)
 ```
 
-```{r}
-# A pie chart is best
-n_classes <- c(sum(y=="positive"),sum(y=="negative"))
-pct <- round(n_classes/sum(n_classes)*100,digits=2)
-
-lbls <- levels(dataset$Class)
-lbls <- paste(lbls, pct) # add percents to labels
-lbls <- paste(lbls,"%",sep="") # ad % to labels
-
-pie(n_classes,labels = lbls, main="Class distribution")
-```
-
 Split input and output
 ```{r}
 x <- dataset[,1:2]
 y <- dataset[,3]
+```
+
+Pie chart
+```{r}
+n_classes <- c(sum(y=="positive"),sum(y=="negative"))
+pct <- round(n_classes/sum(n_classes)*100,digits=2)
+
+# lbls <- levels(dataset$Class)
+  lbls <- c("positive", "negative")
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+
+pie(n_classes,labels = lbls, main="Class distribution")
 ```
 
 Univariate plots
@@ -280,6 +281,16 @@ cat("\n Imbalance Ratio: ")
 imbalanceRatio(dataset)
 ```
 
+Preprocess
+```{r}
+# Variable Chg has almost zero variance, remove it
+dataset$Chg <- NULL
+
+# Change binary factors into numeric
+# dataset$Chg <- dataset$Chg %>% as.numeric()
+dataset$Lip <- dataset$Lip %>% as.numeric()
+```
+
 
 Train-test split
 ```{r}
@@ -295,23 +306,22 @@ testData  <- dataset[-trainIndex,]
 #Check IR to ensure a stratified partition
 imbalanceRatio(trainData)
 imbalanceRatio(testData)
-
 ```
 
 
 Apply preprocessing with oversample function
 ```{r}
 # Basic SMOTE
-smt <- trainData %>% oversample(method = "SMOTE")
+smt <- trainData %>% oversample(method = "SMOTE", ratio = 0.5)
 
 # SMOTE borderline
-blsmt <- trainData %>% oversample(method = "BLSMOTE")
+blsmt <- trainData %>% oversample(method = "BLSMOTE", ratio = 0.5)
 
 # Majority Weighted Minority Oversampling
-mwmt <- trainData %>% oversample(method = "MWMOTE")
+mwmt <- trainData %>% oversample(method = "MWMOTE", ratio = 0.5)
 
-# PDF estimation based over-sampling
-pdf <- trainData %>% oversample(method = "PDFOS")
+# ANSMOTE
+ansmt <- trainData %>% oversample(method = "ANSMOTE", ratio = 0.5)
 ```
 
 # Check results with kNN, DT or any other classifier
@@ -338,14 +348,14 @@ cm.mwmt <- test_model(testData, model.mwmt,"MWSMT ")
 ```
 
 ```{r}
-model.pdf <- learn_model(pdf, ctrl, "PDF ")
-cm.pdf <- test_model(testData, model.pdf,"PDF ")
+model.ansmt <- learn_model(ansmt, ctrl, "ANSMT ")
+cm.ansmt <- test_model(testData, model.ansmt,"ANSMT ")
 ```
 
 Summarize models results
 ```{r}
 models <- list(smt = model.smt, blsmt = model.blsmt, 
-               mwmt = model.mwmt, pdf = model.pdf)
+               mwmt = model.mwmt, ansmt = model.ansmt)
 results <- resamples(models)
 summary(results)
 ```
@@ -361,26 +371,31 @@ Now, make a plot comparison between the original and preprocessed dataset (only 
 trainData %>% 
   ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
     geom_point() +
+    labs(title="RAW") +
     theme_light()
 
 smt %>% 
   ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
     geom_point() +
+    labs(title="SMOTE") +
     theme_light()
 
 blsmt %>% 
   ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
     geom_point() +
+    labs(title="BLSMOTE") +
     theme_light()
 
 mwmt %>% 
   ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
     geom_point() +
+    labs(title="MWMOTE") +
     theme_light()
 
-pdf %>% 
+ansmt %>% 
   ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
     geom_point() +
+    labs(title="ANSMOTE") +
     theme_light()
 ```
 
@@ -390,27 +405,26 @@ pdf %>%
 # Visualize the data distribution between original and preprocess data.
 
 ```{r}
-plot_pie <- function(y) {
+plot_pie <- function(y, method="") {
   n_classes <- c(sum(y=="positive"),sum(y=="negative"))
   pct <- round(n_classes/sum(n_classes)*100,digits=2)
   
-  lbls <- levels(dataset$Class)
+  # lbls <- levels(dataset$Class)
+  lbls <- c("positive", "negative")
   lbls <- paste(lbls, pct) # add percents to labels
   lbls <- paste(lbls,"%",sep="") # ad % to labels
   
-  pie(n_classes,labels = lbls, main="Class distribution")
+  pie(n_classes,labels = lbls, main=paste("Class distribution", method))
 }
 ```
 
 ```{r}
-plot_pie(trainData$Class)
-plot_pie(smt$Class)
-plot_pie(blsmt$Class)
-plot_pie(mwmt$Class)
-plot_pie(pdf$Class)
+plot_pie(trainData$Class, "RAW")
+plot_pie(smt$Class, "SMOTE")
+plot_pie(blsmt$Class, "BLSMOTE")
+plot_pie(mwmt$Class, "MWMOTE")
+plot_pie(ansmt$Class, "ANSMOTE")
 ```
-
-
 
 
 #Additional activities
@@ -494,7 +508,3 @@ Finally, it would remain to be discussed which parameters are appropriate for th
 To do so, you can either perform an ad hoc implementation of SMOTE, or analyze among those available in the different R packages, the one that allows you to perform a "Racing" of the parameters (clue: check the current available imbalanced packages in CRAN).
 
 Build the corresponding tables of results and make a brief analysis if any interesting patterns are observed during the experimental analysis. 
-
-#Final Comments
-Hope you enjoyed this tutorial about Imbalanced Classification in Machine Learning. If you need further details on how to perform any kind of task, please ask me via email at alberto@decsai.ugr.es
-
