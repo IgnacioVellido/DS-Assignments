@@ -1,0 +1,362 @@
+---
+title: "Tutorial on Imbalanced Classification Tasks"
+author: "Alberto Fernandez (alberto@decsai.ugr.es)"
+date: "18/01/2021"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Configuración RMarkdown
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+library(tidyverse)
+library(ggplot2)
+library(caret)
+library(imbalance) #to be used in the optional part
+library(pROC)
+library(reshape2)
+library(ggvis)
+```
+
+# Activity 1
+
+## Loading the dataset
+
+```{r}
+# load the CSV file from the local or web directory
+dataset <- read.csv("subclus.csv", header = FALSE, stringsAsFactors = T)
+
+# set the column names in the dataset (you must know them a priori)
+colnames(dataset) <- c("Att1", "Att2", "Class")
+
+dataset$Class <- relevel(dataset$Class,"positive") #to ensure it appears at the first class
+
+dataset
+```
+
+
+## Summarizing and visualizing
+
+Dimensions (600 rows, 2 attributes, 1 class)
+```{r}
+dim(dataset)
+```
+Types (numeric integer attributes)
+```{r}
+str(dataset)
+```
+
+First rows
+```{r}
+head(dataset)
+```
+
+Binary class
+```{r}
+levels(dataset$Class)
+```
+
+Statistical summary
+```{r}
+summary(dataset)
+
+cat("\nImbalance ratio: ")
+imbalanceRatio(dataset)
+```
+
+```{r}
+# A pie chart is best
+n_classes <- c(sum(y=="positive"),sum(y=="negative"))
+pct <- round(n_classes/sum(n_classes)*100,digits=2)
+
+lbls <- levels(dataset$Class)
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+
+pie(n_classes,labels = lbls, main="Class distribution")
+```
+
+Split input and output
+```{r}
+x <- dataset[,1:2]
+y <- dataset[,3]
+```
+
+Univariate plots
+```{r}
+dataset %>%
+  pivot_longer(c('Att1','Att2')) %>% 
+  ggplot(aes(y=value)) +
+    geom_boxplot() +
+    facet_wrap(~ name, scales = "free") +
+    theme_light()
+```
+
+Multivariate plots
+```{r}
+# scatterplot matrix
+featurePlot(x=x, y=y, plot="ellipse")
+```
+
+```{r}
+# box and whisker plots for each attribute
+featurePlot(x=x, y=y, plot="box")
+```
+
+```{r}
+# Dataset scatter plot
+dataset %>% ggvis(~Att1, ~Att2, fill = ~Class) %>% layer_points()
+```
+
+Vemos fronteras difusas y clases superpuestas. 
+Imposible de encontrar separación lineal.
+Modelos basados en vecinos cercanos tendrán problemas si no limpiamos previamente las fronteras. Una vez hecho, podrían funcionar bastante bien.
+
+## Execution and evaluation of models
+
+Create test set with same imbalance ratio
+```{r}
+set.seed(42) #To ensure the same output
+
+#An easy way to create split "data partitions":
+trainIndex <- createDataPartition(dataset$Class, p = .75, 
+                                  list = FALSE, 
+                                  times = 1)
+trainData <- dataset[ trainIndex,]
+testData  <- dataset[-trainIndex,]
+
+#Check IR to ensure a stratified partition
+imbalanceRatio(trainData)
+imbalanceRatio(testData)
+
+#Ad hoc FCV
+#testIndices <- createFolds(dataset$Class, k=5)
+#First partition
+#dataTrain <- dataset[-testIndices[[1]],]
+#dataTest  <- dataset[testIndices[[1]],]
+```
+
+Define functions for learning and predict
+```{r}
+# a) Learning function
+learn_model <-function(dataset, ctrl,message){
+  model.fit <- train(Class ~ ., data = dataset, method = "knn", 
+                   trControl = ctrl, preProcess = c("center","scale"), metric="ROC", 
+                   tuneGrid = expand.grid(k = c(1,3,5,7,9,11)))
+  model.pred <- predict(model.fit,newdata = dataset)
+  #Get the confusion matrix to see accuracy value and other parameter values
+  model.cm <- confusionMatrix(model.pred, dataset$Class,positive = "positive")
+  model.probs <- predict(model.fit,newdata = dataset, type="prob")
+  model.roc <- roc(dataset$Class,model.probs[,"positive"],color="green")
+  return(model.fit)
+}
+
+# b) Estimation function
+test_model <-function(dataset, model.fit,message){
+  model.pred <- predict(model.fit,newdata = dataset)
+  #Get the confusion matrix to see accuracy value and other parameter values
+  model.cm <- confusionMatrix(model.pred, dataset$Class,positive = "positive")
+  print(model.cm)
+  model.probs <- predict(model.fit,newdata = dataset, type="prob")
+  model.roc <- roc(dataset$Class,model.probs[,"positive"])
+  #print(knn.roc)
+  plot(model.roc, type="S", print.thres= 0.5,main=c("ROC Test",message),col="blue")
+  #print(paste0("AUC Test ",message,auc(model.roc)))
+  return(model.cm)
+}
+```
+
+Train with raw data
+```{r}
+#Execute model ("raw" data)
+ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
+                     classProbs=TRUE,summaryFunction = twoClassSummary)
+model.raw <- learn_model(trainData,ctrl,"RAW ")
+
+print(model.raw)
+```
+
+```{r}
+#We may decide to plot the results from the grid search of the model's parameters
+plot(model.raw,main="Grid Search RAW")
+
+cm.raw <- test_model(testData,model.raw,"RAW ")
+```
+
+Train with Random Undersampling
+```{r}
+#Execute model ("preprocessed" data)
+#Undersampling
+ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
+                     classProbs=TRUE,summaryFunction = twoClassSummary,sampling = "down")
+
+model.us <- learn_model(trainData,ctrl,"US ")
+cm.us <- test_model(testData,model.us,"US ")
+```
+
+Train with Random Oversamping
+```{r}
+#Oversampling
+ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
+                     classProbs=TRUE,summaryFunction = twoClassSummary,sampling = "up")
+model.os <- learn_model(trainData,ctrl,"OS ")
+cm.os <- test_model(testData,model.os,"OS ")
+```
+
+Train with SMOTE
+```{r}
+#SMOTE
+ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
+                     classProbs=TRUE,summaryFunction = twoClassSummary,sampling = "smote")
+model.smt <- learn_model(trainData,ctrl,"SMT ")
+cm.smt <- test_model(testData,model.smt,"SMT ")
+```
+
+## Comparison among models
+
+Summarize models results
+```{r}
+# summarize accuracy of models
+#results <- resamples(list(lda=fit.lda, cart=fit.cart, knn=fit.knn))
+models <- list(raw = model.raw, us = model.us, 
+               os = model.os, smt = model.smt)
+results <- resamples(models)
+summary(results)
+```
+
+Plot comparisons between models
+```{r}
+bwplot(results)
+```
+
+Similar values in ROC, but bigger differences in sensitivity (positive class recognition) and specificity (negative class recognition).
+
+SMOTE probablemente al aumentar la densidad de la clase positiva haga disminuir la influencia de los puntos en la superposición de las clases ...
+
+We can finally make another different plot to compare additional metrics for imbalanced classification, such as precision, recall and F1. 
+```{r}
+#Carry out a comparison over all imbalanced metrics
+comparison <- data.frame(model = names(models),
+                         Sensitivity = rep(NA, length(models)),
+                         Specificity = rep(NA, length(models)),
+                         Precision = rep(NA, length(models)),
+                         Recall = rep(NA, length(models)),
+                         F1 = rep(NA, length(models)))
+
+for (name in names(models)) {
+  cm_model <- get(paste0("cm.", name))
+  
+  comparison[comparison$model == name, ] <- filter(comparison, model == name) %>%
+    mutate(Sensitivity = cm_model$byClass["Sensitivity"],
+           Specificity = cm_model$byClass["Specificity"],
+           Precision = cm_model$byClass["Precision"],
+           Recall = cm_model$byClass["Recall"],
+           F1 = cm_model$byClass["F1"])
+}
+
+comparison %>%
+  gather(x, y, Sensitivity:F1) %>%
+  ggplot(aes(x = x, y = y, color = model)) +
+  geom_jitter(width = 0.2, alpha = 0.5, size = 3)
+
+```
+
+## Conclusions
+
+Contamos con un dataset formado por dos atributos numéricos enteros, sobre un total de 600 instancias. Existe un desbalanceo alto (80-20) sobre la clase minoritaria.
+
+Las clases se encuentran superpuestas.
+
+
+# Activity 2
+
+
+#Additional activities
+
+The former tutorial served as a guide to understand the whole procedure to be carried out when addressing a classification problem that presents an uneven class distribution. Below, several tasks are proposed for extending this Rmd file to check whether all concepts have been acquired correctly. 
+
+## Activity 1: Extension with additional datasets. (mandatory)
+
+Repeat the whole procedure carried out with "circle" data using now the subclus problem. Please be sure to avoid unnecesary operations / R code chunks. 
+
+```{r}
+# load the CSV file from the local directory
+
+# set the column names in the dataset 
+
+# summarize statistical values
+
+# Dataset scatter plot
+
+# Create split "data partitions":
+
+```
+
+```{r}
+# Execute models 
+
+# Summarize performance of models
+
+# Carry out a visual comparison over all imbalanced metrics
+
+```
+
+Write a short comment on the main conclusions obtained throughout the experimental analysis. Focus on the most interesting behavior achieved by the methods applied, observing whether there are some special capabilities to be stressed by any particular approach. 
+
+
+## Activity 2: Using the "imbalance" library (mandatory)
+
+As we have commented, there exists a CRAN package named as "imbalance" that implements some of the most well-known data preprocesing techniques for imbalanced classification. We must take a closer look to the documentation in both the [imbalance package homepage](https://github.com/ncordon/imbalance). or the help function
+
+```{r}
+help("imbalance") #see documentation in the right botton corner
+```
+
+By using the "imbalance" library we may consider the application of advanced techniques based on SMOTE. For that purpose, we must focus on the "oversample" function:
+
+```{r}
+help("oversample") #see documentation in the right botton corner
+```
+
+It is your turn to select up to four different SMOTE techniques and apply them over some of the datasets provided by the package (ecoli1, glass0, haberman or yeast4, for example). Are there any significant differences among the results?
+
+```{r}
+# Load the data
+
+# Apply preprocessing with oversample function
+
+# Check results with kNN, DT or any other classifier
+
+```
+
+Now, make a plot comparison between the original and preprocessed dataset (only for SMOTE, for example). Recall that, being a 2D plot, you must only two of the input columns. Alternatively, you can carry out a "tsne" prior to the plot.
+
+```{r}
+# Visualize the data distribution between original and preprocess data.
+
+```
+
+
+## Activity 3: Analyze the behavior of SMOTE preprocessing (optional)
+
+In this last part of the practice, we intend to analyse the influence of the different parameters of SMOTE. In fact, during the theoretical classes, it was indicated that many of the SMOTE parameters could have a certain importance in terms of the quality of the new synthetic examples generated on the training set. 
+
+Therefore, the objective of this task is to contrast some of them to see which ones can have more influence, or which ones can be significant values to observe differences in the results. 
+
+To carry out this activity, the first issue is to determine the experimental framework. As for the datasets to be used, "subclus" and "circle" can be selected by default, although the study will be more relevant when the number of problems, both synthetic and real, is greater. In any case, the student should use a cross validation technique to check the results. 
+
+As a base classifier to analyze the behavior, the student may use by default kNN with K = 1 or K = 3. It could also be interesting to analyze the results with the C4.5 decision tree or even Random Forest or any other quality technique that the student consider to be appropriate. 
+
+Finally, it would remain to be discussed which parameters are appropriate for the study, and what range of values to use. The most direct parameters would be K for the number of neighbors chosen (for example, between K = 1, K = 5, K = N/2 with N number of positive instances, etc.), and the percentage of oversampling (double the minority class, 50-50 class ratio, 50% minority over majority class, among others).
+
+To do so, you can either perform an ad hoc implementation of SMOTE, or analyze among those available in the different R packages, the one that allows you to perform a "Racing" of the parameters (clue: check the current available imbalanced packages in CRAN).
+
+Build the corresponding tables of results and make a brief analysis if any interesting patterns are observed during the experimental analysis. 
+
+#Final Comments
+Hope you enjoyed this tutorial about Imbalanced Classification in Machine Learning. If you need further details on how to perform any kind of task, please ask me via email at alberto@decsai.ugr.es
+

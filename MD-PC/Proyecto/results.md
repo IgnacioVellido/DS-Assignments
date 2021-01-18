@@ -37,7 +37,7 @@
    1. Algoritmo basado en CART con medida GINI, poda a posteriori forzando una profundidad mínima
    2. Algoritmo basado en C4.5 con medida de entropía, poda a posteriori dentro del algoritmo
 5. Tabla de submissions
-6. Gráfica de rankings (?) y accuracy, en val/CV también
+6. Gráfica de rankings (? 639, 773, depende del día) y accuracy, en val/CV también
    1. Organizar por método, y dentro por técnicas
    2. Número total de submissions por algoritmo
 7. Técnicas de preprocesamiento utilizadas
@@ -67,7 +67,7 @@
 10. Conclusiones
    1. Problemas
       1. Entrenamientos rápidos con números moderados de instancias y/o características, lentos al aumentar
-         1. Lentitud de algoritmos de preprocesamiento (basados en cálculos de distancias: ENN, Tomek...)
+         1. Lentitud de algoritmos de preprocesamiento (basados en cálculos de distancias: ENN, Tomek...). Selección de características prácticamente obligatoria (vienen de onehot)
       2. Falta de memoria
       3. Sesgo en árboles pequeños
       4. Facilidad de overfitting
@@ -190,7 +190,7 @@ TODO:
    - Se sube a 40, sigue con valores reguleros (CV 60.8112, f1 val 0.5742824, hojas 543, size 103180)
    - Se acaba evaluando en test con 80 características
 
-12. v11 Reduciendo puntos con ENN (sin eliminar duplicados, se lo dejamos a tomek)
+12. v11 Reduciendo puntos con Tomek (sin eliminar duplicados, se lo dejamos a tomek)
 
 TEST NO TIENE COUNT_FAMILIES == 9
 
