@@ -132,12 +132,6 @@ testData  <- dataset[-trainIndex,]
 #Check IR to ensure a stratified partition
 imbalanceRatio(trainData)
 imbalanceRatio(testData)
-
-#Ad hoc FCV
-#testIndices <- createFolds(dataset$Class, k=5)
-#First partition
-#dataTrain <- dataset[-testIndices[[1]],]
-#dataTest  <- dataset[testIndices[[1]],]
 ```
 
 Define functions for learning and predict
@@ -189,8 +183,6 @@ cm.raw <- test_model(testData,model.raw,"RAW ")
 
 Train with Random Undersampling
 ```{r}
-#Execute model ("preprocessed" data)
-#Undersampling
 ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
                      classProbs=TRUE,summaryFunction = twoClassSummary,sampling = "down")
 
@@ -200,7 +192,6 @@ cm.us <- test_model(testData,model.us,"US ")
 
 Train with Random Oversamping
 ```{r}
-#Oversampling
 ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
                      classProbs=TRUE,summaryFunction = twoClassSummary,sampling = "up")
 model.os <- learn_model(trainData,ctrl,"OS ")
@@ -209,7 +200,6 @@ cm.os <- test_model(testData,model.os,"OS ")
 
 Train with SMOTE
 ```{r}
-#SMOTE
 ctrl <- trainControl(method="repeatedcv",number=5,repeats = 3,
                      classProbs=TRUE,summaryFunction = twoClassSummary,sampling = "smote")
 model.smt <- learn_model(trainData,ctrl,"SMT ")
@@ -273,6 +263,154 @@ Las clases se encuentran superpuestas.
 
 
 # Activity 2
+
+It is your turn to select up to four different SMOTE techniques and apply them over some of the datasets provided by the package (ecoli1, glass0, haberman or yeast4, for example). Are there any significant differences among the results?
+
+Load the data
+```{r}
+dataset <- ecoli1
+dataset
+```
+
+Summary
+```{r}
+summary(dataset)
+
+cat("\n Imbalance Ratio: ")
+imbalanceRatio(dataset)
+```
+
+
+Train-test split
+```{r}
+set.seed(42) #To ensure the same output
+
+#An easy way to create split "data partitions":
+trainIndex <- createDataPartition(dataset$Class, p = .75, 
+                                  list = FALSE, 
+                                  times = 1)
+trainData <- dataset[ trainIndex,]
+testData  <- dataset[-trainIndex,]
+
+#Check IR to ensure a stratified partition
+imbalanceRatio(trainData)
+imbalanceRatio(testData)
+
+```
+
+
+Apply preprocessing with oversample function
+```{r}
+# Basic SMOTE
+smt <- trainData %>% oversample(method = "SMOTE")
+
+# SMOTE borderline
+blsmt <- trainData %>% oversample(method = "BLSMOTE")
+
+# Majority Weighted Minority Oversampling
+mwmt <- trainData %>% oversample(method = "MWMOTE")
+
+# PDF estimation based over-sampling
+pdf <- trainData %>% oversample(method = "PDFOS")
+```
+
+# Check results with kNN, DT or any other classifier
+
+```{r}
+ctrl <- trainControl(method="repeatedcv", number=5, repeats = 3,
+                     classProbs=TRUE, summaryFunction = twoClassSummary)
+```
+
+
+```{r}
+model.smt <- learn_model(smt, ctrl, "SMT ")
+cm.smt <- test_model(testData, model.smt,"SMT ")
+```
+
+```{r}
+model.blsmt <- learn_model(blsmt, ctrl, "BLSMT ")
+cm.blsmt <- test_model(testData, model.blsmt,"BLSMT ")
+```
+
+```{r}
+model.mwmt <- learn_model(mwmt, ctrl, "MWSMT ")
+cm.mwmt <- test_model(testData, model.mwmt,"MWSMT ")
+```
+
+```{r}
+model.pdf <- learn_model(pdf, ctrl, "PDF ")
+cm.pdf <- test_model(testData, model.pdf,"PDF ")
+```
+
+Summarize models results
+```{r}
+models <- list(smt = model.smt, blsmt = model.blsmt, 
+               mwmt = model.mwmt, pdf = model.pdf)
+results <- resamples(models)
+summary(results)
+```
+
+Plot comparisons between models
+```{r}
+bwplot(results)
+```
+
+
+Now, make a plot comparison between the original and preprocessed dataset (only for SMOTE, for example). Recall that, being a 2D plot, you must only two of the input columns. Alternatively, you can carry out a "tsne" prior to the plot.
+```{r}
+trainData %>% 
+  ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
+    geom_point() +
+    theme_light()
+
+smt %>% 
+  ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
+    geom_point() +
+    theme_light()
+
+blsmt %>% 
+  ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
+    geom_point() +
+    theme_light()
+
+mwmt %>% 
+  ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
+    geom_point() +
+    theme_light()
+
+pdf %>% 
+  ggplot(aes(x=Mcg, y=Gvh, color=Class)) +
+    geom_point() +
+    theme_light()
+```
+
+<!-- ALGO MÁS ?? -->
+<!-- CON EL RESTO DE PREPROCESAMIENTOS TAMBIÉN, NO ? -->
+
+# Visualize the data distribution between original and preprocess data.
+
+```{r}
+plot_pie <- function(y) {
+  n_classes <- c(sum(y=="positive"),sum(y=="negative"))
+  pct <- round(n_classes/sum(n_classes)*100,digits=2)
+  
+  lbls <- levels(dataset$Class)
+  lbls <- paste(lbls, pct) # add percents to labels
+  lbls <- paste(lbls,"%",sep="") # ad % to labels
+  
+  pie(n_classes,labels = lbls, main="Class distribution")
+}
+```
+
+```{r}
+plot_pie(trainData$Class)
+plot_pie(smt$Class)
+plot_pie(blsmt$Class)
+plot_pie(mwmt$Class)
+plot_pie(pdf$Class)
+```
+
+
 
 
 #Additional activities
