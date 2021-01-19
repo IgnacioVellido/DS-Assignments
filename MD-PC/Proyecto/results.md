@@ -41,7 +41,7 @@
    1. Organizar por método, y dentro por técnicas
    2. Número total de submissions por algoritmo
 7. Técnicas de preprocesamiento utilizadas
-   1. Undersampling
+   1. Undersampling/Noise Reduction
       1. TomekLinks
       2. ENN
       3. CNN
