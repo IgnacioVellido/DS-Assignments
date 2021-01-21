@@ -2,10 +2,43 @@
 
 \subsection{Descripción}
 
+Contenedor docker partiendo de una instalación base de R al que se le añaden distintos paquetes de ciencia de datos.
+
 \subsection{Archivo Dockerfile}
+
+
+% MEJOR CAPTURA
+
+% \begin{lstlisting}
+% FROM rocker/r-base
+% LABEL author="Ignacio Vellido Expósito"
+% ENV http_proxy http://stargate.ugr.es:3128
+
+% RUN apt-get update
+
+% # Se podrían separar para evitar que si uno falla se corte
+% # la ejecución. Como está testeado se deja resumido
+% RUN R -e "install.packages(c('tidyverse','caret','RSNNS',
+%                              'frbs','FSinR','forecast'),
+%                             dependencies=TRUE, 
+%                             repos='http://cran.rstudio.com/')"
+
+% # Para automatizar el proceso de testeo, se lanza desde aquí
+% COPY testDocker.R /home/testDocker.R
+
+% # Lanzar script
+% CMD R -e "source('/home/testDocker.R')"
+% # CMD "R /home/testDocker.R > /home/testOutput.txt"
+% \end{lstlisting}
 
 \subsection{Proceso de construcción}
 
-% Añadir captura final mostrando ejecución
+% Captura docker construído
+
+% Captura docker en funcionamiento
+
+% Captura desde dentro del docker
 
 \subsection{Evaluación}
+
+Para evaluar el correcto funcionamiento se lanza el siguiente script, que carga las librerías instaladas y realiza operaciones con algunas de ellas
