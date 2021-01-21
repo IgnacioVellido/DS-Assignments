@@ -1,58 +1,26 @@
-# Este contenedor incluirá una instalación completa de Python 3.6 o superior
-# además de los paquetes o bibliotecas habituales para análisis de datos con este lenguaje
-# de programación: pandas, scikit-learn, scipy, numpy, matplotlib, …
-
-# https://hub.docker.com/_/python/
-
-FROM python:3.7
+FROM ubuntu
 LABEL author="Ignacio Vellido Expósito"
 ENV http_proxy http://stargate.ugr.es:3128
 
-RUN apt-get update
+# To don't get asked about geographic location (disable dpkg interactivity)
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip
 
 WORKDIR /usr/src/app
 
 COPY requirements.txt ./
 
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --upgrade pip && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    rm requirements.txt
 
-COPY . .
-
-# Copiar scripts de prueba 
-# (se podría hacer separadamente, por automatizarlo se añade aquí)
+# Launch test script
+COPY data /home/data
 COPY testDocker.py /home/testDocker.py
+RUN cd /home && \
+    python3 /home/testDocker.py > /home/testOutput.txt
 
-# Si hay que ejecutar algún script por defecto al acabar
-# Mejor con pruebas ?
-# CMD [ "python", "./cdpython.py" ]
-CMD "python /home/testDocker.py > /home/testOutput.py"
-
-# ------------------------------------------------------------------------------
-# Versión base
-# ------------------------------------------------------------------------------
-
-# FROM ubuntu
-# LABEL author="Ignacio Vellido Expósito"
-# ENV http_proxy http://stargate.ugr.es:3128
-
-# RUN apt-get update && \
-#     apt-get install -y python3
-
-# WORKDIR /usr/src/app
-
-# COPY requirements.txt ./
-
-# RUN pip install --upgrade pip && \
-#     pip install --no-cache-dir -r requirements.txt
-
-# COPY . .
-
-# # Copiar scripts de prueba 
-# # (se podría hacer separadamente, por automatizarlo se añade aquí)
-# COPY testDocker.py /home/testDocker.py
-
-# # Si hay que ejecutar algún script por defecto al acabar
-# # Mejor con pruebas ?
-# # CMD [ "python", "./cdpython.py" ]
-# CMD "python /home/testDocker.py > /home/testOutput.py"
+# Launch Python
+CMD [ "python3" ]
