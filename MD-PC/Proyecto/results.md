@@ -171,7 +171,7 @@ TODO:
    - Posible problema: Vienen de un one hot por lo que la reducción es enorme
 
 7. Oversampling con método SMOTE seguido de un undersampling con ENN
-   - Se desbalancea la clase mayoritaria, sobregeneralización -> __Problema importante__
+   - Se desbalancea la clase mayoritaria, sobregeneralización en CART -> __Problema importante__
    - Buenos resultados en validación (del 5%), pobres en test.
    - Posible sobrepredicción las clases originalmente minoritarias.
 
@@ -191,6 +191,7 @@ TODO:
    - Se acaba evaluando en test con 80 características
 
 12. v11 Reduciendo puntos con Tomek (sin eliminar duplicados, se lo dejamos a tomek)
+   - No se puede, tarda mucho
 
 TEST NO TIENE COUNT_FAMILIES == 9
 
@@ -246,7 +247,7 @@ Demasiado overfitting con oversampling, pero con undersampling no ha ido mal (v6
 
 Empty cell = No submission
 
-CART1 Y CART2 se tuvieron que repetir por errores en la construcción del árbol (C4.5 1 se repitó para ver que no había fallos, y da el mismo resultado)
+CART1 Y CART2 se tuvieron que repetir por errores en la construcción del árbol (C4.5 1 se repitió para ver que no había fallos, y da el mismo resultado)
 
 # Conclusiones 
 

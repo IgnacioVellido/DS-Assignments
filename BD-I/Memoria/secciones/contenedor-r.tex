@@ -2,43 +2,47 @@
 
 \subsection{Descripción}
 
-Contenedor docker partiendo de una instalación base de R al que se le añaden distintos paquetes de ciencia de datos.
+Contenedor partiendo de una imagen base de Ubuntu al que se le añade R con distintos paquetes de ciencia de datos, concretamente:
+\begin{itemize}
+    \item tidyverse
+    \item caret
+    \item RSNNS
+    \item frbs 
+    \item FSinR 
+    \item forecast
+\end{itemize}
 
 \subsection{Archivo Dockerfile}
 
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r0.png}\caption{}\end{figure}
 
-% MEJOR CAPTURA
-
-% \begin{lstlisting}
-% FROM rocker/r-base
-% LABEL author="Ignacio Vellido Expósito"
-% ENV http_proxy http://stargate.ugr.es:3128
-
-% RUN apt-get update
-
-% # Se podrían separar para evitar que si uno falla se corte
-% # la ejecución. Como está testeado se deja resumido
-% RUN R -e "install.packages(c('tidyverse','caret','RSNNS',
-%                              'frbs','FSinR','forecast'),
-%                             dependencies=TRUE, 
-%                             repos='http://cran.rstudio.com/')"
-
-% # Para automatizar el proceso de testeo, se lanza desde aquí
-% COPY testDocker.R /home/testDocker.R
-
-% # Lanzar script
-% CMD R -e "source('/home/testDocker.R')"
-% # CMD "R /home/testDocker.R > /home/testOutput.txt"
-% \end{lstlisting}
+El paquete ``tidyverse'' es necesario instalarlo a través de apt-get para evitar errores. 
+Se incluye el proceso de testeo dentro del dockerfile para agilizar las pruebas, y se concluye indicando el comando por defecto de ejecución del script.
 
 \subsection{Proceso de construcción}
 
-% Captura docker construído
+\subsubsection{En hadoop.ugr.es}
 
-% Captura docker en funcionamiento
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r1.png}\caption{Construcción de la imagen}\end{figure}
 
-% Captura desde dentro del docker
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r3.png}\caption{Lanzando la imagen}\end{figure}
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r2.png}\caption{Contenido de la imagen}\end{figure}
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r4.png}\caption{Comprobando ejecución}\end{figure}
+
+\subsubsection{En Azure}
+
+Primeramente se crea un repositorio privado en Docker Hub, y se le cambia el nombre a la imagen de hadoop para adaptarla al repositorio
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r5.png}\caption{Subiendo imagen al repositorio}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r6.png}\caption{Imagen en Docker Hub}\end{figure}
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r7.png}\caption{Desplegando el contenedor en Azure}\end{figure}
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r8.png}\caption{Desplegando el contenedor en Azure}\end{figure}
 
 \subsection{Evaluación}
 
-Para evaluar el correcto funcionamiento se lanza el siguiente script, que carga las librerías instaladas y realiza operaciones con algunas de ellas
+Para evaluar se ha desplegado el contenedor en las diferentes plataformas y comprobado la salida del scripts. En este se cargan todas las bibliotecas adicionales instaladas y se aplican operaciones con algunas de ellas.
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/r/r9.png}\caption{Script de prueba}\end{figure}

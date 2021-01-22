@@ -1,6 +1,6 @@
 FROM ubuntu
 LABEL author="Ignacio Vellido Expósito"
-ENV http_proxy http://stargate.ugr.es:3128
+# ENV http_proxy http://stargate.ugr.es:3128
 
 # To don't get asked about geographic location (disable dpkg interactivity)
 ENV DEBIAN_FRONTEND=noninteractive
