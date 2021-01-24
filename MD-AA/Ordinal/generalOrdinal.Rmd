@@ -71,45 +71,6 @@ for (i in 1:num_part) {
 
 
 ```{r}
-classify <- function(df) {
-    # Realizar particiones
-    labels <- as.integer(unique(df$labels))
-    num_part <- length(labels) - 1
-    
-    partitions <- vector("list", length(num_part))
-    
-    for(i in 1:num_part) {
-      partitions[[i]] <- df
-      partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
-    }
-
-    # Clasificar
-    models <- vector("list", length(num_part))
-    for (i in 1:num_part) {
-        models[[i]] <- tree(labels ~ ., data = partitions[[i]])
-    }
-
-    # Devolver modelos
-    models
-}
-```
-
-
-```{r}
-# apply(df, 1, function(row) {
-#   # Predecir y recuperar probabilidades para cada modelo
-#   prob <- lapply(models, function(m, r) {
-#       # predict(m, r, type="probability")
-#     print(m)
-#   }, row)
-#   
-#   prob
-# 
-#   # Calcular clase definitiva
-#   
-#   # Guardar resultados
-# })
-  
 # Obtener probabilidades de cada fila para cada modelo
 probabilities <- lapply(models, predict, df %>% head())
 probabilities %>% lapply(print)
@@ -121,8 +82,9 @@ probabilities
 # Calcular probabilidades del df para un modelo
 b <- lapply(models, function(x,y) {
   predict(x, y) %>% as.data.frame() -> a
+  print(a)
   a %>% mutate(row = rownames(a))
-}, df %>% head())
+}, df %>% head(2))
 
 # Juntar probabilidades por filas del df
 b <- reduce(b, left_join, by="row")
@@ -157,35 +119,66 @@ apply(b %>% head(2), 1, function(row) {
 
 
 ```{r}
-# predict <- function(models, df) {
-hola <- function(models, df) {
+classify <- function(df) {
+    # Realizar particiones
+    labels <- as.integer(unique(df$labels))
+    num_part <- length(labels) - 1
+    
+    partitions <- vector("list", length(num_part))
+    
+    for(i in 1:num_part) {
+      partitions[[i]] <- df
+      partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
+      
+      # Para realizar el entrenamiento, necesitamos que las etiquetas se codifiquen
+      # como factores
+      partitions[[i]]$labels <- partitions[[i]]$labels %>% as.factor()
+    }
+
+    # Clasificar
+    models <- vector("list", length(num_part))
+    for (i in 1:num_part) {
+        models[[i]] <- tree(labels ~ ., data = partitions[[i]])
+    }
+
+    # Devolver modelos
+    models
+}
+```
+
+```{r}
+make_predictions <- function(models, df) {
     # Calcular probabilidades del df para un modelo
-    b <- lapply(models,
-                function(x,y) {
-                  predict(x, y) %>% as.data.frame() -> a
-                  a %>% mutate(row = rownames(a))
+    pr_list <- lapply(models,
+                function(m,r) {
+                  # Solo nos interesa la segunda probabilidad, que sea > i
+                  predict(m,r)[,2] %>% as.data.frame() -> x
+                  x %>% mutate(row = rownames(x))
                 },
                 df)
     
-    print(b)
     
     # Juntar probabilidades por filas del df
-    b <- reduce(b, left_join, by="row")
+    pr_list <- reduce(pr_list, left_join, by="row")
     
 
     # Mover la columna auxiliar row a la primera posición
     # y llenarla con unos, preparando el cálculo de las
     # probabilidades de cada clase
-    b <- b[, c(2,1,3:ncol(b))]
-    b$row <- 1
+    pr_list <- pr_list[, c(2,1,3:ncol(pr_list))]
+    pr_list$row <- 1
+    
 
     # Calcular probabilidades reales de cada clase
-    apply(b, 1, function(row) {
-      probs <- vector("integer", length(row-1))
+    apply(pr_list, 1, function(row) {
+      probs <- vector("integer", length(row))
 
       for(i in 2:length(row)) {
         probs[i-1] <- row[[i-1]] * (1 - row[[i]])
       }
+      
+      # Probabilidad última clase
+      probs[length(row)] <- row[[length(row)]]
 
       # Devolver probabilidad máxima (y el índice)
       m  <- max(probs)
@@ -193,10 +186,12 @@ hola <- function(models, df) {
     }) %>%
       reduce(bind_rows) # Juntar en un solo dataframe
 }
-
-hola(m, df %>% select(-labels) %>% head())
-df %>% select(-labels) %>% head()
 ```
 
 
+```{r}
+models <- classify(df)
+make_predictions(models, df %>% select(-labels))
 
+df %>% head()
+```
