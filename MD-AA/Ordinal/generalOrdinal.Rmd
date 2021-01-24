@@ -1,0 +1,132 @@
+---
+title: "Imbalanced Classification Tasks"
+author: "Ignacio Vellido Expósito"
+date: "18/01/2021"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Configuración RMarkdown
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+# Librerías
+library(tidyverse)
+library(tree)
+```
+
+
+```{r}
+# Leer datos
+df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
+
+# Cada columna es categórica ordinal
+for (i in 1:(ncol(df)-1)) {
+  df[[i]] <- df[[i]] %>% as.factor()
+}
+
+df
+```
+
+```{r}
+# Añadir nombre de columna a las etiquetas
+colnames(df)[5] <- "labels"
+df
+```
+
+
+```{r}
+# Ordenar df por etiquetas
+df <- df %>% arrange(labels)
+df
+```
+
+
+```{r}
+# Realizar particiones
+labels <- as.integer(unique(df$labels))
+num_part <- length(labels) - 1
+
+partitions <- vector("list", length(num_part))
+
+for(i in 1:num_part) {
+  partitions[[i]] <- df
+  partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
+}
+
+partitions
+```
+
+```{r}
+# Clasificar
+models <- vector("list", length(num_part))
+for (i in 1:num_part) {
+    models[[i]] <- tree(labels ~ ., data = partitions[[i]])
+}
+models
+```
+
+
+```{r}
+classify <- function(df) {
+    # Realizar particiones
+    labels <- as.integer(unique(df$labels))
+    num_part <- length(labels) - 1
+    
+    partitions <- vector("list", length(num_part))
+    
+    for(i in 1:num_part) {
+      partitions[[i]] <- df
+      partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
+    }
+
+    # Clasificar
+    models <- vector("list", length(num_part))
+    for (i in 1:num_part) {
+        models[[i]] <- tree(labels ~ ., data = partitions[[i]])
+    }
+
+    # Devolver modelos
+    models
+}
+```
+
+
+```{r}
+apply(df, 1, function(row) {
+  # Predecir y recuperar probabilidades para cada modelo
+  prob <- lapply(models, function(m, r) {
+      # predict(m, r, type="probability")
+    print(m)
+  }, row)
+  
+  prob
+
+  # Calcular clase definitiva
+  
+  # Guardar resultados
+})
+  
+# Obtener probabilidades de cada fila para cada modelo
+lapply(models, predict, df)
+```
+
+
+```{r}
+predict <- function(models, df) {
+    for(row in df) {
+        # Predecir y recuperar probabilidades para cada modelo
+        prob <- lapply(models, function(m, row) {
+            predict(m, row, type="probability")
+        }, row)
+
+        # Calcular clase definitiva
+        # 
+
+        # Guardar resultados
+    }
+}
+```
