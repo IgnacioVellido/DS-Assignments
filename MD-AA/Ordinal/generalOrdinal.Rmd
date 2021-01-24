@@ -66,7 +66,7 @@ models <- vector("list", length(num_part))
 for (i in 1:num_part) {
     models[[i]] <- tree(labels ~ ., data = partitions[[i]])
 }
-models
+# models
 ```
 
 
@@ -96,37 +96,107 @@ classify <- function(df) {
 
 
 ```{r}
-apply(df, 1, function(row) {
-  # Predecir y recuperar probabilidades para cada modelo
-  prob <- lapply(models, function(m, r) {
-      # predict(m, r, type="probability")
-    print(m)
-  }, row)
-  
-  prob
-
-  # Calcular clase definitiva
-  
-  # Guardar resultados
-})
+# apply(df, 1, function(row) {
+#   # Predecir y recuperar probabilidades para cada modelo
+#   prob <- lapply(models, function(m, r) {
+#       # predict(m, r, type="probability")
+#     print(m)
+#   }, row)
+#   
+#   prob
+# 
+#   # Calcular clase definitiva
+#   
+#   # Guardar resultados
+# })
   
 # Obtener probabilidades de cada fila para cada modelo
-lapply(models, predict, df)
+probabilities <- lapply(models, predict, df %>% head())
+probabilities %>% lapply(print)
+print("------------------")
+probabilities
+```
+
+```{r}
+# Calcular probabilidades del df para un modelo
+b <- lapply(models, function(x,y) {
+  predict(x, y) %>% as.data.frame() -> a
+  a %>% mutate(row = rownames(a))
+}, df %>% head())
+
+# Juntar probabilidades por filas del df
+b <- reduce(b, left_join, by="row")
+
+b
 ```
 
 
 ```{r}
-predict <- function(models, df) {
-    for(row in df) {
-        # Predecir y recuperar probabilidades para cada modelo
-        prob <- lapply(models, function(m, row) {
-            predict(m, row, type="probability")
-        }, row)
-
-        # Calcular clase definitiva
-        # 
-
-        # Guardar resultados
-    }
-}
+# Mover la columna auxiliar row a la primera posición
+# y llenarla con unos, preparando el cálculo de las
+# probabilidades de cada clase
+b <- b[, c(2,1,3:ncol(b))]
+b$row <- 1
+b
 ```
+
+```{r}
+# Calcular probabilidades de cada clase
+apply(b %>% head(2), 1, function(row) {
+  probs <- vector("integer", length(row-1))
+  for(i in 2:length(row)) {
+    probs[i-1] <- row[[i-1]] * (1 - row[[i]])
+    # print(row[[i]])
+  }
+  
+  # Devolver el máximo (y el índice)
+  m  <- max(probs)
+  data.frame(class=which(probs == m), prob = m)
+}) %>% reduce(bind_rows)
+```
+
+
+```{r}
+# predict <- function(models, df) {
+hola <- function(models, df) {
+    # Calcular probabilidades del df para un modelo
+    b <- lapply(models,
+                function(x,y) {
+                  predict(x, y) %>% as.data.frame() -> a
+                  a %>% mutate(row = rownames(a))
+                },
+                df)
+    
+    print(b)
+    
+    # Juntar probabilidades por filas del df
+    b <- reduce(b, left_join, by="row")
+    
+
+    # Mover la columna auxiliar row a la primera posición
+    # y llenarla con unos, preparando el cálculo de las
+    # probabilidades de cada clase
+    b <- b[, c(2,1,3:ncol(b))]
+    b$row <- 1
+
+    # Calcular probabilidades reales de cada clase
+    apply(b, 1, function(row) {
+      probs <- vector("integer", length(row-1))
+
+      for(i in 2:length(row)) {
+        probs[i-1] <- row[[i-1]] * (1 - row[[i]])
+      }
+
+      # Devolver probabilidad máxima (y el índice)
+      m  <- max(probs)
+      data.frame(class=which(probs == m), prob = m)
+    }) %>%
+      reduce(bind_rows) # Juntar en un solo dataframe
+}
+
+hola(m, df %>% select(-labels) %>% head())
+df %>% select(-labels) %>% head()
+```
+
+
+
