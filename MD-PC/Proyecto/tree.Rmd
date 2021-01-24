@@ -35,6 +35,7 @@ library(tidyverse)
 library(ggplot2)
 
 library(tree)
+library(rpart)
 library(RWeka)
 library(partykit)
 library(ggpubr)
@@ -101,9 +102,9 @@ compare_pred <- function(predicted, expected) {
 
 Cargar conjuntos de datos preprocesados
 ```{r}
-trn_values <- read_csv("data/v11 - preprocessed_train.csv")
-trn_labels <- read_csv("data/v11 - preprocessed_train_labels.csv")
-tst_values  <- read_csv("data/v11 - preprocessed_test.csv")
+trn_values <- read_csv("data/v6 - preprocessed_train.csv")
+trn_labels <- read_csv("data/v6 - preprocessed_train_labels.csv")
+tst_values  <- read_csv("data/v6 - preprocessed_test.csv")
 
 names <- colnames(trn_values)
 ```
@@ -144,8 +145,9 @@ colnames(trn_values)
 # v5
 # factores <- c(1, 3:ncol(trn_values))
 
+# v6
 # Cuidado que count_families está incluído (la 22)
-# factores <- c(5:21, 23:ncol(trn_values))
+factores <- c(1:2,5:21, 23:ncol(trn_values))
 
 # V7 y 8
 # factores <- c(4:14, 15:ncol(trn_values))
@@ -154,7 +156,7 @@ colnames(trn_values)
 # factores <- c(1,5:21,23:ncol(trn_values))
 
 # v10y11
-factores <- c(1:ncol(trn_values))
+# factores <- c(1:ncol(trn_values))
 ```
 
 
@@ -188,7 +190,7 @@ tst_values
 
 Separamos un para validar localmente
 ```{r}
-size <- floor(0.95 * nrow(train))
+size <- floor(0.45 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -285,6 +287,38 @@ compare_pred(cart_predict, val$labels)
 ```
 
 ---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+Con rpart
+https://www.statmethods.net/advstats/cart.html
+```{r}
+rpart_tree <- rpart(labels ~ ., method="class", data=train)
+
+printcp(rpart_tree) # display the results
+plotcp(rpart_tree) # visualize cross-validation results
+# summary(rpart_tree) # detailed summary of splits
+
+# plot tree
+plot(rpart_tree, uniform=TRUE, main="Classification Tree")
+text(rpart_tree, use.n=TRUE, all=TRUE, cex=.8)
+
+# prune the tree
+rpart_pruned <- prune(rpart_tree, cp=rpart_tree$cptable[which.min(rpart_tree$cptable[,"xerror"]),"CP"])
+
+# plot the pruned tree
+plot(rpart_pruned, uniform=TRUE, main="Pruned Classification Tree")
+text(rpart_pruned, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+Predecir rpart tree
+```{r}
+rpart_pred <- predict(pfit, val, type="class")
+
+compare_pred(rpart_pred, val$labels)
+```
+
+
+---------------------------------------------------------------------------------------------------------------------
 J48
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -324,7 +358,7 @@ Evaluar con CV
 ```{r}
 set.seed(2)
 # Si queremos hacer una validacion cruzada usando RWeka
-cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=5)
+cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=5, class=T)
 cv_resul
 ```
 
