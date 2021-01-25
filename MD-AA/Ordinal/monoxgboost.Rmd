@@ -1,0 +1,95 @@
+---
+title: "Clasificación monotónica"
+author: "Ignacio Vellido Expósito"
+date: "22/01/2021"
+output:
+  prettydoc::html_pretty:
+    theme: hpstr
+    highlight: github
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+# Configuración RMarkdown
+knitr::opts_chunk$set(echo = TRUE, results="hold", fig.align="center", 
+                      comment=NA, messages=FALSE)
+# Librerías
+library(tidyverse)
+library(xgboost)
+```
+
+
+```{r}
+# # Leer datos
+# df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
+# 
+# # Cada columna es categórica ordinal
+# for (i in 1:(ncol(df)-1)) {
+#   df[[i]] <- df[[i]] %>% as.factor()
+# }
+# 
+# # Añadir nombre de columna a las etiquetas
+# colnames(df)[5] <- "labels"
+# 
+# df
+```
+
+```{r}
+df <- iris
+df$labels <- df$Species
+df$Species <- NULL
+```
+
+
+```{r}
+# xgboost no acepta dataframes
+# labels <- df$Species %>% as.matrix()
+# data <- df %>% select(-Species) %>% as.matrix()
+iris
+```
+
+
+```{r}
+# Hacer particiones OVA
+label_list <- unique(df$labels)
+num_part <- length(unique(df$labels))
+
+partitions <- vector("list", length(num_part))
+partitions_labels <- vector("list", length(num_part))
+
+for(i in 1:num_part) {
+  partitions[[i]] <- df
+  partitions[[i]] <- partitions[[i]] %>% 
+                      mutate(labels = ifelse(labels == label_list[i], 1, 0))
+  partitions_labels[[i]] <- partitions[[i]]$labels %>% as.matrix()
+  partitions[[i]] <- partitions[[i]][,-ncol(partitions[[i]])] %>% as.matrix()
+}
+
+partitions[[2]] %>% as.data.frame()
+partitions_labels[[2]] %>% as.data.frame()
+```
+
+
+```{r}
+# Aplicar xgboost
+for(i in 1:num_part) {
+  xbg <- xgboost(partitions[[i]], partitions_labels[[i]], 
+                 nrounds = 1, monotone_constraints=1)
+  print(xbg)
+}
+```
+
+En esta segunda parte, se implementará un modelo similar de clasificación múltiple para problemas
+con restricciones de monotonía. Se utilizará el modelo OVA básico descrito en las diapositivas de
+teoría (diapositiva 107) con el algoritmo xgboost de R o Python, usando el parámetro
+monotone_constraints=1. Este algoritmo obtiene monotonía global en problemas binarios, por
+lo que es necesario hacer una descomposición que sea monótona-consistente. El resultado se generará
+en un fichero llamado monoxgboost.[R|py].
+
+•La propuesta OVA es simple:
+• Variante de Frank y Hall.
+• Preserva la monotonicidad y limita la L1.
+• hc(x) = 1[y ≥ c], clasificador binario que distingue clase menor
+que c de clase mayor igual que c, donde 1[condición] = 1 si
+condición, sino 0.
+• El clasificador multi-clase viene dado por:

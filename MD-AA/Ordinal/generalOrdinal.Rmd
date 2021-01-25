@@ -1,7 +1,7 @@
 ---
-title: "Imbalanced Classification Tasks"
+title: "Clasificación ordinal"
 author: "Ignacio Vellido Expósito"
-date: "18/01/2021"
+date: "22/01/2021"
 output:
   prettydoc::html_pretty:
     theme: hpstr
@@ -46,79 +46,7 @@ df
 
 
 ```{r}
-# Realizar particiones
-labels <- as.integer(unique(df$labels))
-num_part <- length(labels) - 1
-
-partitions <- vector("list", length(num_part))
-
-for(i in 1:num_part) {
-  partitions[[i]] <- df
-  partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
-}
-
-partitions
-```
-
-```{r}
-# Clasificar
-models <- vector("list", length(num_part))
-for (i in 1:num_part) {
-    models[[i]] <- tree(labels ~ ., data = partitions[[i]])
-}
-# models
-```
-
-
-```{r}
-# Obtener probabilidades de cada fila para cada modelo
-probabilities <- lapply(models, predict, df %>% head())
-probabilities %>% lapply(print)
-print("------------------")
-probabilities
-```
-
-```{r}
-# Calcular probabilidades del df para un modelo
-b <- lapply(models, function(x,y) {
-  predict(x, y) %>% as.data.frame() -> a
-  print(a)
-  a %>% mutate(row = rownames(a))
-}, df %>% head(2))
-
-# Juntar probabilidades por filas del df
-b <- reduce(b, left_join, by="row")
-
-b
-```
-
-
-```{r}
-# Mover la columna auxiliar row a la primera posición
-# y llenarla con unos, preparando el cálculo de las
-# probabilidades de cada clase
-b <- b[, c(2,1,3:ncol(b))]
-b$row <- 1
-b
-```
-
-```{r}
-# Calcular probabilidades de cada clase
-apply(b %>% head(2), 1, function(row) {
-  probs <- vector("integer", length(row-1))
-  for(i in 2:length(row)) {
-    probs[i-1] <- row[[i-1]] * (1 - row[[i]])
-    # print(row[[i]])
-  }
-  
-  # Devolver el máximo (y el índice)
-  m  <- max(probs)
-  data.frame(class=which(probs == m), prob = m)
-}) %>% reduce(bind_rows)
-```
-
-
-```{r}
+# Función para clasificar K-1 modelos
 classify <- function(df) {
     # Realizar particiones
     labels <- as.integer(unique(df$labels))
@@ -147,6 +75,7 @@ classify <- function(df) {
 ```
 
 ```{r}
+# Función para calcular probabilidades reales y hacer predicciones
 make_predictions <- function(models, df) {
     # Calcular probabilidades del df para un modelo
     pr_list <- lapply(models,
