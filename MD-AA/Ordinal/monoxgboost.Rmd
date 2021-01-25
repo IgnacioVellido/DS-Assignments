@@ -21,37 +21,24 @@ library(xgboost)
 
 ```{r}
 # # Leer datos
-# df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
-# 
-# # Cada columna es categórica ordinal
-# for (i in 1:(ncol(df)-1)) {
-#   df[[i]] <- df[[i]] %>% as.factor()
-# }
-# 
-# # Añadir nombre de columna a las etiquetas
-# colnames(df)[5] <- "labels"
-# 
-# df
+df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
 ```
 
 ```{r}
-df <- iris
-df$labels <- df$Species
-df$Species <- NULL
-```
+label_name <- colnames(df)[ncol(df)]
+df$labels <- df[[label_name]]
+df[[label_name]] <- NULL
 
-
-```{r}
-# xgboost no acepta dataframes
-# labels <- df$Species %>% as.matrix()
-# data <- df %>% select(-Species) %>% as.matrix()
-iris
+df
 ```
 
 
 ```{r}
 # Hacer particiones OVA
-label_list <- unique(df$labels)
+# Realizar particiones (if label > i -> 1, else -> 0)
+
+# label_list <- unique(df$labels)
+# label_list <- as.integer(unique(df$labels))
 num_part <- length(unique(df$labels))
 
 partitions <- vector("list", length(num_part))
@@ -60,24 +47,86 @@ partitions_labels <- vector("list", length(num_part))
 for(i in 1:num_part) {
   partitions[[i]] <- df
   partitions[[i]] <- partitions[[i]] %>% 
-                      mutate(labels = ifelse(labels == label_list[i], 1, 0))
+                      mutate(labels = ifelse(labels <= i, 0, 1))
   partitions_labels[[i]] <- partitions[[i]]$labels %>% as.matrix()
   partitions[[i]] <- partitions[[i]][,-ncol(partitions[[i]])] %>% as.matrix()
 }
 
-partitions[[2]] %>% as.data.frame()
-partitions_labels[[2]] %>% as.data.frame()
+partitions[[6]] %>% as.data.frame()
+df
+partitions_labels[[6]] %>% as.data.frame()
 ```
 
 
 ```{r}
-# Aplicar xgboost
-for(i in 1:num_part) {
-  xbg <- xgboost(partitions[[i]], partitions_labels[[i]], 
-                 nrounds = 1, monotone_constraints=1)
-  print(xbg)
+# Función para clasificar K-1 modelos
+classify <- function(df) {
+    # Realizar particiones
+    labels <- as.integer(unique(df$labels))
+    num_part <- length(labels) - 1
+    
+    partitions <- vector("list", length(num_part))
+    
+    for(i in 1:num_part) {
+      partitions[[i]] <- df
+      partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
+      
+      # Para realizar el entrenamiento, necesitamos que las etiquetas se codifiquen
+      # como factores
+      partitions[[i]]$labels <- partitions[[i]]$labels %>% as.factor()
+    }
+
+    # Aplicar xgboost
+    models <- vector("list", length(num_part))
+    for(i in 1:num_part) {
+      models[[i]] <- xgboost(partitions[[i]], partitions_labels[[i]],
+                     nrounds = 1, monotone_constraints=1)
+    }
+
+    # Devolver modelos
+    models
 }
 ```
+
+```{r}
+# Función para calcular probabilidades reales y hacer predicciones
+make_predictions <- function(models, df) {
+    # Calcular probabilidades del df para un modelo
+    pr_list <- lapply(models,
+                function(m,r) {
+                  # Solo nos interesa la segunda probabilidad, que sea > i
+                  predict(m,r) %>% as.data.frame() -> x
+                  x %>% mutate(row = rownames(x))
+                },
+                df)
+    
+    
+    # Juntar probabilidades por filas del df
+    pr_list <- reduce(pr_list, left_join, by="row")
+    
+
+    # Mover la columna auxiliar row a la primera posición
+    # y llenarla con unos, preparando el cálculo de las
+    # probabilidades de cada clase
+    pr_list <- pr_list[, c(2,1,3:ncol(pr_list))]
+    pr_list$row <- 1
+    
+    
+    # Pertenencia a una clase o no
+    pr_list <- pr_list > 0.6
+    
+    # Fórmula del clasificador multiclase
+    pr_list %>% apply(1, function(x) {
+      1 + sum(x)
+    }) %>% as.data.frame()
+}
+
+# test <- xgboost::xgb.DMatrix(data = df %>% as.matrix())
+test <- df %>% select(-labels) %>% as.matrix()
+make_predictions(models, test) %>%
+  bind_cols(df$labels)
+```
+
 
 En esta segunda parte, se implementará un modelo similar de clasificación múltiple para problemas
 con restricciones de monotonía. Se utilizará el modelo OVA básico descrito en las diapositivas de
