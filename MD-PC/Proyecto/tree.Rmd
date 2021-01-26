@@ -190,7 +190,7 @@ tst_values
 
 Separamos un para validar localmente
 ```{r}
-size <- floor(0.45 * nrow(train))
+size <- floor(0.95 * nrow(train))
 
 index <- sample(1:nrow(train), size = size)
 
@@ -322,11 +322,48 @@ compare_pred(rpart_pred, val$labels)
 J48
 ---------------------------------------------------------------------------------------------------------------------
 
+Grid search
 ```{r}
 # J48 es la implementacion de C4.5 en Weka, y su uso es similar
 # al de la funcion "tree" vista anteriormente en este script.
 # Vemos un ejemplo de uso sobre "iris"
-c45_tree <- J48(labels~., data=train)
+gs <- list(C = c(0.1, 0.15, 0.2),
+           M = c(5, 10, 20)) %>% 
+        cross_df()
+
+apply(gs, 1, function(row) {
+  value_C <- row[1]
+  value_M <- row[2]
+  cat("C: ")
+  value_C %>% cat()
+  cat("\nM: ")
+  value_M %>% cat()
+  
+  c45_tree <- J48(labels~., data=train, control=Weka_control(C = value_C, M = value_M))
+
+  c45_tree$classifier$toSummaryString() %>% print()
+
+  c45_predict <- predict(c45_tree, val)
+
+  resul = as.data.frame(cbind(predicted = c45_predict, y=val$labels))
+  cat("Accuracy global:\n")
+  accuracy(resul) %>% print()
+
+  compare_pred(c45_predict, val$labels)
+
+  cv_resul <- evaluate_Weka_classifier(c45_tree, numFolds=3, class=T)
+  cv_resul %>% print()
+  
+  cat("_______________________________________________________________________\n")
+})
+
+pmap(gs, training)
+```
+
+
+Un solo modelo
+```{r}
+c45_tree <- J48(labels~., data=train, control=Weka_control(C = 0.1, M = 50))
 
 c45_tree$classifier$toSummaryString()
 ```
@@ -412,5 +449,5 @@ buildings_ids <- read_csv("./data/test_values.csv")[,1]
 
 buildings_ids %>% 
   bind_cols(c45_test) %>% 
-  write_csv("./out/v11 - c45.csv")
+  write_csv("./out/v6-3 - c45.csv")
 ```

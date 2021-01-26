@@ -15,14 +15,16 @@
       1. EDA
       2. Preprocesamiento
       3. Entrenamiento
+         1. Optimización del nivel de poda
       4. Evaluación
       5. Revisión y repetición
+      6. Optimización del mejor model (nivel de poda e hiperparámetros)
    2. Datos destacados del dataset
       1. Dataset desbalanceado
       2. Variables muy desbalanceadas, sin ayudar a la clasificación
       3. Instancias duplicadas
 2. Preprocesamientos innecesarios
-   1. Normalización influyente al no ser un algoritmo paramétrico
+   1. Normalización no influyente al no ser un algoritmo paramétrico
    2. Discretización mediante medidas incluída en los propios algoritmos
       1. Peligro de elegir malos intervalos
       2. Posible influencia de valores extremos (???)
@@ -193,39 +195,6 @@ TODO:
 12. v11 Reduciendo puntos con Tomek (sin eliminar duplicados, se lo dejamos a tomek)
    - No se puede, tarda mucho
 
-TEST NO TIENE COUNT_FAMILIES == 9
-
-<!-- v8
-[1] "Number of leaves: 10641\nSize of the tree: 19169\n".
-$precision
-        1         2         3 
-0.8599427 0.8882590 0.7733822 
-
-$recall
-        1         2         3 
-0.9203354 0.9548657 0.7183099 
-
-v9 
-[1] "Number of leaves: 12790\nSize of the tree: 21501\n"
-predicted
-expected     1     2     3
-       1 22564  1916   686
-       2  4148 13425  7645
-       3  1520  4993 18779
-$precision
-        1         2         3 
-0.8447140 0.8982937 0.7899630 
-
-$recall
-        1         2         3 
-0.9217320 0.9513854 0.7106797 
-
-Predice mucho la clase 3
-c45_test
-    1     2     3 
-18273 30009 38586 -->
-
-
 # Submissions
 
 |            | Version |      | F1 Test |        | F1 Val  |        | Nº de hojas |        | Nº instancias | % Val       | CV % accuracy K=5 C4.5 |
@@ -234,16 +203,66 @@ c45_test
 | 1          | 3       | 3    | 0.4959  | 0.3364 | 0.9066  | 0.9593 | 23          | 724    | 81.120        | 20   | 20   | 92.29                  |
 | 2          | 4       | 4    | 0.5356  | 0.6581 | 0.8855  | 0.9553 | 42          | 1.387  | 79.920        | 20   | 20   | 90.81                  |
 | 3          |         | 5    |         | 0.6778 | 0.8756  | 0.9425 | 25          | 571    | 74.973        | 20   | 20   | 89.18                  |
-| 4          |         | 6    |         | 0.6836*| -       | 0.6814 | -           | 5.586  | 179.275       | -    |  5   | 64.85                  |
+| 4          |         | 6    |         | 0.6836 | -       | 0.6814 | -           | 5.586  | 179.275       | -    |  5   | 64.85                  |
 | 5          |         | 7    |         | 0.5064 |         | 0.8724 |             | 3.896  | 125.377       |      |  5   | 93.20                  |
 | 6          |         | 8    |         | 0.5812 |         | 0.9328 |             | 10.641 | 302.703       |      | 35   | 72.17                  |
 | 7          |         | 9    |         | 0.5703 |         | 0.8512 |             | 12.790 | 302.703       |      | 35   | 70.23                  |
 | 8          |         | 10   |         | 0.6734 |         | 0.7018 |             | 4.821  | 108.611       |      |  5   | 62.25                  |
-| 9          |         | 11   |         | 0.6285 |         | 0.6388 |             | 1.995  | 103.180       |      |      | 61.72                  |
-| 10         |         |      |         |        |         |        |             |        |               |      |      |
+| 9          |         | 11   |         | 0.6285 |         | 0.6388 |             | 1.995  | 103.180       |      |  5   | 61.72                  |
+
+| 10         |         | 6    |         | 0.6848 |         | 0.6746 |             | 2.040  | 179.275       |      |  5   | 65.43                  |
+| 11         |         | 6    |         | 0.6850*|         | 0.6781 |             | 939    | 179.275       |      |  5   | 65.30                  |
+| 12         |         | 6    |         | 0.6803 |         | 0.6687 |             | 462    | 179.275       |      |  5   | 64.90                  |
 
 
-Demasiado overfitting con oversampling, pero con undersampling no ha ido mal (v6 tenía under)
+v6-3 C=0.15, M=20
+f1 test 0.6850
+M: 20[1] "Number of leaves: 939\nSize of the tree: 1392\n"
+$f1 [1] 0.6781512
+Correctly Classified Instances      111228               65.3088 %
+
+v6-4 C=0.1 M=50
+test 0.6803
+[1] "Number of leaves: 462\nSize of the tree: 655\n"
+f1 [1] 0.6687599
+Correctly Classified Instances      110538               64.9036 %
+
+
+
+-C <pruning confidence>
+  Set confidence threshold for pruning.
+  (default 0.25)
+ 
+ -M <minimum number of instances>
+  Set minimum number of instances per leaf.
+  (default 2)
+
+v6 - 2 -> C = 0.1
+hojas 2040
+f1 0.6746899
+val 65.4332
+
+C=0.05
+val 65.4332
+[1] "Number of leaves: 1223\nSize of the tree: 1884\n"
+$f1
+[1] 0.6699293
+
+C=0.15
+val 65.4332
+[1] "Number of leaves: 2952\nSize of the tree: 4674\n"
+$f1
+[1] 0.6773581
+
+C=0.20
+val 65.4332
+[1] "Number of leaves: 4200\nSize of the tree: 6671\n"
+$f1
+[1] 0.678912
+
+
+Más bajo el C, menos se predice la clase 1
+Más alto el M, más simple el árbol (más pequeño)
 
 Empty cell = No submission
 
@@ -308,3 +327,438 @@ Trees
 - https://weka.8497.n7.nabble.com/Producing-a-perfect-decision-tree-using-J48-td11751.html
 - https://datascience.stackexchange.com/questions/43444/how-to-evaluate-feature-quality-for-decision-tree-model
 - https://www.cienciadedatos.net/documentos/33_arboles_decision_random_forest_gradient_boosting_c50
+
+
+
+C: 0.1
+M: 5[1] "Number of leaves: 1383\nSize of the tree: 2135\n"
+Accuracy global:
+[1] 0.6501562
+        predicted
+expected    1    2    3
+       1  391  648   15
+       2  225 4021  750
+       3   19 1479 1416
+$precision
+        1         2         3 
+0.6347403 0.9952970 0.4891192 
+
+$recall
+        1         2         3 
+0.3763234 0.9962834 0.6537396 
+
+$f1
+[1] 0.6759569
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111201               65.2929 %
+Incorrectly Classified Instances     59110               34.7071 %
+Kappa statistic                          0.3383
+Mean absolute error                      0.3046
+Root mean squared error                  0.3953
+Relative absolute error                 80.6125 %
+Root relative squared error             90.9342 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.363    0.029    0.621      0.363    0.458      0.425    0.871     0.506     1
+                 0.814    0.546    0.658      0.814    0.728      0.289    0.677     0.690     2
+                 0.476    0.122    0.648      0.476    0.549      0.390    0.778     0.613     3
+Weighted Avg.    0.653    0.350    0.650      0.653    0.639      0.337    0.732     0.644     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7232 12382   308 |     a = 1
+  4069 78051 13785 |     b = 2
+   338 28228 25918 |     c = 3
+_______________________________________________________________________
+C: 0.15
+M: 5[1] "Number of leaves: 1802\nSize of the tree: 2826\n"
+Accuracy global:
+[1] 0.6532798
+        predicted
+expected    1    2    3
+       1  410  631   13
+       2  230 4016  750
+       3   19 1465 1430
+$precision
+        1         2         3 
+0.6406250 0.9952912 0.4939551 
+
+$recall
+        1         2         3 
+0.3938521 0.9967734 0.6559633 
+
+$f1
+[1] 0.6824611
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111241               65.3164 %
+Incorrectly Classified Instances     59070               34.6836 %
+Kappa statistic                          0.3416
+Mean absolute error                      0.3034
+Root mean squared error                  0.396 
+Relative absolute error                 80.2857 %
+Root relative squared error             91.0911 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.373    0.031    0.618      0.373    0.465      0.430    0.871     0.503     1
+                 0.808    0.537    0.660      0.808    0.726      0.291    0.675     0.688     2
+                 0.484    0.126    0.644      0.484    0.552      0.391    0.776     0.610     3
+Weighted Avg.    0.653    0.346    0.650      0.653    0.640      0.339    0.730     0.641     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7428 12152   342 |     a = 1
+  4225 77465 14215 |     b = 2
+   365 27771 26348 |     c = 3
+_______________________________________________________________________
+C: 0.2
+M: 5[1] "Number of leaves: 2620\nSize of the tree: 4074\n"
+Accuracy global:
+[1] 0.6506024
+        predicted
+expected    1    2    3
+       1  413  627   14
+       2  233 3984  779
+       3   18 1461 1435
+$precision
+        1         2         3 
+0.6393189 0.9955022 0.4955110 
+
+$recall
+        1         2         3 
+0.3971154 0.9964982 0.6481481 
+
+$f1
+[1] 0.6825203
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      110930               65.1338 %
+Incorrectly Classified Instances     59381               34.8662 %
+Kappa statistic                          0.3373
+Mean absolute error                      0.3026
+Root mean squared error                  0.3969
+Relative absolute error                 80.0763 %
+Root relative squared error             91.2976 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.366    0.030    0.616      0.366    0.460      0.425    0.869     0.503     1
+                 0.808    0.541    0.658      0.808    0.725      0.287    0.674     0.684     2
+                 0.480    0.126    0.642      0.480    0.549      0.387    0.775     0.609     3
+Weighted Avg.    0.651    0.348    0.648      0.651    0.638      0.335    0.729     0.639     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7299 12265   358 |     a = 1
+  4186 77482 14237 |     b = 2
+   358 27977 26149 |     c = 3
+_______________________________________________________________________
+C: 0.1
+M: 10[1] "Number of leaves: 1013\nSize of the tree: 1539\n"
+Accuracy global:
+[1] 0.6477019
+        predicted
+expected    1    2    3
+       1  381  657   16
+       2  229 4018  749
+       3   17 1490 1407
+$precision
+        1         2         3 
+0.6245902 0.9957869 0.4856748 
+
+$recall
+        1         2         3 
+0.3670520 0.9960337 0.6525974 
+
+$f1
+[1] 0.6717286
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111034               65.1948 %
+Incorrectly Classified Instances     59277               34.8052 %
+Kappa statistic                          0.3407
+Mean absolute error                      0.3063
+Root mean squared error                  0.3946
+Relative absolute error                 81.0474 %
+Root relative squared error             90.785  %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.373    0.031    0.612      0.373    0.464      0.427    0.872     0.507     1
+                 0.803    0.533    0.660      0.803    0.725      0.288    0.678     0.695     2
+                 0.488    0.129    0.640      0.488    0.554      0.390    0.778     0.616     3
+Weighted Avg.    0.652    0.345    0.648      0.652    0.639      0.337    0.733     0.648     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7428 12157   337 |     a = 1
+  4302 77013 14590 |     b = 2
+   398 27493 26593 |     c = 3
+_______________________________________________________________________
+C: 0.15
+M: 10[1] "Number of leaves: 1247\nSize of the tree: 1897\n"
+Accuracy global:
+[1] 0.6462517
+        predicted
+expected    1    2    3
+       1  394  646   14
+       2  236 4003  757
+       3   18 1500 1396
+$precision
+        1         2         3 
+0.6253968 0.9955235 0.4820442 
+
+$recall
+        1         2         3 
+0.3788462 0.9965148 0.6483976 
+
+$f1
+[1] 0.6736187
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111211               65.2988 %
+Incorrectly Classified Instances     59100               34.7012 %
+Kappa statistic                          0.342 
+Mean absolute error                      0.3048
+Root mean squared error                  0.3945
+Relative absolute error                 80.64   %
+Root relative squared error             90.7485 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.373    0.030    0.621      0.373    0.466      0.431    0.873     0.511     1
+                 0.805    0.533    0.661      0.805    0.726      0.291    0.678     0.693     2
+                 0.487    0.129    0.640      0.487    0.553      0.390    0.778     0.615     3
+Weighted Avg.    0.653    0.345    0.650      0.653    0.640      0.339    0.733     0.647     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7428 12128   366 |     a = 1
+  4123 77251 14531 |     b = 2
+   401 27551 26532 |     c = 3
+_______________________________________________________________________
+C: 0.2
+M: 10[1] "Number of leaves: 1577\nSize of the tree: 2426\n"
+Accuracy global:
+[1] 0.6481481
+        predicted
+expected    1    2    3
+       1  394  646   14
+       2  228 4008  760
+       3   18 1488 1408
+$precision
+        1         2         3 
+0.6334405 0.9955291 0.4861878 
+
+$recall
+        1         2         3 
+0.3788462 0.9965191 0.6494465 
+
+$f1
+[1] 0.6754112
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111155               65.2659 %
+Incorrectly Classified Instances     59156               34.7341 %
+Kappa statistic                          0.3413
+Mean absolute error                      0.3034
+Root mean squared error                  0.3945
+Relative absolute error                 80.2847 %
+Root relative squared error             90.7572 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.368    0.030    0.617      0.368    0.461      0.426    0.873     0.510     1
+                 0.805    0.534    0.660      0.805    0.726      0.290    0.680     0.694     2
+                 0.489    0.128    0.641      0.489    0.555      0.391    0.779     0.619     3
+Weighted Avg.    0.653    0.345    0.649      0.653    0.640      0.338    0.734     0.649     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7329 12236   357 |     a = 1
+  4173 77206 14526 |     b = 2
+   379 27485 26620 |     c = 3
+_______________________________________________________________________
+C: 0.1
+M: 20[1] "Number of leaves: 767\nSize of the tree: 1118\n"
+Accuracy global:
+[1] 0.6483713
+        predicted
+expected    1    2    3
+       1  390  645   19
+       2  232 4036  728
+       3   20 1508 1386
+$precision
+        1         2         3 
+0.6270096 0.9950690 0.4789219 
+
+$recall
+        1         2         3 
+0.3768116 0.9953144 0.6556291 
+
+$f1
+[1] 0.6731454
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111043               65.2001 %
+Incorrectly Classified Instances     59268               34.7999 %
+Kappa statistic                          0.3359
+Mean absolute error                      0.3076
+Root mean squared error                  0.3945
+Relative absolute error                 81.3942 %
+Root relative squared error             90.7434 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.365    0.030    0.616      0.365    0.459      0.424    0.872     0.507     1
+                 0.816    0.550    0.657      0.816    0.728      0.288    0.678     0.695     2
+                 0.469    0.119    0.649      0.469    0.544      0.387    0.777     0.617     3
+Weighted Avg.    0.652    0.351    0.649      0.652    0.637      0.335    0.732     0.648     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7273 12324   325 |     a = 1
+  4170 78239 13496 |     b = 2
+   359 28594 25531 |     c = 3
+_______________________________________________________________________
+C: 0.15
+M: 20[1] "Number of leaves: 939\nSize of the tree: 1392\n"
+Accuracy global:
+[1] 0.6481481
+        predicted
+expected    1    2    3
+       1  402  637   15
+       2  237 3981  778
+       3   22 1465 1427
+$precision
+        1         2         3 
+0.6291080 0.9945041 0.4934302 
+
+$recall
+        1         2         3 
+0.3869105 0.9962462 0.6471655 
+
+$f1
+[1] 0.6781512
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111228               65.3088 %
+Incorrectly Classified Instances     59083               34.6912 %
+Kappa statistic                          0.3407
+Mean absolute error                      0.3066
+Root mean squared error                  0.3939
+Relative absolute error                 81.1285 %
+Root relative squared error             90.6177 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.371    0.030    0.618      0.371    0.463      0.428    0.872     0.511     1
+                 0.809    0.539    0.659      0.809    0.727      0.290    0.680     0.698     2
+                 0.481    0.125    0.645      0.481    0.551      0.390    0.780     0.619     3
+Weighted Avg.    0.653    0.347    0.650      0.653    0.640      0.338    0.734     0.651     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7383 12203   336 |     a = 1
+  4184 77627 14094 |     b = 2
+   370 27896 26218 |     c = 3
+_______________________________________________________________________
+C: 0.2
+M: 20[1] "Number of leaves: 1083\nSize of the tree: 1615\n"
+Accuracy global:
+[1] 0.6491522
+        predicted
+expected    1    2    3
+       1  399  641   14
+       2  231 3994  771
+       3   21 1467 1426
+$precision
+        1         2         3 
+0.6333333 0.9947696 0.4929139 
+
+$recall
+        1         2         3 
+0.3836538 0.9965070 0.6490669 
+
+$f1
+[1] 0.6779321
+
+=== 3 Fold Cross Validation ===
+
+=== Summary ===
+
+Correctly Classified Instances      111075               65.2189 %
+Incorrectly Classified Instances     59236               34.7811 %
+Kappa statistic                          0.3405
+Mean absolute error                      0.3052
+Root mean squared error                  0.3938
+Relative absolute error                 80.7567 %
+Root relative squared error             90.6014 %
+Total Number of Instances           170311     
+
+=== Detailed Accuracy By Class ===
+
+                 TP Rate  FP Rate  Precision  Recall   F-Measure  MCC      ROC Area  PRC Area  Class
+                 0.374    0.031    0.615      0.374    0.465      0.429    0.874     0.514     1
+                 0.805    0.535    0.660      0.805    0.725      0.289    0.681     0.698     2
+                 0.485    0.127    0.642      0.485    0.552      0.389    0.780     0.620     3
+Weighted Avg.    0.652    0.346    0.649      0.652    0.639      0.337    0.735     0.651     
+
+=== Confusion Matrix ===
+
+     a     b     c   <-- classified as
+  7454 12126   342 |     a = 1
+  4293 77218 14394 |     b = 2
+   374 27707 26403 |     c = 3
+_______________________________________________________________________
