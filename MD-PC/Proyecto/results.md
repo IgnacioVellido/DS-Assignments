@@ -1,3 +1,17 @@
+Desbalanceo pero la medida F1 minor está basada en accuracy, lo que penaliza la minoritaria
+
+Metodología
+Partiendo de la información descubierta en el EDA se entra en un ciclo de preprocesamiento - entrenamiento - evaluación 
+
+Submissions
+En total 12 versiones del dataset diferentes, con 12 evaluaciones en test para el algoritmo C4.5 y 2 para CART
+
+Técnicas de preprocesamiento utilizadas - 2
+   Discretización: Se sabe que los propios algoritmos utilizan mecanismos para la elección de la mejor partición del las variables numéricas, pero se decide probar utilizando un método de clústering con diferentes tamaños de particiones
+      Peligro de elegir malos intervalos
+      Posible influencia de valores extremos al generar intervalos muy grandes
+
+
 # Presentación
 
 - Variables extremadamente desbalanceadas (más del 90%). Poca información nueva aportada por ellas, pero en parte mayor facilidad para discriminar con árboles. Además, los árboles son robustos al ruido (u hojas con poca información contenida) puesto que los métodos de poda las eliminarán.
@@ -65,19 +79,25 @@
       2. Selección + Oversampling
       3. Discretización + Undersampling
 8. Modelo vencedor
-9. Justificaciones del modelo vencedor
+   1. Reducción manual de características
+   2. One hot encoding
+   3. Reducción de características con KBest y MI (nº final: 15)
+   4. Eliminación de duplicados
+   5. Reducción de instancias con ENN
+   6. Selección de mejores hiperparámetros con Grid search
+9.  Justificaciones del modelo vencedor
 10. Conclusiones
-   1. Problemas
+   7. Problemas
       1. Entrenamientos rápidos con números moderados de instancias y/o características, lentos al aumentar
          1. Lentitud de algoritmos de preprocesamiento (basados en cálculos de distancias: ENN, Tomek...). Selección de características prácticamente obligatoria (vienen de onehot)
       2. Falta de memoria
       3. Sesgo en árboles pequeños
       4. Facilidad de overfitting
-   2. CART (Ponerlo en contraposición de C4.5, a ambos lados (rojo, verdad))
+   8. CART (Ponerlo en contraposición de C4.5, a ambos lados (rojo, verdad))
       1. Árboles pequeños con mucha capacidad de generalización (verde)
       2. Dificultades con datasets desbalanceados (rojo)
       3. (Implementación en R) relativamente lento (rojo)
-   3. C4.5
+   9. C4.5
       1. Árboles grandes con facilidad de overfitting (rojo)
       2. Una mayor profundidad se adapta mejor al desbalanceo (verde)
       3. (Implementación en R) muy rápido (verde)
