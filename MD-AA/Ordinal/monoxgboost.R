@@ -1,28 +1,21 @@
 # Librerías
 library(tidyverse)
-library(tree)
+library(xgboost)
 
 # ------------------------------------------------------------------------------
 
 # Leer datos
 df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
 
-# Cada columna es categórica ordinal
-for (i in 1:(ncol(df)-1)) {
-  df[[i]] <- df[[i]] %>% as.factor()
-}
-
-# Añadir nombre de columna a las etiquetas
-colnames(df)[5] <- "labels"
-
-# Ordenar df por etiquetas
-df <- df %>% arrange(labels)
+label_name <- colnames(df)[ncol(df)]
+df$labels <- df[[label_name]]
+df[[label_name]] <- NULL
 
 # ------------------------------------------------------------------------------
 
 # Función para clasificar K-1 modelos
 classify <- function(df) {
-  # Realizar particiones
+  # Hacer particiones OVA tipo (if label > i -> 1, else -> 0)
   labels <- as.integer(unique(df$labels))
   num_part <- length(labels) - 1
   
@@ -34,13 +27,15 @@ classify <- function(df) {
     
     # Para realizar el entrenamiento, necesitamos que las etiquetas se codifiquen
     # como factores
-    partitions[[i]]$labels <- partitions[[i]]$labels %>% as.factor()
+    partitions_labels[[i]] <- partitions[[i]]$labels %>% as.factor()
+    partitions[[i]]$labels <- NULL
   }
   
-  # Clasificar
+  # Aplicar xgboost
   models <- vector("list", length(num_part))
-  for (i in 1:num_part) {
-    models[[i]] <- tree(labels ~ ., data = partitions[[i]])
+  for(i in 1:num_part) {
+    models[[i]] <- xgboost(partitions[[i]] %>% as.matrix(), partitions_labels[[i]],
+                           nrounds = 1, monotone_constraints=1)
   }
   
   # Devolver modelos
@@ -55,7 +50,7 @@ make_predictions <- function(models, df) {
   pr_list <- lapply(models,
                     function(m,r) {
                       # Solo nos interesa la segunda probabilidad, que sea > i
-                      predict(m,r)[,2] %>% as.data.frame() -> x
+                      predict(m,r) %>% as.data.frame() -> x
                       x %>% mutate(row = rownames(x))
                     },
                     df)
@@ -64,38 +59,24 @@ make_predictions <- function(models, df) {
   # Juntar probabilidades por filas del df
   pr_list <- reduce(pr_list, left_join, by="row")
   
+  # Eliminamos columna auxilar
+  pr_list$row <- NULL
   
-  # Mover la columna auxiliar row a la primera posición
-  # y llenarla con unos, preparando el cálculo de las
-  # probabilidades de cada clase
-  pr_list <- pr_list[, c(2,1,3:ncol(pr_list))]
-  pr_list$row <- 1
+  # Pertenencia a una clase o no (grado alto)
+  pr_list <- pr_list > 0.8
   
   
-  # Calcular probabilidades reales de cada clase
-  apply(pr_list, 1, function(row) {
-    probs <- vector("integer", length(row))
-    
-    for(i in 2:length(row)) {
-      probs[i-1] <- row[[i-1]] * (1 - row[[i]])
-    }
-    
-    # Probabilidad última clase
-    probs[length(row)] <- row[[length(row)]]
-    
-    # Devolver probabilidad máxima (y el índice)
-    # Si hay varias clases con la misma probabilidad se elige una al azar
-    m  <- max(probs)
-    data.frame(class=which(probs == m)[1], prob = m)
-  }) %>%
-    reduce(bind_rows) # Juntar en un solo dataframe
+  # Fórmula del clasificador multiclase
+  pr_list %>% apply(1, function(x) {
+    1 + sum(x)
+  }) %>% as.data.frame()
 }
 
 # ------------------------------------------------------------------------------
 
-# Aplicar las funciones a nuestro dataset
 models <- classify(df)
-pred <- make_predictions(models, df %>% select(-labels))
+test <- df %>% select(-labels) %>% as.matrix()
+pred <- make_predictions(models, test)
 
 pred
 
@@ -130,10 +111,9 @@ f1_score <- function(predicted, expected, positive.class="1") {
   res
 }
 
-df$labels <- df$labels %>% as.factor()
-pred$class <- factor(x = pred$class, levels = levels(df$labels))
+pred$class <- factor(x = pred$., levels = df$labels %>% as.factor() %>% levels())
 
-f1_score(pred$class, df$labels)
+f1_score(pred$class, df$labels %>% as.factor())
 
 # ------------------------------------------------------------------------------
 

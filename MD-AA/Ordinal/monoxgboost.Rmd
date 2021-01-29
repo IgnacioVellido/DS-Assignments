@@ -34,34 +34,9 @@ df
 
 
 ```{r}
-# Hacer particiones OVA
-# Realizar particiones (if label > i -> 1, else -> 0)
-
-# label_list <- unique(df$labels)
-# label_list <- as.integer(unique(df$labels))
-num_part <- length(unique(df$labels))
-
-partitions <- vector("list", length(num_part))
-partitions_labels <- vector("list", length(num_part))
-
-for(i in 1:num_part) {
-  partitions[[i]] <- df
-  partitions[[i]] <- partitions[[i]] %>% 
-                      mutate(labels = ifelse(labels <= i, 0, 1))
-  partitions_labels[[i]] <- partitions[[i]]$labels %>% as.matrix()
-  partitions[[i]] <- partitions[[i]][,-ncol(partitions[[i]])] %>% as.matrix()
-}
-
-partitions[[6]] %>% as.data.frame()
-df
-partitions_labels[[6]] %>% as.data.frame()
-```
-
-
-```{r}
 # Función para clasificar K-1 modelos
 classify <- function(df) {
-    # Realizar particiones
+    # Hacer particiones OVA tipo (if label > i -> 1, else -> 0)
     labels <- as.integer(unique(df$labels))
     num_part <- length(labels) - 1
     
@@ -73,19 +48,22 @@ classify <- function(df) {
       
       # Para realizar el entrenamiento, necesitamos que las etiquetas se codifiquen
       # como factores
-      partitions[[i]]$labels <- partitions[[i]]$labels %>% as.factor()
+      partitions_labels[[i]] <- partitions[[i]]$labels %>% as.factor()
+      partitions[[i]]$labels <- NULL
     }
 
     # Aplicar xgboost
     models <- vector("list", length(num_part))
     for(i in 1:num_part) {
-      models[[i]] <- xgboost(partitions[[i]], partitions_labels[[i]],
+      models[[i]] <- xgboost(partitions[[i]] %>% as.matrix(), partitions_labels[[i]],
                      nrounds = 1, monotone_constraints=1)
     }
 
     # Devolver modelos
     models
 }
+
+classify(df)
 ```
 
 ```{r}
@@ -104,24 +82,23 @@ make_predictions <- function(models, df) {
     # Juntar probabilidades por filas del df
     pr_list <- reduce(pr_list, left_join, by="row")
     
-
-    # Mover la columna auxiliar row a la primera posición
-    # y llenarla con unos, preparando el cálculo de las
-    # probabilidades de cada clase
-    pr_list <- pr_list[, c(2,1,3:ncol(pr_list))]
-    pr_list$row <- 1
+    # Eliminamos columna auxilar
+    pr_list$row <- NULL
     
+    # Pertenencia a una clase o no (grado alto)
+    pr_list <- pr_list > 0.8
     
-    # Pertenencia a una clase o no
-    pr_list <- pr_list > 0.6
     
     # Fórmula del clasificador multiclase
     pr_list %>% apply(1, function(x) {
       1 + sum(x)
     }) %>% as.data.frame()
 }
+```
 
-# test <- xgboost::xgb.DMatrix(data = df %>% as.matrix())
+
+```{r}
+models <- classify(df)
 test <- df %>% select(-labels) %>% as.matrix()
 pred <- make_predictions(models, test)
 
@@ -158,10 +135,9 @@ f1_score <- function(predicted, expected, positive.class="1") {
     res
 }
 
-df$labels <- df$labels %>% as.factor()
-pred$class <- factor(x = pred$class, levels = levels(df$labels))
+pred$class <- factor(x = pred$., levels = df$labels %>% as.factor() %>% levels())
 
-f1_score(pred$class, df$labels)
+f1_score(pred$class, df$labels %>% as.factor())
 
 # Vemos que los resultados obtenidos son mayormente buenos, donde los fallos
 # cometidos solo se dan una o dos clases arriba o abajo.
