@@ -258,11 +258,11 @@ comparison %>%
 
 Contamos con un dataset formado por dos atributos numéricos enteros, sobre un total de 600 instancias. Existe un desbalanceo alto (80%) sobre la clase minoritaria.
 
-Una visualización de los datos nos muestra que la clase positiva se encuentran agrupados en una sola zona central del espacio (no hay small disjuncts). Los gráficos nos hacen pensar en dos posibles hipótesis:
+Una visualización nos muestra que los datos de la clase positiva se encuentran agrupados en una sola zona central del espacio (no hay small disjuncts). Los gráficos nos hacen pensar en dos posibles hipótesis:
 
-1. Por un lado, podemos pensar que la clase negativa se superpone sobre la positiva. Tendríamos puntos ruidosos y fronteras difusas, pero no small disjuncts.
+1. Por un lado, podemos pensar que la clase negativa se superpone sobre la positiva. Tendríamos puntos ruidosos y fronteras difusas.
 
-2. Por otro, se puede considerar que la clase negativa no es un único clúster, sino 4 de ellos en zonas del espacio bastante cercanas, pero aún así separados. Con esta idea en mente, un método de undersampling o de eliminación de ruido que quite las franjas centrales de la clase negativa podría darnos unos muy buenos resultados en training, pero malos en test si realmente esos puntos son representativos.
+2. Por otro, se puede considerar que la clase minoritaria no está distribuída en un único clúster, sino en 4 de ellos en zonas del espacio bastante cercanas, pero aún así separados. Con esta idea en mente, un método de undersampling o de eliminación de ruido que quite las franjas centrales de la clase negativa podría darnos unos muy buenos resultados en training, pero malos en test si realmente esos puntos son representativos.
 
 Dependerá de la semántica del problema y de los atributos ver cuál de estos razonamientos sería más lógico. En principio,
 puesto que estamos entrenando con KNN, esta distribución de los datos vuelve la tarea un poco más difícil, favoreciendo la clasificación de la clase negativa.
@@ -376,8 +376,6 @@ Plot results comparison between models
 bwplot(results)
 ```
 
-En general mejores resultados para SMOTE, pero mayor variabilidad en specificity.
-
 # Visualize the data distribution between original and preprocess data.
 
 ```{r results="hold"}
@@ -484,3 +482,6 @@ plot_pie(mwmt$Class, "MWMOTE")
 plot_pie(ansmt$Class, "ANSMOTE")
 ```
 
+Sobre el aprendizaje, en general se obtienen mejores resultados para SMOTE, pero a costa de una mayor variabilidad en specificity.
+Por otro lado, ANSMOTE y MWMOTE se comportan de manera muy similar, y podemos ver en las gráficas y en los plost de tsne que los datasets resultantes se asemejan bastante.
+Finalmente, BLSMOTE parece obtener resultados más inestables en KNN, pero en media su comportamiento en specificity es muy bueno.

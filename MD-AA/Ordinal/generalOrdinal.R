@@ -2,6 +2,8 @@
 library(tidyverse)
 library(tree)
 
+# ------------------------------------------------------------------------------
+
 # Leer datos
 df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
 
@@ -16,6 +18,7 @@ colnames(df)[5] <- "labels"
 # Ordenar df por etiquetas
 df <- df %>% arrange(labels)
 
+# ------------------------------------------------------------------------------
 
 # Función para clasificar K-1 modelos
 classify <- function(df) {
@@ -43,6 +46,8 @@ classify <- function(df) {
   # Devolver modelos
   models
 }
+
+# ------------------------------------------------------------------------------
 
 # Función para calcular probabilidades reales y hacer predicciones
 make_predictions <- function(models, df) {
@@ -79,15 +84,60 @@ make_predictions <- function(models, df) {
     probs[length(row)] <- row[[length(row)]]
     
     # Devolver probabilidad máxima (y el índice)
+    # Si hay varias clases con la misma probabilidad se elige una al azar
     m  <- max(probs)
-    data.frame(class=which(probs == m), prob = m)
+    data.frame(class=which(probs == m)[1], prob = m)
   }) %>%
     reduce(bind_rows) # Juntar en un solo dataframe
 }
 
+# ------------------------------------------------------------------------------
 
 # Aplicar las funciones a nuestro dataset
 models <- classify(df)
-make_predictions(models, df %>% select(-labels))
+pred <- make_predictions(models, df %>% select(-labels))
 
-df %>% head()
+pred
+
+# ------------------------------------------------------------------------------
+
+# Ver medidas de aciertos
+f1_score <- function(predicted, expected, positive.class="1") {
+  res <- list()
+  
+  cm = as.matrix(table(expected, predicted))
+  res$cm <- cm
+  
+  tp <- diag(cm)
+  fp <- cm[lower.tri(cm)]
+  fn <- cm[upper.tri(cm)]
+  
+  res$precision <- tp / (tp + fp)
+  res$recall <- tp / (tp + fn)
+  
+  
+  f1 <-  ifelse(res$precision + res$recall == 0, 0,
+                2 * res$precision * res$recall / (res$precision + res$recall))
+  
+  #Assuming that F1 is zero when it's not possible compute it
+  f1[is.na(f1)] <- 0
+  res$precision[is.na(res$precision)] <- 0
+  res$recall[is.na(res$recall)] <- 0
+  
+  #Binary F1 or Multi-class macro-averaged F1
+  res$f1 <- ifelse(nlevels(expected) == 2, f1[positive.class], mean(f1))
+  
+  res
+}
+
+df$labels <- df$labels %>% as.factor()
+pred$class <- factor(x = pred$class, levels = levels(df$labels))
+
+f1_score(pred$class, df$labels)
+
+# Vemos que los resultados obtenidos son mayormente buenos, donde los fallos
+# cometidos solo se dan una o dos clases arriba o abajo.
+
+# Notamos que la predicción de las clases extremas (la 1 y la 9) no es en ningún
+# momento correcta. Es más, las probabilidades de estas clases son tan bajas en
+# cada caso que nunca se predicen.

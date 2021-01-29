@@ -11,6 +11,18 @@ Técnicas de preprocesamiento utilizadas - 2
       Peligro de elegir malos intervalos
       Posible influencia de valores extremos al generar intervalos muy grandes
 
+21: Se dejaba crecer el árbol CART al máximo y luego se buscaba la mejor poda con CV. Con C4.5 al tener el proceso de poda ya incluído solo se evaluaba.
+
+23: Discretización y normalización.
+Kmeans con clústers
+
+24: v3 muy básica con preprocesamiento mínimo (con ruido, )
+v8 y v9 es SMOTE con diferentes parámetros ?
+
+27: The depth of the tree grows linearly with the number of variables, but the number of branches grows exponentially with the number of states.
+Más difícil encontrar las particiones apropiadas
+
+28: Fine tuning de los hiperparámetros
 
 # Presentación
 
@@ -322,6 +334,16 @@ Se ha probado con:
 - ENN mediante multi_class
 
 # Enlaces
+
+- https://stats.stackexchange.com/questions/28029/training-a-decision-tree-against-unbalanced-data
+
+
+Imblearn Documentation
+- https://github.com/scikit-learn-contrib/imbalanced-learn
+Undersampling for Imbalanced Classification
+- https://machinelearningmastery.com/undersampling-algorithms-for-imbalanced-classification/
+Multi-class Imbalanced Classification
+- https://machinelearningmastery.com/multi-class-imbalanced-classification/
 
 - https://towardsdatascience.com/categorical-encoding-using-label-encoding-and-one-hot-encoder-911ef77fb5bd
 - https://scikit-learn.org/stable/modules/feature_selection.html
