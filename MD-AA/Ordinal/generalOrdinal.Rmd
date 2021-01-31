@@ -129,7 +129,7 @@ pred
 
 
 ```{r}
-# Ver medidas de aciertos
+# Ver medidas de aciertos (sobre entrenamiento)
 f1_score <- function(predicted, expected, positive.class="1") {
     res <- list()
     

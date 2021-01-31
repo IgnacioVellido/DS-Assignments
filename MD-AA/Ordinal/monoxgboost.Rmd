@@ -41,10 +41,11 @@ classify <- function(df) {
     num_part <- length(labels) - 1
     
     partitions <- vector("list", length(num_part))
+    partitions_labels <- vector("list", length(num_part))
     
     for(i in 1:num_part) {
       partitions[[i]] <- df
-      partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
+      partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels < i, 0, 1))
       
       # Para realizar el entrenamiento, necesitamos que las etiquetas se codifiquen
       # como factores
@@ -106,7 +107,7 @@ pred
 ```
 
 ```{r}
-# Ver medidas de aciertos
+# Ver medidas de aciertos (sobre entrenamiento)
 f1_score <- function(predicted, expected, positive.class="1") {
     res <- list()
     
@@ -138,26 +139,25 @@ f1_score <- function(predicted, expected, positive.class="1") {
 pred$class <- factor(x = pred$., levels = df$labels %>% as.factor() %>% levels())
 
 f1_score(pred$class, df$labels %>% as.factor())
-
-# Vemos que los resultados obtenidos son mayormente buenos, donde los fallos
-# cometidos solo se dan una o dos clases arriba o abajo.
-
-# Notamos que la predicción de las clases extremas (la 1 y la 9) no es en ningún
-# momento correcta. Es más, las probabilidades de estas clases son tan bajas en
-# cada caso que nunca se predicen.
 ```
 
-En esta segunda parte, se implementará un modelo similar de clasificación múltiple para problemas
-con restricciones de monotonía. Se utilizará el modelo OVA básico descrito en las diapositivas de
-teoría (diapositiva 107) con el algoritmo xgboost de R o Python, usando el parámetro
-monotone_constraints=1. Este algoritmo obtiene monotonía global en problemas binarios, por
-lo que es necesario hacer una descomposición que sea monótona-consistente. El resultado se generará
-en un fichero llamado monoxgboost.[R|py].
+```{r}
+# Probando con otro dataset
+df <- read_csv("data/era.arff", col_names = FALSE, skip = 47)
 
-•La propuesta OVA es simple:
-• Variante de Frank y Hall.
-• Preserva la monotonicidad y limita la L1.
-• hc(x) = 1[y ≥ c], clasificador binario que distingue clase menor
-que c de clase mayor igual que c, donde 1[condición] = 1 si
-condición, sino 0.
-• El clasificador multi-clase viene dado por:
+label_name <- colnames(df)[ncol(df)]
+df$labels <- df[[label_name]]
+df[[label_name]] <- NULL
+
+models <- classify(df)
+test <- df %>% select(-labels) %>% as.matrix()
+pred <- make_predictions(models, test)
+
+pred$class <- factor(x = pred$., levels = df$labels %>% as.factor() %>% levels())
+
+f1_score(pred$class, df$labels %>% as.factor())
+
+# Vemos que se violan bastanten restricciones de monoticidad. Si aumentáramos
+# el umbral de probabilidad para considerar un punto en una clase se reducierían
+# pero bajaría el porcentaje de acierto.
+```

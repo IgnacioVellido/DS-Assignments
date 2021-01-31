@@ -97,11 +97,9 @@ make_predictions <- function(models, df) {
 models <- classify(df)
 pred <- make_predictions(models, df %>% select(-labels))
 
-pred
-
 # ------------------------------------------------------------------------------
 
-# Ver medidas de aciertos
+# Ver medidas de aciertos (sobre entrenamiento)
 f1_score <- function(predicted, expected, positive.class="1") {
   res <- list()
   

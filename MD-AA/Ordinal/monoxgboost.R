@@ -2,14 +2,16 @@
 library(tidyverse)
 library(xgboost)
 
-# ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
 # Leer datos
 df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
+
 
 label_name <- colnames(df)[ncol(df)]
 df$labels <- df[[label_name]]
 df[[label_name]] <- NULL
+
 
 # ------------------------------------------------------------------------------
 
@@ -20,10 +22,11 @@ classify <- function(df) {
   num_part <- length(labels) - 1
   
   partitions <- vector("list", length(num_part))
+  partitions_labels <- vector("list", length(num_part))
   
   for(i in 1:num_part) {
     partitions[[i]] <- df
-    partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels <= i, 0, 1))
+    partitions[[i]] <- partitions[[i]] %>% mutate(labels = ifelse(labels < i, 0, 1))
     
     # Para realizar el entrenamiento, necesitamos que las etiquetas se codifiquen
     # como factores
@@ -41,6 +44,9 @@ classify <- function(df) {
   # Devolver modelos
   models
 }
+
+classify(df)
+
 
 # ------------------------------------------------------------------------------
 
@@ -74,15 +80,14 @@ make_predictions <- function(models, df) {
 
 # ------------------------------------------------------------------------------
 
+# Aplicar las funciones a nuestro dataset
 models <- classify(df)
 test <- df %>% select(-labels) %>% as.matrix()
 pred <- make_predictions(models, test)
 
-pred
-
 # ------------------------------------------------------------------------------
 
-# Ver medidas de aciertos
+# Ver medidas de aciertos (sobre entrenamiento)
 f1_score <- function(predicted, expected, positive.class="1") {
   res <- list()
   
@@ -117,9 +122,23 @@ f1_score(pred$class, df$labels %>% as.factor())
 
 # ------------------------------------------------------------------------------
 
-# Vemos que los resultados obtenidos son mayormente buenos, donde los fallos
-# cometidos solo se dan una o dos clases arriba o abajo.
+# Probando con otro dataset
+df <- read_csv("data/era.arff", col_names = FALSE, skip = 47)
 
-# Notamos que la predicción de las clases extremas (la 1 y la 9) no es en ningún
-# momento correcta. Es más, las probabilidades de estas clases son tan bajas en
-# cada caso que nunca se predicen.
+label_name <- colnames(df)[ncol(df)]
+df$labels <- df[[label_name]]
+df[[label_name]] <- NULL
+
+models <- classify(df)
+test <- df %>% select(-labels) %>% as.matrix()
+pred <- make_predictions(models, test)
+
+pred$class <- factor(x = pred$., levels = df$labels %>% as.factor() %>% levels())
+
+f1_score(pred$class, df$labels %>% as.factor())
+
+# ------------------------------------------------------------------------------
+
+# Vemos que se violan bastanten restricciones de monoticidad. Si aumentáramos
+# el umbral de probabilidad para considerar un punto en una clase se reducierían
+# pero bajaría el porcentaje de acierto.
