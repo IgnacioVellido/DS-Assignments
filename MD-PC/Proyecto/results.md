@@ -1,3 +1,7 @@
+Particiones binarias creadas de arriba a abajo de manera gready
+Sobresimplificación en CART
+Tocar el parámetro M para reducir la complejidad del árbol, haciendo que una hoja deba ser representativa de un buen grupo de instancias
+
 Desbalanceo pero la medida F1 minor está basada en accuracy, lo que penaliza la minoritaria
 
 Metodología

@@ -18,5 +18,7 @@ COPY testDocker.R /home/testDocker.R
 RUN cd /home && \
     Rscript /home/testDocker.R > /home/testOutput.txt
 
+EXPOSE 22
+
 # Launch R
 CMD [ "R" ]

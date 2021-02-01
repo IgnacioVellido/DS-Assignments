@@ -2,8 +2,8 @@
 library(tidyverse)
 library(xgboost)
 
-
 # ------------------------------------------------------------------------------
+
 # Leer datos
 df <- read_csv("data/esl.arff", col_names = FALSE, skip = 43)
 
