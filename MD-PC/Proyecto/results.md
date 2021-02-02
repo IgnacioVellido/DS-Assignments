@@ -1,4 +1,4 @@
-Particiones binarias creadas de arriba a abajo de manera gready
+Particiones binarias creadas de arriba a abajo de manera greedy
 Sobresimplificación en CART
 Tocar el parámetro M para reducir la complejidad del árbol, haciendo que una hoja deba ser representativa de un buen grupo de instancias
 
@@ -164,7 +164,7 @@ TODO:
    - ~16mil instancias duplicadas, pero de edificios diferentes. Es posible que sean de una misma urbanización/zona de una ciudad. Sorprendía que se repitieran por el count_families, pero la mayoría son de 1 sola (posiblemente sean casas).
    - Puede que haya valores perdidos no codificados como NA.
    - Los IDs de posición geográfica deberían ser relevantes para el problema (un solo terremoto y por tanto un solo epicentro). Ahora bien, suponiendo que IDs consecutivos son zonas cercanas, no se aprecia relación ni orden alguno.
-   - La información geográfica de geo_level 2 y 3 está codificada de manera resumida en geo_level_1. Merece la pena por tanto quitarse esas dos puesto que los algoritmos no aceptan variables categóricas con tan cantidad de categorías.
+   - La información geográfica de geo_level 2 y 3 está codificada de manera resumida en geo_level_1. Merece la pena por tanto quitarse esas dos puesto que los algoritmos no aceptan variables categóricas con tal cantidad de categorías.
    - plan_configuration, legal_ownership_status están muy desbalanceadas pero cada categoría contiene etiquetas de cada una de las clases, por lo que no sirven para determinar una de ellas.
 
 2. Aplicación de métodos de preprocesamiento en base a las ideas descubiertas.
@@ -203,7 +203,7 @@ TODO:
      - train 50%  = CV accuracy 63.68%, 0.6638 F1
      - train 80%  = CV accuracy 64.34%, 0.6686 F1
      - train 100% = CV accuracy 64.67%
-   - Parece que C4.5 funciona mejor con más datos y variables, probablemente porque hace proda tras conseguir el árbol. CART por el contrario no, se queda con un árbol pequeño así que la selección de instancias/características debe ser buena.
+   - Parece que C4.5 funciona mejor con más datos y variables, probablemente porque hace poda tras conseguir el árbol. CART por el contrario no, se queda con un árbol pequeño así que la selección de instancias/características debe ser buena.
  
 6. Punto 5 aumentando el conjunto de entrenamiento al 95%
    - Posible problema: Vienen de un one hot por lo que la reducción es enorme

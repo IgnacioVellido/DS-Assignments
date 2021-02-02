@@ -18,7 +18,8 @@ COPY testDocker.R /home/testDocker.R
 RUN cd /home && \
     Rscript /home/testDocker.R > /home/testOutput.txt
 
+# (For Azure)
 EXPOSE 22
 
 # Launch R
-CMD [ "R" ]
+# CMD [ "R" ]
