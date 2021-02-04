@@ -1,3 +1,5 @@
+// Ignacio Vellido Expósito
+
 // - Ejercicio 1: Crear en vuestra base de datos MongoDB la colección "restaurants" desde el archivo /var/tmp/restaurantes1.json conforme se indica en la transparencia 44 de la presentación sobre NoSQL. Elaborar el código MapReduce que resuelva la consulta:
 // "Obtener, para el barrio "Bronx", el par de restaurantes más próximos para cada "zipcode", mostrando el barrio, el nombre, la dirección, la distancia entre ellos y la cantidad de restaurantes evaluados para cada "zipcode", para aquellos restaurantes que hayan tenido un "score" mayor o igual que 11 en alguna ocasión".
 
@@ -69,30 +71,86 @@ db.runCommand({
 })
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 // - Ejercicio 2: Resolver la pregunta anterior usando un enfoque basado en el uso del operador aggregate.
 
 db.runCommand({
     aggregate: "restaurants",
     pipeline:[        
-        {$match: {  // Nos quedamos con los del barrio Bronx
+        {$match: {  // Nos quedamos con los del barrio Bronx de score >= 11
             "borough": "Bronx",
-            // "grades"
+            "grades.score": { $gt: 11 }
         }},
+
+        // Agrupamos por zipcode y nos quedamos con los campos relevantes
         {$group: {
-            _id: "$address.street",
+            _id: "$address.zipcode",
             CantidadRestaurantes: { $sum: 1 },
-            restaurantes: {$push: "$name"}
-        }},        
-        {$sort: {   // Ordenar de forma decreciente
-            CantidadRestaurantes: -1
+            restaurante1: {$push: {
+                info: {
+                    Nombre: "$name",
+                    Direccion: "$address"
+                },
+                lat: {$arrayElemAt: ["$address.coord", 0]},
+                long: {$arrayElemAt: ["$address.coord", 1]}
+            }},
+            restaurante2: {$push: {
+                info: {
+                    Nombre: "$name",
+                    Direccion: "$address"
+                },
+                lat: {$arrayElemAt: ["$address.coord", 0]},
+                long: {$arrayElemAt: ["$address.coord", 1]}
+            }},
         }},
+
+        // Desanidamos para tener parejas de todos contra todos
+        {$unwind: "$restaurante1"},
+        {$unwind: "$restaurante2"},
+
+         //Calcula la distancia entre cada par
         {$project: {
             _id: 0,
-            Calle: "$_id",
+            zipcode: "$_id",
+            CantidadRestaurantes: "$CantidadRestaurantes",
+            restaurante1: "$restaurante1.info",
+            restaurante2: "$restaurante2.info",
+            distancia:{ $sqrt: {$sum: [ {$pow: [{$subtract: ["$restaurante1.lat","$restaurante2.lat"]},   2]},
+                                        {$pow: [{$subtract: ["$restaurante1.long","$restaurante2.long"]}, 2]}
+                                    ]
+                        }}
+        }},
+
+        // Eliminamos parejas redundantes y aquellas a distancia 0 (sobre sí misma).
+        {$redact: {"$cond": [{$and:[{"$lt": ["$restaurante1.Nombre", "$restaurante2.Nombre"]},{"$ne":["$distancia",0.0]}]},"$$KEEP","$$PRUNE"]}},
+
+        // Volvemos a agrupar por zipcode
+        {$group: {
+            _id: "$zipcode",
+            CantidadRestaurantes: { $min: "$CantidadRestaurantes" },    // El array contiene el mismo valor
+            "dist_min": {$min: "$distancia"}, // Obtenemos las distancia mínima para cada país
+            
+            "parejas": {$push: {
+                restaurante1: "$restaurante1", 
+                restaurante2: "$restaurante2", 
+                distancia: "$distancia"
+            }}
+        }},
+
+        {$unwind: "$parejas"}, // Desanidamos las parejas
+
+        // Cogemos pareja a distancia mínima
+        {$redact: {"$cond": [{"$eq": ["$dist_min", "$parejas.distancia"]}, "$$KEEP", "$$PRUNE"]}},
+
+        // Proyectamos los datos pedidos
+        {$project: {
+            _id: 0,
+            Barrio: "Bronx",
             CantidadRestaurantes: { $toInt : "$CantidadRestaurantes" },
-            Restaurantes: "$restaurantes"
+            Restaurantes: "$parejas",
         }}
     ],
-    cursor: { batchSize: 1 }    // Quedarnos con el primero
+    allowDiskUse: true,
+    cursor: { batchSize: 10 }
 })
