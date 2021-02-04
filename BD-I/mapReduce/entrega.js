@@ -1,7 +1,6 @@
 // Ignacio Vellido Expósito
 
-// - Ejercicio 1: Crear en vuestra base de datos MongoDB la colección "restaurants" desde el archivo /var/tmp/restaurantes1.json conforme se indica en la transparencia 44 de la presentación sobre NoSQL. Elaborar el código MapReduce que resuelva la consulta:
-// "Obtener, para el barrio "Bronx", el par de restaurantes más próximos para cada "zipcode", mostrando el barrio, el nombre, la dirección, la distancia entre ellos y la cantidad de restaurantes evaluados para cada "zipcode", para aquellos restaurantes que hayan tenido un "score" mayor o igual que 11 en alguna ocasión".
+// - Ejercicio 1: "Obtener, para el barrio "Bronx", el par de restaurantes más próximos para cada "zipcode", mostrando el barrio, el nombre, la dirección, la distancia entre ellos y la cantidad de restaurantes evaluados para cada "zipcode", para aquellos restaurantes que hayan tenido un "score" mayor o igual que 11 en alguna ocasión".
 
 db.runCommand({
     mapReduce: "restaurants",
@@ -61,7 +60,7 @@ db.runCommand({
             "Restaurantes Evaluados": reduced.Contador,
             "Restaurante 1": rest1,
             "Restaurante 2": rest2,
-            "Distancia entre ellos": min_dist
+            "Distancia entre ellos": Math.sqrt(min_dist)
         };
     },
     // Nos quedamos solo con los del barrio Bronx de score >= 11
@@ -109,7 +108,7 @@ db.runCommand({
         {$unwind: "$restaurante1"},
         {$unwind: "$restaurante2"},
 
-         //Calcula la distancia entre cada par
+        // Calcula la distancia entre cada par
         {$project: {
             _id: 0,
             zipcode: "$_id",
@@ -152,5 +151,5 @@ db.runCommand({
         }}
     ],
     allowDiskUse: true,
-    cursor: { batchSize: 10 }
+    cursor: { batchSize: 1000 }
 })
