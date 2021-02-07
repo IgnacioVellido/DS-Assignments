@@ -1,0 +1,60 @@
+-------------------------
+Base de datos
+-------------------------
+https://archive.ics.uci.edu/ml/datasets/Internet+Firewall+Data
+https://archive.ics.uci.edu/ml/machine-learning-databases/00542/log2.csv
+
+-------------------------
+Consultas
+-------------------------
+
+Tras descargar el .csv, debemos cargarlo en el HDFS.
+Primero lo movemos a una carpeta compartida para todos los usuarios
+  mv Downloads/log2.csv /var/tmp/materialImpala/log2.csv
+
+Nos metemos ahora en el usuario de impala
+  sudo bash
+  su - impala
+
+Creamos el directorio en HDFS
+  hdfs dfs -mkdir /user/impala/input
+
+Cargamos los datos en el directorio
+  hdfs dfs -put /var/tmp/materialImpala/log2.csv /user/impala/input
+
+Entramos en Impala
+  impala-shell
+
+Creamos la tabla donde ingestar los datos (Si algún campo de SMALLINT sobresale el límite de memoria Impala añade más espacio automáticamente)
+  CREATE TABLE IF NOT EXISTS Firewall
+    (
+      SourcePort SMALLINT,
+      DestinationPort SMALLINT,
+      NATSourcePort SMALLINT,
+      NATDestinationPort SMALLINT,
+      Action STRING,
+      Bytes	 INT,
+      BytesSent  INT,
+      BytesReceived  INT,
+      Packets  INT,
+      ElapsedTime  SMALLINT,
+      pktsSent  INT,
+      pktsReceived  INT
+    )
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE LOCATION '/user/impala/impalastore.db';
+
+Cargamos los datos en la tabla
+  LOAD DATA INPATH '/user/impala/input/log2.csv' OVERWRITE INTO TABLE Firewall;
+
+Aplicamos la consulta: Obtener los 3 puertos de destino con más peticiones permitidas, mostrando este número de peticiones y el tiempo medio implicado
+  SELECT DestinationPort, COUNT(*), AVG(ElapsedTime) FROM Firewall
+    WHERE Action = "allow"
+    GROUP BY DestinationPort
+    ORDER BY 2 DESC
+    LIMIT 3;
+
+- En el SELECT indicamos los campos a proyectar
+- En el WHERE seleccionamos aquellas instancias de peticiones que el firewall ha permitido
+- Para poder aplicar el COUNT y el AVG, agrupamos por puertos de destino
+- Ordenamos en orden decreciente por la cuenta de peticiones y con el LIMIT nos quedamos con los 3 puertos pedidos.
