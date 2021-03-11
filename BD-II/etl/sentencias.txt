@@ -1,0 +1,86 @@
+-------------------------
+Base de datos
+-------------------------
+https://archive.ics.uci.edu/ml/datasets/Internet+Firewall+Data
+https://archive.ics.uci.edu/ml/machine-learning-databases/00542/log2.csv
+
+-------------------------
+Sentencias
+-------------------------
+
+Tras descargar el .csv, debemos cargarlo en HDFS.
+  mv Downloads/log2.csv /var/tmp/materialPig/log2.csv
+
+Creamos el directorio en HDFS
+  hdfs dfs -mkdir input
+
+Cargamos los datos en el directorio
+  hdfs dfs -put /var/tmp/materialPig/log2.csv input
+
+Entramos en Pig
+  pig
+
+Creamos esquema del flujo del que leer los datos
+  measure = load 'input/log2.csv' 
+            using PigStorage(',') 
+            as (
+              SourcePort:int ,
+              DestinationPort:int ,
+              NATSourcePort:int ,
+              NATDestinationPort:int ,
+              Action:chararray,
+              Bytes:int ,
+              BytesSent:int ,
+              BytesReceived:int ,
+              Packets:int ,
+              ElapsedTime:int ,
+              pktsSent:int ,
+              pktsReceived:int
+            );
+
+Aplicamos la consulta: 
+"Calcular la cantidad máxima de bytes enviados y la carga media por paquete 
+(en cualquier puerto de destino) para aquel puerto con más solicitudes al 
+puerto HTTPS (443)"
+
+- Seleccionamos las peticiones a HTTPS
+  all_ports = foreach measure generate DestinationPort, SourcePort;
+  https_ports = filter all_ports by DestinationPort==443;
+
+- Agrupamos por puerto de origen y calculamos el que ha realizado más peticiones
+  ports = group https_ports by SourcePort ;
+  groups = foreach ports generate group, COUNT(https_ports) as count;
+  max_port = limit (order groups by count desc) 1;
+
+(Hace falta renombrar COUNT para hacerle referencia en la expresión siguiente)
+
+- Filtramos peticiones por puerto de origen y calculamos la información solicitada
+  petitions = filter measure by SourcePort==max_port.group;
+  out = foreach (group petitions by SourcePort) 
+          generate group, 
+                    MAX(petitions.BytesSent), 
+                    (float)(SUM(petitions.BytesSent)/SUM(petitions.Packets));
+
+(Aunque todas las peticiones sean del mismo puerto, agrupamos para poder mostrarlo con facilidad)
+
+- Podemos mostrar el resultado con
+  dump out;
+
+- O guardarlo con
+  store out into 'pigResults/firewall' using PigStorage(',');
+
+-------------------------
+Sentencias en sucesión
+-------------------------
+
+all_ports = foreach measure generate DestinationPort, SourcePort;
+https_ports = filter all_ports by DestinationPort==443;
+ports = group https_ports by SourcePort ;
+groups = foreach ports generate group, COUNT(https_ports) as count;
+max_port = limit (order groups by count desc) 1;
+petitions = filter measure by SourcePort==max_port.group;
+out = foreach (group petitions by SourcePort) 
+        generate group, 
+                  MAX(petitions.BytesSent), 
+                  (float)(SUM(petitions.BytesSent)/SUM(petitions.Packets));
+dump out;
