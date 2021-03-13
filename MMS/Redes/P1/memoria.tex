@@ -32,11 +32,10 @@
          {¡}{{!``}}1
 }
 \usepackage{dsfont}
-\usepackage{subfigure}
 
 % ==============================================================================
 
-\usepackage{caption}
+\usepackage{caption, subcaption}
 \usepackage[section]{placeins}
 \makeatletter
 \def\fps@figure{H}
@@ -57,12 +56,21 @@
 \usepackage{xcolor}
 \usepackage[bottom]{footmisc}
 
+\makeatletter
+\newcommand*{\centerfloat}{%
+  \parindent \z@
+  \leftskip \z@ \@plus 1fil \@minus \textwidth
+  \rightskip\leftskip
+  \parfillskip \z@skip}
+\makeatother
+
 % ==============================================================================
 % ==============================================================================
 
 % Comando para poner el nombre de la asignatura
 \newcommand{\asignatura}{Minería de Medios Sociales}
-\newcommand{\autor}{Ignacio Vellido Expósito \\ ignaciove@correo.ugr.es \\ 79056166Z}
+\newcommand{\autor}{Ignacio Vellido Expósito}
+\newcommand{\email}{ignaciove@correo.ugr.es \\ 79056166Z}
 \newcommand{\titulo}{Práctica 1}
 \newcommand{\subtitulo}{Análisis y Visualización con Gephi}
 
@@ -91,18 +99,11 @@
 
     % ==============================================================================
 
-\section{Resultados}
-
-\section{Análisis de Red}
-
-\section{Análisis de Centralidad}
-
-\section{Estudio de Comunidades}
-
-\section{Anexos}
-
-% \begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/3.png}\end{figure}
-
+    \input{secciones/resultados} \newpage
+    % \input{secciones/red} \newpage
+    % \input{secciones/centralidad} \newpage
+    % \input{secciones/comunidades} \newpage
+    % \input{secciones/anexos} \newpage
 
     % ==============================================================================
 

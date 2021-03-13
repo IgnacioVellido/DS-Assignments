@@ -1,0 +1,19 @@
+\section{Análisis de Red}
+
+% A social network of LastFM users which was collected from the public API in March 2020. Nodes are LastFM users from Asian countries and edges are mutual follower relationships between them. The vertex features are extracted based on the artists liked by the users. The task related to the graph is multinomial node classification - one has to predict the location of users. This target feature was derived from the country field for each user.
+
+Para esta práctica se ha usado la red social \textbf{LastFMAsia}, que representa conexiones mutuas de amistad entre usuarios asiáticos de la plataforma LastFM. El dataset incluye además una variable \textit{target} que codifica el país de origen de cada uno de los usuarios, con un total de 17 opciones posibles.
+
+LastFM es una red social centrada en el ámbito músical, donde los usuarios pueden escuchar, comentar y debatir sobre sus gustos e intereses. De forma similar a Facebook, se permiten crear comunidades y foros de debate donde compartir información.
+
+Referencia: \url{http://snap.stanford.edu/data/feather-lastfm-social.html}
+
+\vspace{\baselineskip}
+
+Tenemos por tanto una red no dirigida y sin pesos, con una única componente conexa. La red se caracteriza por tener una gran dimensión pero muy baja densidad, aunque la distancia media no es alta debido a un buen grado medio global en la red.
+
+Apreciamos también un buen coeficiente de clustering, pero un tanto bajo para los habituales en redes sociales.
+
+\vspace{\baselineskip}
+
+En la figura ? vemos cláramente una ley de la potencia en la distribución de grados.
