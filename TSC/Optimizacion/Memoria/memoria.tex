@@ -1,0 +1,138 @@
+\documentclass[13pt,a4paper]{article}
+\usepackage[spanish,es-nodecimaldot]{babel}	% Utilizar español
+\usepackage[utf8]{inputenc}					% Caracteres UTF-8
+\usepackage{graphicx}						% Imagenes
+\usepackage[hidelinks]{hyperref}			% Poner enlaces sin marcarlos en rojo
+\usepackage{fancyhdr}						% Modificar encabezados y pies de pagina
+\usepackage{float}							% Insertar figuras
+\usepackage[textwidth=390pt]{geometry}		% Anchura de la pagina
+\usepackage[nottoc]{tocbibind}				% Referencias (no incluir num pagina indice en Indice)
+\usepackage{enumitem}						% Permitir enumerate con distintos simbolos
+% \usepackage[T1]{fontenc}					% Usar textsc en sections
+\usepackage{amsmath}						% Símbolos matemáticos
+\usepackage[ruled,vlined]{algorithm2e}      % Pseudocódigo
+\usepackage{xcolor}
+\usepackage{listings}
+% Para que acepten tíldes los listing
+\lstset{     
+     literate=%
+         {á}{{\'a}}1
+         {é}{{\'e}}1
+         {í}{{\'i}}1
+         {ó}{{\'o}}1
+         {ú}{{\'u}}1
+         {Á}{{\'A}}1
+         {É}{{\'E}}1
+         {Í}{{\'I}}1
+         {Ó}{{\'O}}1 
+         {Ú}{{\'U}}1
+         {ñ}{{\~n}}1 
+         {Ñ}{{\~N}}1 
+         {¿}{{?``}}1 
+         {¡}{{!``}}1
+}
+\usepackage{dsfont}
+\usepackage{subfigure}
+
+% ==============================================================================
+
+\usepackage{caption}
+\usepackage[section]{placeins}
+\makeatletter
+\def\fps@figure{H}
+\makeatother
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage[bottom]{footmisc}
+
+% ==============================================================================
+% ==============================================================================
+
+% Comando para poner el nombre de la asignatura
+\newcommand{\asignatura}{TSCAO}
+\newcommand{\autor}{Ignacio Vellido Expósito}
+\newcommand{\email}{ignaciove@correo.ugr.es}
+\newcommand{\titulo}{Optimización}
+\newcommand{\subtitulo}{Trabajo final}
+
+% Configuracion de encabezados y pies de pagina
+\pagestyle{fancy}
+\lhead{\autor{}}
+\rhead{\asignatura{}}
+\lfoot{Máster Ciencia de Datos e Ingeniería de Computadores}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}		% Linea cabeza de pagina
+\renewcommand{\footrulewidth}{0.4pt}		% Linea pie de pagina
+
+% ==============================================================================
+% ==============================================================================
+
+\begin{document}
+    \pagenumbering{gobble}
+    \input{portada/portada}
+    
+    \pagenumbering{arabic}    
+    \newpage
+
+    % ==============================================================================
+
+\section{Parte 1}
+
+\textbf{El problema de los árboles frutales}
+
+\vspace{\baselineskip}
+
+Un agricultor dispone de una superficie de 640m² para cultivar naranjos, perales, manzanos y
+limoneros. La cuestión es cómo debe distribuir la superficie entre los árboles para maximizar
+los beneficios teniendo la siguiente información:
+
+\begin{itemize}
+    \item Los naranjos necesitan un mínimo de 16m², los perales necesitan 4m², los manzanos 8m² y cada limonero necesita 12m².
+    \item El agricultor dispone de 900 horas de trabajo al año. Las demandas de los diferentes árboles son: cada naranjo 30 horas, cada peral 5 horas, cada manzano 10 horas y cada limonero 20 horas.
+    \item Debido a las restricciones, el agua disponible para el riego es de 200m³ al año. La demanda de agua (por año y árbol) es: naranjo: 2m³, peral 3m³, manzano: 1m³ y limonero 2m³.
+    \item Los beneficios (por año y árbol) son de 50, 25, 20 y 30 euros para los naranjos, perales, manzanos y limoneros respectivamente.
+\end{itemize}
+
+Se plantea el problema de la siguiente forma:
+\begin{lstlisting}[mathescape=true]
+    N = Número de naranjos
+    M = Número de manzanos
+    L = Número de limoneros
+    P = Número de perales
+
+    max    50N + 25P + 20M + 30L 
+    s.t.   16N +  4P +  8M + 12L $\leq$ 640
+           30N +  5P + 10M + 20L $\leq$ 900
+            2N +  3P +   M +  2L $\leq$ 200
+             N,    P,    M,    L $\geq$   0
+\end{lstlisting}
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/solver.png}\caption{Resolución del problema de los árboles frutales.}\end{figure}
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/solver2.png}\caption{Resolución del problema de la cervecería.}\end{figure}
+
+\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/solver3.png}\caption{Resolución del problema de la distribución de mercancías.}\end{figure}
+
+\section{Parte 2}
+
+    \setlength{\parskip}{1em}
+    
+    % ==============================================================================
+    
+    \newpage
+\end{document}
+
+% ==============================================================================
+% ==============================================================================
