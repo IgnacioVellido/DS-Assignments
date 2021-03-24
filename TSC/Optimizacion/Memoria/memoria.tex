@@ -127,10 +127,42 @@ Se plantea el problema de la siguiente forma:
 
 \section{Parte 2}
 
-    \setlength{\parskip}{1em}
-    
+\begin{figure}[H]
+    \centering
+    \resizebox{0.75\columnwidth}{!}{%
+    \begin{tabular}{| l || c | c | c |} 
+        \hline
+        \textbf{Heurística} & \multicolumn{3}{c |}{\textbf{Problema}} \\
+        \Xhline{2\arrayrulewidth}
+        & A & B & C \\
+        \hline
+        Greedy & 1862 & 5032 & 7851 \\
+        \hline
+        Borukva & 1915 & 5166 & 7861 \\
+        \hline
+        Quick Borukva & 1872 & 5379 & 8117 \\
+        \hline
+        Nearest Neighbour & 2057 & 5681 & 8740 \\
+        \hline
+        Lin Kernighan Default (+ Greedy) & 1644 & 4487 & 6848 \\
+        \hline
+        Lin Kernighan 10 kicks & 1668 & 4738 & 7196 \\
+        \hline
+        Lin Kernighan 100 kicks & 1634 & 4601 & 7098 \\
+        \hline
+        Lin Kernighan + Quick Borukva & 1630 & 4501 & 6910 \\
+        \hline
+        Random & 26086 & 149247 & 297518 \\
+        \hline
+    \end{tabular}
+    }
+    \caption{Resultados de distancia de cada heurística para los diferentes problemas TSP.}
+\end{figure}
+
+
+  
     % ==============================================================================
-    
+    \setlength{\parskip}{1em}
     \newpage
 \end{document}
 
