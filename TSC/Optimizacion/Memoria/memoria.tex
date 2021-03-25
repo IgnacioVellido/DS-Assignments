@@ -32,7 +32,7 @@
          {¡}{{!``}}1
 }
 \usepackage{dsfont}
-\usepackage{subfigure}
+\usepackage{caption, subcaption}
 
 % ==============================================================================
 
@@ -105,6 +105,8 @@ los beneficios teniendo la siguiente información:
     \item Los beneficios (por año y árbol) son de 50, 25, 20 y 30 euros para los naranjos, perales, manzanos y limoneros respectivamente.
 \end{itemize}
 
+\vspace{\baselineskip}
+
 Se plantea el problema de la siguiente forma:
 \begin{lstlisting}[mathescape=true]
     N = Número de naranjos
@@ -119,11 +121,13 @@ Se plantea el problema de la siguiente forma:
              N,    P,    M,    L $\geq$   0
 \end{lstlisting}
 
-\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/solver.png}\caption{Resolución del problema de los árboles frutales.}\end{figure}
+\begin{figure}[t]\center\includegraphics[width=.95\linewidth]{img/solver.png}\caption{Resolución del problema de los árboles frutales.}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/solver2.png}\caption{Resolución del problema de la cervecería.}\end{figure}
+\begin{figure}[b]\center\includegraphics[width=.95\linewidth]{img/solver2.png}\caption{Resolución del problema de la cervecería.}\end{figure}
 
-\begin{figure}[H]\center\includegraphics[width=.95\linewidth]{img/solver3.png}\caption{Resolución del problema de la distribución de mercancías.}\end{figure}
+\begin{figure}[t]\center\includegraphics[width=.95\linewidth]{img/solver3.png}\caption{Resolución del problema de la distribución de mercancías.}\end{figure}
+
+\newpage
 
 \section{Parte 2}
 
@@ -134,7 +138,7 @@ Se plantea el problema de la siguiente forma:
         \hline
         \textbf{Heurística} & \multicolumn{3}{c |}{\textbf{Problema}} \\
         \Xhline{2\arrayrulewidth}
-        & A & B & C \\
+        & bcl380 & icw1483 & bck2217 \\
         \hline
         Greedy & 1862 & 5032 & 7851 \\
         \hline
@@ -159,8 +163,198 @@ Se plantea el problema de la siguiente forma:
     \caption{Resultados de distancia de cada heurística para los diferentes problemas TSP.}
 \end{figure}
 
+Lin Kernighan obtiene los mejores resultados para cada uno de los problemas, a costa de un mayor tiempo de cómputo. Entre el resto (y a excepción de Nearest Neighbour) no existen diferencias suficientemente significas en la calidad de las soluciones encontradas, aunque la heurística Greedy es la que obtiene mejores resultados en estas instancias de TSP.
 
+\vspace{\baselineskip}
+
+Los cambios en los parámetros de la heurística Lin Kernighan dan resultados inconsistentes, pero apreciamos que el decremento del número de ``kicks'' (por defecto igual al número de nodos) influye negativamente en la longitud de los caminos encontrados.
+
+También notamos que el cambio del algoritmo inicial afecta en tiempo de cómputo pero apenas en los resultados obtenidos, siendo en general ligeramente inferiores pasando de Greedy a Quick Borukva.
+
+\begin{figure}[b]
+    \centering 
+    \begin{subfigure}[t]{0.3\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{img/1/G.png}
+      \caption{Greedy.}
+    \end{subfigure}
+    % \vspace{7mm}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/B.png}
+        \caption{Borukva.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{img/1/Q.png}
+      \caption{Quick Borukva.}
+    \end{subfigure}
+
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/N.png}
+        \caption{Nearest Neighbour.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/L1.png}
+        \caption{Lin Kernighan Default.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/L10.png}
+        \caption{Lin Kernighan 10 kicks.}
+    \end{subfigure}
+
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/L100.png}
+        \caption{Lin Kernighan 100 kicks.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/L+Q.png}
+        \caption{L.K + Quick Borukva.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/1/R.png}
+        \caption{Random.}
+    \end{subfigure}
+    \caption{Rutas calculadas por cada heurística para el problema bcl380.}
+\end{figure}
   
+\begin{figure}[t]
+    \centering 
+    \begin{subfigure}[t]{0.3\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{img/2/G.png}
+      \caption{Greedy.}
+    \end{subfigure}
+    % \vspace{7mm}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/B.png}
+        \caption{Borukva.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{img/2/Q.png}
+      \caption{Quick Borukva.}
+    \end{subfigure}
+
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/N.png}
+        \caption{Nearest Neighbour.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/L1.png}
+        \caption{Lin Kernighan Default.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/L10.png}
+        \caption{Lin Kernighan 10 kicks.}
+    \end{subfigure}
+
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/L100.png}
+        \caption{Lin Kernighan 100 kicks.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/L+Q.png}
+        \caption{L.K + Quick Borukva.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/2/R.png}
+        \caption{Random.}
+    \end{subfigure}
+    \caption{Rutas calculadas por cada heurística para el problema icw1483.}
+\end{figure}
+
+
+\begin{figure}[b]
+    \centering 
+    \begin{subfigure}[t]{0.3\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{img/3/G.png}
+      \caption{Greedy.}
+    \end{subfigure}
+    % \vspace{7mm}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/B.png}
+        \caption{Borukva.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{img/3/Q.png}
+      \caption{Quick Borukva.}
+    \end{subfigure}
+
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/N.png}
+        \caption{Nearest Neighbour.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/L1.png}
+        \caption{Lin Kernighan Default.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/L10.png}
+        \caption{Lin Kernighan 10 kicks.}
+    \end{subfigure}
+
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/L100.png}
+        \caption{Lin Kernighan 100 kicks.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/L+Q.png}
+        \caption{L.K + Quick Borukva.}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/3/R.png}
+        \caption{Random.}
+    \end{subfigure}
+    \caption{Rutas calculadas por cada heurística para el problema bck2217.}
+\end{figure}
+
     % ==============================================================================
     \setlength{\parskip}{1em}
     \newpage
