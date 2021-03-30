@@ -113,65 +113,147 @@
 
 \subsection{Pseudocódigos}
 
+\subsubsection{Greedy}
+
 Un algoritmo greedy se define de la siguiente forma:
 
 \begin{algorithm}[H]
     \SetAlgoLined
-    \KwIn{Conjunto de datos}
+    \KwIn{datos: Conjunto de datos}
         sol = solución actual vacía \;
         \Repeat{hasta que sol sea un solución} {
-            sol += elegirCandidatoGreedy(sol) \;
+            sol += elegirCandidatoGreedy(sol, datos) \;
         }        
     \Return{sol}
     \caption{Pseudocódigo algoritmo greedy}
 \end{algorithm}
 
-% Pudiendo ser elegirCandidatoGreedy:
-
 \vspace{\baselineskip}
+
+Pudiendo ser \textbf{elegirCandidatoGreedy}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{candidato no presente en sol con mayor distancia a los elementos en sol}
+    \caption{elegirCandidatoGreedy}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\subsubsection{Semi-Greedy}
 
 Un algoritmo semi-greedy se define de la siguiente forma:
 
 \begin{algorithm}[H]
     \SetAlgoLined
-    \KwIn{Conjunto de datos}
+    \KwIn{datos: Conjunto de datos}
         sol = solución actual vacía \;
         \Repeat{hasta que sol sea un solución} {
-            candidatos = elegirMejoresCandidatosGreedy(sol) \;
+            candidatos = elegirMejoresCandidatosGreedy(sol, datos) \;
             sol += random(candidatos) \;
         }        
     \Return{sol}
     \caption{Pseudocódigo algoritmo semi-greedy}
 \end{algorithm}
 
-% Pudiendo ser elegirMejoresCandidatosGreedy:
-
 \vspace{\baselineskip}
+
+Pudiendo ser \textbf{elegirMejoresCandidatosGreedy}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{N candidatos no presentes en sol ordenados por mayor distancia a sol}
+    \caption{elegirMejoresCandidatosGreedy}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\subsubsection{Iterated-Greedy}
 
 Un algoritmo de iterated-greedy se define de la siguiente forma:
 
 \begin{algorithm}[H]
     \SetAlgoLined
-    \KwIn{Conjunto de datos}
+    \KwIn{datos: Conjunto de datos}
         sol = solución actual vacía \;
         \Repeat{hasta que sol cumpla los criterios de parada} {
-            xp = destrucción(sol) \;
-            xc = construcción(xp) \;
-            sol = aceptar(sol, xc)
+            xd = destrucción(sol) \;
+            xc = construcción(xd, datos) \;
+            sol = aceptar(sol, xc) \;
         }        
     \Return{sol}
     \caption{Pseudocódigo algoritmo iterated-greedy}
 \end{algorithm}
 
-% Pudiendo ser destrucción:
+\vspace{\baselineskip}
 
-% Pudiendo ser construcción:
+Pudiendo ser \textbf{destrucción}:
 
-% Pudiendo ser aceptar:
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol}
+        sol = quitar N elementos aleatorios de la solución sol
+    \Return{sol}
+    \caption{destrucción}
+\end{algorithm}
 
-\subsection{Operador de vecindario}
+\vspace{\baselineskip}
 
-\subsection{Algoritmo de búsqueda local}
+Pudiendo ser \textbf{construcción}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{candidato no presente en sol con mayor distancia a los elementos en sol}
+    \caption{construcción}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser \textbf{aceptar}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, temp}
+        best = sol \;
+        \uIf{diversidad(temp) $>$ diversidad(sol)}{
+            best = temp \;
+        }         
+    \Return{best}
+    \caption{aceptar}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\subsection{Búsqueda local}
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{datos: Conjunto de datos}
+        sol = solución aleatoria válida \;
+        candidatos = vecindario(sol) \;
+        \Repeat{hasta que candidatos esté vacía} {
+            sol = best(candidatos) \;
+            candidatos = vecindario(sol) \;
+        }        
+    \Return{sol}
+    \caption{Pseudocódigo algoritmo de búsqueda local}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser un posible operador de vecindario:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{sustituir elemento i de sol}
+    \caption{Operador de vecindario}
+\end{algorithm}
+
+% ---------------------------------------------------------------
 
 \subsection{Algoritmo genético}
 
@@ -180,7 +262,41 @@ Un algoritmo de iterated-greedy se define de la siguiente forma:
 % Operador cruce
 % Inicialización de población
 
+Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando si un elemento $x_{i}$ está presente o no en el subconjunto solución.
+
+\vspace{\baselineskip}
+
+De esta forma tendríamos como operadores de cruce y mutación:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol1, sol2}
+        sol = solución vacía \;
+        first = seleccionar $n/2$ elementos incluídos en sol1 \;
+        second = seleccionar $n/2$ elementos incluídos en sol2 \;
+        sol = first + second \;        
+        \tcc{Reparar}
+        sol = añadir o quitar elementos aleatoriamente hasta que sol sea válida \;
+    \Return{sol}
+    \caption{Operador de cruce}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol}
+        sol = quitar $n$ elementos de sol aleatoriamente y añadir $n$ aleatoriamente \;
+    \Return{sol}
+    \caption{Operador de mutación}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Y una inicialización correspondería a seleccionar $m$ elementos de $x$ de forma aleatoria.
+
 % ==============================================================================================
+\newpage
 
 \section{Multidimensional two-way number partitioning problem (M2NP)}
 
