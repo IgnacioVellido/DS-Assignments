@@ -170,6 +170,8 @@ Pudiendo ser \textbf{elegirMejoresCandidatosGreedy}:
 
 % ---------------------------------------------------------------
 
+\newpage
+
 \subsubsection{Iterated-Greedy}
 
 Un algoritmo de iterated-greedy se define de la siguiente forma:
@@ -194,7 +196,7 @@ Pudiendo ser \textbf{destrucción}:
 \begin{algorithm}[H]
     \SetAlgoLined
     \KwIn{sol}
-        sol = quitar N elementos aleatorios de la solución sol
+        sol = quitar N elementos aleatorios de la solución sol \;
     \Return{sol}
     \caption{destrucción}
 \end{algorithm}
@@ -227,6 +229,8 @@ Pudiendo ser \textbf{aceptar}:
 
 % ---------------------------------------------------------------
 
+\newpage
+
 \subsection{Búsqueda local}
 
 \begin{algorithm}[H]
@@ -249,18 +253,13 @@ Pudiendo ser un posible operador de vecindario:
 \begin{algorithm}[H]
     \SetAlgoLined
     \KwIn{sol, datos}        
-    \Return{sustituir elemento i de sol}
+    \Return{sustituir elemento $i$ de sol por elemento $j$}
     \caption{Operador de vecindario}
 \end{algorithm}
 
 % ---------------------------------------------------------------
 
 \subsection{Algoritmo genético}
-
-% Representación (cromosomas)
-% Operador mutación
-% Operador cruce
-% Inicialización de población
 
 Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando si un elemento $x_{i}$ está presente o no en el subconjunto solución.
 
@@ -315,72 +314,195 @@ Y una inicialización correspondería a seleccionar $m$ elementos de $x$ de form
     \item Vera, J. \& Macías, Rodrigo \& Heiser, Willem. (2009). A Latent Class Multidimensional Scaling Model for Two-Way One-Mode Continuous Rating Dissimilarity Data. Psychometrika. 74. 297-315. 10.1007/s11336-008-9104-x.
 \end{itemize}
 
+\newpage
+
+\subsection{Pseudocódigos}
+
+\subsubsection{Greedy}
+
+Siendo $t$ el valor de la función objetivo a minimizar, un posible algoritmo greedy se define de la siguiente forma:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{datos: Conjunto de datos}
+        sol = solución actual vacía \;
+        i = 0 \;
+        \Repeat{hasta que sol sea un solución} {
+            sol = elegirCandidatoGreedy(sol, datos, i) \;
+            i++ \;
+        }        
+    \Return{sol}
+    \caption{Pseudocódigo algoritmo greedy}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser \textbf{elegirCandidatoGreedy}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos, i}
+        sol = añadir $datos_{i}$ al subconjunto de sol que menos incremente $t$ \;
+    \Return{sol}
+    \caption{elegirCandidatoGreedy}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\subsubsection{Semi-Greedy}
+
+Un algoritmo semi-greedy se define de la siguiente forma:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{datos: Conjunto de datos}
+        sol = solución actual vacía \;
+        \Repeat{hasta que sol sea un solución} {
+            candidatos = elegirMejoresCandidatosGreedy(sol, datos) \;
+            sol += random(candidatos) \;
+        }        
+    \Return{sol}
+    \caption{Pseudocódigo algoritmo semi-greedy}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser \textbf{elegirMejoresCandidatosGreedy}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{N candidatos no presentes en sol ordenados por menor incremento de $t$ en cualquier subconjunto}
+    \caption{elegirMejoresCandidatosGreedy}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\newpage
+
+\subsubsection{Iterated-Greedy}
+
+Un algoritmo de iterated-greedy se define de la siguiente forma:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{datos: Conjunto de datos}
+        sol = solución actual vacía \;
+        \Repeat{hasta que sol cumpla los criterios de parada} {
+            xd = destrucción(sol) \;
+            xc = construcción(xd, datos) \;
+            sol = aceptar(sol, xc) \;
+        }        
+    \Return{sol}
+    \caption{Pseudocódigo algoritmo iterated-greedy}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser \textbf{destrucción}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol}
+        sol = quitar elemento aleatorio de un subconjunto de sol \;
+    \Return{sol}
+    \caption{destrucción}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser \textbf{construcción}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{candidato no presente en sol que menos incremente $t$}
+    \caption{construcción}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser \textbf{aceptar}:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, temp}
+        best = sol \;
+        \uIf{$t_{temp} < t_{sol}$}{
+            best = temp \;
+        }         
+    \Return{best}
+    \caption{aceptar}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\newpage
+
+\subsection{Búsqueda local}
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{datos: Conjunto de datos}
+        sol = solución aleatoria válida \;
+        candidatos = vecindario(sol) \;
+        \Repeat{hasta que candidatos esté vacía} {
+            sol = best(candidatos) \;
+            candidatos = vecindario(sol) \;
+        }        
+    \Return{sol}
+    \caption{Pseudocódigo algoritmo de búsqueda local}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Pudiendo ser un posible operador de vecindario:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol, datos}        
+    \Return{sol cambiando elemento $i$ de subconjunto}
+    \caption{Operador de vecindario}
+\end{algorithm}
+
+% ---------------------------------------------------------------
+
+\subsection{Algoritmo genético}
+
+Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando a qué subconjunto un elemento $x_{i}$ pertenece.
+
+\vspace{\baselineskip}
+
+De esta forma tendríamos como operadores de cruce y mutación:
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol1, sol2}
+        sol = solución vacía \;
+        first = asignación en subconjuntos de $n/2$ elementos de sol1 \;
+        second = asignación en subconjuntos de $n/2$ elementos de sol2 \;
+        sol = first + second \;
+        \tcc{Reparar}
+        sol = incluir o quitar elementos aleatoriamente de los subconjuntos hasta que sol sea válida \;
+    \Return{sol}
+    \caption{Operador de cruce}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \KwIn{sol}
+        sol = cambiar $n$ elementos de subconjunto aleatoriamente \;
+    \Return{sol}
+    \caption{Operador de mutación}
+\end{algorithm}
+
+\vspace{\baselineskip}
+
+Y una inicialización asignar un subconjunto a cada elemento de forma aleatoria.
+
 % ==========================================================================================
-
-% La función objetivo en el problema PAR se calcula en base a la fórmula:
-
-% \begin{equation}
-%     f = \overline{C} + (infeasibility * \lambda)
-% \end{equation}
-
-% Siendo:
-
-% \begin{equation}
-%     \lambda = \frac{\max \{d_i \in D\}}{|R|} \quad tal\ que \ D = Distancias
-% \end{equation}
-
-% \begin{equation}
-%     infeasibility = \sum_{i=0}^{|ML|} \mathds{1}(h_{C}(\overrightarrow{ML_{[i,1]}}) \neq (h_{C}(\overrightarrow{ML_{[i,2]}}) + \sum_{i=0}^{|CL|} \mathds{1}(h_{C}(\overrightarrow{CL_{[i,1]}}) = (h_{C}(\overrightarrow{CL_{[i,2]}})
-% \end{equation}
-
-% \begin{equation}
-%     \overline{C} = \frac{1}{k} \sum_{c_{i}\in C} || \overrightarrow{x_j} - \overrightarrow{u_j} ||_{2}
-% \end{equation}
-
-% Que es calculada en pseudocódigo: \\
-
-% \begin{algorithm}[H]
-%     \SetAlgoLined
-%         C $=$ Distancia media intra-cluster \;
-%         $\lambda =$ Distancia máxima en el conjunto de datos / nº de restricciones  \;
-%         inf $=$ Nº restricciones no cumplidas \;
-%     \Return{C + ($\lambda *$ inf)}
-%     \caption{Función objetivo}
-% \end{algorithm}
-
-% \vspace{\baselineskip}
-
-% \begin{algorithm}[H]
-%     \SetAlgoLined
-%     \KwIn{Conjunto de datos, solucion, centroides}
-%         Separar conjunto de datos según su cluster \;
-%         \For{particion del conjunto de datos} {
-%             Calcular distancia media de sus elementos al centroide correspondiente \;
-%         }        
-%     \Return{C}
-%     \caption{Distancia media intra-cluster}
-% \end{algorithm}
-
-% \vspace{\baselineskip}
-
-% \begin{algorithm}[H]
-%     \SetAlgoLined
-%     \SetKw{KwInFor}{in}
-%     \KwIn{s: solución}
-%         inf $=$ 0 \;
-%         \For{r \textbf{in} $lista\_restricciones$} {
-%             \uIf{r $=$ ML \textbf{and} $s[r[0]] \neq s[r[1]]$} {
-%                 inf++ \;
-%             }            
-%             \uElseIf{r $=$ CL \textbf{and} $s[r[0]] = s[r[1]]$} {
-%                     inf++ \;
-%             }
-%         }
-%     \Return{inf}
-%     \caption{Infeasibility}
-% \end{algorithm}
-
-% =============================================================================================
 
 % MGS
 % https://www.scopus.com/results/results.uri?cc=10&sort=r-f&src=s&nlo=&nlr=&nls=&sid=7659d39a8257beebb53de9c8729fa21d&sot=b&sdt=cl&cluster=scosubjabbr%2c%22COMP%22%2ct&sl=37&s=TITLE-ABS-KEY%28minimum+generating+set%29&ss=r-f&ps=r-f&editSaveSearch=&origin=resultslist&zone=resultslist
