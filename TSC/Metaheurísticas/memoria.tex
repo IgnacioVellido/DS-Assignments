@@ -208,7 +208,7 @@ Pudiendo ser \textbf{construcción}:
 \begin{algorithm}[H]
     \SetAlgoLined
     \KwIn{sol, datos}        
-    \Return{candidato no presente en sol con mayor distancia a los elementos en sol}
+    \Return{los N candidatos no presentes en sol con mayor distancia a los elementos en sol}
     \caption{construcción}
 \end{algorithm}
 
@@ -253,7 +253,7 @@ Pudiendo ser un posible operador de vecindario:
 \begin{algorithm}[H]
     \SetAlgoLined
     \KwIn{sol, datos}        
-    \Return{sustituir elemento $i$ de sol por elemento $j$}
+    \Return{sustituir elemento $i$ de sol por elemento $j$ no presente en sol}
     \caption{Operador de vecindario}
 \end{algorithm}
 
@@ -261,7 +261,7 @@ Pudiendo ser un posible operador de vecindario:
 
 \subsection{Algoritmo genético}
 
-Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando si un elemento $x_{i}$ está presente o no en el subconjunto solución.
+Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando si el elemento $i$ está presente o no en el subconjunto solución.
 
 \vspace{\baselineskip}
 
@@ -327,8 +327,8 @@ Siendo $t$ el valor de la función objetivo a minimizar, un posible algoritmo gr
     \KwIn{datos: Conjunto de datos}
         sol = solución actual vacía \;
         i = 0 \;
-        \Repeat{hasta que sol sea un solución} {
-            sol = elegirCandidatoGreedy(sol, datos, i) \;
+        \ForEach{d \textbf{in} datos} {
+            sol = elegirCandidatoGreedy(sol, d) \;
             i++ \;
         }        
     \Return{sol}
@@ -341,8 +341,8 @@ Pudiendo ser \textbf{elegirCandidatoGreedy}:
 
 \begin{algorithm}[H]
     \SetAlgoLined
-    \KwIn{sol, datos, i}
-        sol = añadir $datos_{i}$ al subconjunto de sol que menos incremente $t$ \;
+    \KwIn{sol, d}
+        sol = añadir $d$ al subconjunto de sol que menos incremente $t$ \;
     \Return{sol}
     \caption{elegirCandidatoGreedy}
 \end{algorithm}
@@ -469,7 +469,7 @@ Pudiendo ser un posible operador de vecindario:
 
 \subsection{Algoritmo genético}
 
-Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando a qué subconjunto un elemento $x_{i}$ pertenece.
+Una posible representación podría ser un vector binario $x = (x_{0}, ..., x_{n})$ indicando a qué subconjunto el elemento $i$ pertenece.
 
 \vspace{\baselineskip}
 
