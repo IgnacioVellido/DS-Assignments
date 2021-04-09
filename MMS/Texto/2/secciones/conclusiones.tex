@@ -1,14 +1,20 @@
 \section{Conclusiones}
 
-\begin{table}[]
+\begin{table}[H]
+    \centering
     \begin{tabular}{|l|c|c|}
     \hline
     \textbf{Método}  & \textbf{Precisión} & \textbf{Kappa} \\ \hline
     MPQA             & 64.5               & 0.299          \\ \hline
     SentiWordNet     & 55.8               & 0.117          \\ \hline
-    SenticNet        & 58.3               & 0.167          \\ \hline \hline
+    SenticNet        & 58.3               & 0.167          \\ \hline
+    \hline
     Redes Neuronales & 82.5               & 0.65           \\ \hline
     Random Forest    & 91.0               & 0.82           \\ \hline
     \end{tabular}
     \caption{Tabla de resultados generales.}
 \end{table}
+
+Los resultados nos muestran una clara victoria de las técnicas de clasificación frente a los diccionarios.
+
+La heurística utilizada muestra efectos pobres, donde se ve una predicción excesiva de un solo sentimiento (dependiente según el lexicon).
