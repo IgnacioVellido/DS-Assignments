@@ -64,7 +64,7 @@
 \newcommand{\autor}{Ignacio Vellido Expósito}
 \newcommand{\email}{ignaciove@correo.ugr.es}
 \newcommand{\titulo}{Minería de Texto}
-\newcommand{\subtitulo}{Ejercicio con KNIME}
+\newcommand{\subtitulo}{Análisis de Sentimientos}
 
 % Configuracion de encabezados y pies de pagina
 \pagestyle{fancy}
@@ -88,34 +88,11 @@
 
     % ==============================================================================
 
-\section{Experimento}
+    % \input{secciones/clasificacion.tex}
+    % \input{secciones/analisis.tex}
+    % \input{secciones/conclusiones.tex}
 
-Para el ejercicio se ha usado un conjunto de tweets extraídos de la API gracias a la consulta \textbf{\#Oscars2021 lang:en}. El resultado obtenido es un conjunto de 977 tweets sobre el cuál se calcula una tag-cloud, un clustering jerárquico y un conjunto de reglas difusas.
-
-\vspace{\baselineskip}
-
-La lista de técnicas utilizadas en el preprocesamiento son:
-\begin{enumerate}
-    \item Eliminación de URLs y símbolos especiales.
-    \item Eliminación de tweets excesivamente cortos.
-    \item Filtrado de sustantivos.
-    \item Stemming.
-\end{enumerate}
-
-\vspace{\baselineskip}
-
-\begin{figure}[H]\center\includegraphics[width=.98\linewidth]{img/workflow.png}\caption{Workflow general del experimento.}\end{figure}
-
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/tagCloud.png}\caption{Tag cloud.}\end{figure}
-
-\begin{figure}[H]\center\includegraphics[width=.8\linewidth]{img/dendrograma.png}\caption{Dendrograma del análisis jerárquico.}\end{figure}
-
-\begin{figure}[t]\center\includegraphics[width=.95\linewidth]{img/clusters.png}\caption{Algunos de los clusters obtenidos.}\end{figure}
-
-\begin{figure}[b]\center\includegraphics[width=.95\linewidth]{img/reglas.png}\caption{Tabla de reglas.}\end{figure}
-
-
-% ==============================================================================
+    % ==============================================================================
 
     \setlength{\parskip}{1em}
     \newpage
