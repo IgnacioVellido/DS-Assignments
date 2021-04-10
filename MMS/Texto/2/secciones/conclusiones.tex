@@ -2,19 +2,28 @@
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{|l|c|c|}
-    \hline
-    \textbf{Método}  & \textbf{Precisión} & \textbf{Kappa} \\ \hline
-    MPQA             & 64.5               & 0.299          \\ \hline
-    SentiWordNet     & 55.8               & 0.117          \\ \hline
-    SenticNet        & 58.3               & 0.167          \\ \hline
-    \hline
-    Redes Neuronales & 82.5               & 0.65           \\ \hline
-    Random Forest    & 91.0               & 0.82           \\ \hline
-    \end{tabular}
+    \begin{tabular}{|l|c|c||c|c|c|}
+        \hline
+        \textbf{Método}  & \textbf{Accuracy} & \textbf{Kappa} & \multicolumn{1}{l|}{\textbf{Specificity}} & \multicolumn{1}{l|}{\textbf{Sensitivity}} & \multicolumn{1}{l|}{\textbf{F-measure}} \\ \hline
+        MPQA             & 64.5              & 0.299          & 0.591                                   & 0.768                                & 0.566                                   \\ \hline
+        SentiWordNet     & 55.8              & 0.117          & 0.657                                   & 0.525                                & 0.664                                   \\ \hline
+        SenticNet        & 58.3              & 0.167          & 0.559                                   & 0.637                                & 0.481                                   \\ \hline \hline
+
+        MPQA             & 70.5              & 0.415          & 0.649                                   & 0.800                                & 0.666                                   \\ \hline
+        SentiWordNet     & 52.5              & 0.05          & 0.572                                   & 0.515                                & 0.642                                   \\ \hline
+        SenticNet        & 57.1              & 0.143          & 0.577                                   & 0.566                                & 0.587                                   \\ \hline \hline
+
+        Redes Neuronales & 82.5              & 0.65           & 0.854                                   & 0.800                                & 0.832                                   \\ \hline
+        Random Forest    & 91.0              & 0.82           & 0.870                                   & 0.950                                & 0.913                                   \\ \hline
+        \end{tabular}
     \caption{Tabla de resultados generales.}
 \end{table}
 
 Los resultados nos muestran una clara victoria de las técnicas de clasificación frente a los diccionarios.
 
-La heurística utilizada muestra efectos pobres, donde se ve una predicción excesiva de un solo sentimiento (dependiente según el lexicon).
+Ambas heurísticas utilizadas en los diccionarios muestran efectos pobres, donde se ve una predicción excesiva de un solo sentimiento (dependiente según el lexicon). Con la segunda vemos que la predicción está más balanceada, mayormente para SenticNet, pero por desgracia esto no hace que mejore su accuracy, aunque sí el F-score.
+A pesar de esto la mejoría si es notoria en el corpus MPQA.
+
+\vspace{\baselineskip}
+
+Los valores de \textit{specificity} y \textit{sensitivity} nos muestran las tasas de verdaderos negativos/positivos respectivamente. A partir de ellas vemos una mayor tendencia general de los diferentes métodos a valorar positivamente cada una de las reviews.
