@@ -68,11 +68,11 @@
 % ==============================================================================
 
 % Comando para poner el nombre de la asignatura
-\newcommand{\asignatura}{Visión por Computador}
+\newcommand{\asignatura}{Minería de Procesos}
 \newcommand{\autor}{Ignacio Vellido Expósito}
 \newcommand{\email}{ignaciove@correo.ugr.es}
-\newcommand{\titulo}{Trabajo 1}
-\newcommand{\subtitulo}{Sistemas de Visión Artifical}
+\newcommand{\titulo}{Prácticas}
+\newcommand{\subtitulo}{1. Practice work with DISCO}
 
 % Configuración de encabezados y pies de pagina
 \pagestyle{fancy}
@@ -99,22 +99,43 @@
 
     % ==============================================================================
 
-    % \input{secciones/historia} \newpage
-    % \input{secciones/ejemplos} \newpage
-    % \input{secciones/descripcion} \newpage
-
-    El alumno/a desarrollará un documento que trate  acerca de los sistemas de visión artificial. Los puntos que debe tratar el documento son:
-
-    Historia de los sistemas de visión artificial.Inspiración en la visión humana. Elementos que constituyen un sistema de visión artificial.
-    Ejemplos de aplicaciones actuales de los sistemas de visión artificial.
-    Escoger una aplicación real y describir como se hace en cada etapa. Las etapas que debemos abordar son:
-    Adquisición de las imágenes o video
-    Preprocesamiento
-    Segmentación
-    Extracción de características
-    Clasificación
-
+\begin{enumerate}   
+  \item \textbf{Encuentra los tres empleados más activos. Indica qué tienen en común y compara sus respectivos procesos individuales.}
   
+  Se aprecia que aunque todos tienen el mismo puesto de trabajo (\textit{purchasing agent}), cumplen tareas diferentes en la cadena de venta de la empresa.
+
+  Vemos que Karel de Groot se especializa más en la generación y comparación de presupuestos, y estos son posiblemente evaluados por Magdalena Predutta, generando la orden de compra correspondiente. Por otro lado Francois de Perrier se encarga de evaluar las condiciones con el proveedor del producto y aprobar o no la propuesta de compra generada.
+
+  Sobre la duración de sus procesos, esta es muy similar, con una mediana de 24 minutos y un rango de duración rondando las 14 horas y media.
+
+  \item \textbf{Parece aquellos procesos de corta duración se diferencian de aquellos largos. ¿Cuál es esta diferencia?}
+  
+  La diferencia se da en que en los procesos largos aparece un evento nuevo, la corrección de la oferta para cumplir los requisitos del solicitante.
+
+  Tal y como vemos en la figura 1, el subproceso de analizar la propuesta y reevaluarla lleva una media de 15 días, que unido a la evaluación de la propuesta inicial, que va desde una media de 14 a 22 días según quién la proponga, extiende la duración del proceso completo.
+\end{enumerate}
+
+\begin{figure}[h]
+  \centerfloat
+  \includegraphics[width=0.42\textwidth]{img/1.png}
+  \caption{Duración de la evaluación de la nueva oferta.}
+\end{figure}
+
+\newpage
+
+\begin{figure}[t]
+  \centerfloat
+  \includegraphics[width=0.485\textwidth]{img/shortDuration_20_20.pdf}
+  \caption{Procesos de corta duración (20\%-20\%).}
+\end{figure}
+
+\newpage
+
+\begin{figure}[t]
+  \centerfloat
+  \includegraphics[width=0.515\textwidth]{img/longDuration_20_20.pdf}
+  \caption{Procesos de larga duración (20\%-20\%)  (case frequency).}
+\end{figure}
 
     % ==============================================================================
 
