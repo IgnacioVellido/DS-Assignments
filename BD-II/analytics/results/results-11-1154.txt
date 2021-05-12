@@ -1,0 +1,17 @@
+Date:	11-11:54
+------------------------
+Preprocessing:	ROS
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	NCNEdit
+Instance selection:	None
+------------------------
+Learning model:	decisionTree
+Number of final train instances: 981405.0
+------------------------
+TPR x TNR:	0.5481559563333334
+Accuracy:	0.815911
+Weighted FMeasure:	0.843311313067495
+Confusion Matrix:
+65766.0   34234.0   
+149855.0  750145.0  
+------------------------------------------
