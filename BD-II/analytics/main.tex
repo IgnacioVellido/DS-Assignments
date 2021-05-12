@@ -1,0 +1,111 @@
+\documentclass[13pt,a4paper]{article}
+\usepackage[spanish,es-nodecimaldot]{babel}	% Utilizar español
+\usepackage[utf8]{inputenc}					% Caracteres UTF-8
+\usepackage{graphicx}						% Imagenes
+\usepackage[hidelinks]{hyperref}			% Poner enlaces sin marcarlos en rojo
+\usepackage{fancyhdr}						% Modificar encabezados y pies de pagina
+\usepackage{float}							% Insertar figuras
+\usepackage[textwidth=390pt]{geometry}		% Anchura de la pagina
+\usepackage[nottoc]{tocbibind}				% Referencias (no incluir num pagina indice en Indice)
+\usepackage{enumitem}						% Permitir enumerate con distintos simbolos
+\usepackage[T1]{fontenc}					% Usar textsc en sections
+\usepackage{amsmath}						% Símbolos matemáticos
+\usepackage[ruled,vlined]{algorithm2e}      % Pseudocódigo
+\usepackage{xcolor}
+\usepackage{listings}
+% Para que acepten tíldes los listing
+\lstset{     
+     literate=%
+         {á}{{\'a}}1
+         {é}{{\'e}}1
+         {í}{{\'i}}1
+         {ó}{{\'o}}1
+         {ú}{{\'u}}1
+         {Á}{{\'A}}1
+         {É}{{\'E}}1
+         {Í}{{\'I}}1
+         {Ó}{{\'O}}1 
+         {Ú}{{\'U}}1
+         {ñ}{{\~n}}1 
+         {Ñ}{{\~N}}1 
+         {¿}{{?``}}1 
+         {¡}{{!``}}1
+}
+\usepackage{dsfont}
+
+% ==============================================================================
+
+\usepackage{caption, subcaption}
+\usepackage[section]{placeins}
+\makeatletter
+\def\fps@figure{H}
+\makeatother
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage[bottom]{footmisc}
+
+\makeatletter
+\newcommand*{\centerfloat}{%
+  \parindent \z@
+  \leftskip \z@ \@plus 1fil \@minus \textwidth
+  \rightskip\leftskip
+  \parfillskip \z@skip}
+\makeatother
+
+% ==============================================================================
+% ==============================================================================
+
+% Comando para poner el nombre de la asignatura
+\newcommand{\asignatura}{Big Data II}
+\newcommand{\autor}{Ignacio Vellido Expósito}
+\newcommand{\email}{ignaciove@correo.ugr.es}
+\newcommand{\titulo}{Práctica}
+\newcommand{\subtitulo}{Análisis de datos en Big Data}
+
+% Configuracion de encabezados y pies de pagina
+\pagestyle{fancy}
+\lhead{\autor{}}
+\rhead{\asignatura{}}
+\lfoot{Máster Ciencia de Datos e Ingeniería de Computadores}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}		% Linea cabeza de pagina
+\renewcommand{\footrulewidth}{0.4pt}		% Linea pie de pagina
+
+% ==============================================================================
+% ==============================================================================
+
+\begin{document}
+    \pagenumbering{gobble}
+    \input{portada/portada}
+    
+    \pagenumbering{arabic}
+    \tableofcontents
+    \thispagestyle{empty}				% No usar estilo en la pagina de indice
+
+    \newpage
+
+    % ==============================================================================
+
+    % \input{secciones/resultados} \newpage
+
+    % ==============================================================================
+
+    \setlength{\parskip}{1em}
+    \newpage
+    % \nocite{*}
+    % \bibliography{bibliografia}
+  	% \bibliographystyle{plain}
+\end{document}
