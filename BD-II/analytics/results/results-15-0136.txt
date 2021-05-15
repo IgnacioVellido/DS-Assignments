@@ -1,0 +1,17 @@
+Date:	15-01:36
+------------------------
+Preprocessing:	None
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	None
+Instance selection:	FCNN
+------------------------
+Learning model:	pcard
+Number of final train instances: 327863.0
+------------------------
+TPR x TNR:	0.18573219476666666
+Accuracy:	0.89657
+Weighted FMeasure:	0.8768311331961586
+Confusion Matrix:
+19049.0  80951.0   
+22479.0  877521.0  
+------------------------------------------

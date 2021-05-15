@@ -1,0 +1,17 @@
+Date:	14-03:40
+------------------------
+Preprocessing:	None
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	NCNEdit
+Instance selection:	None
+------------------------
+Learning model:	randomForest
+Number of final train instances: 878496.0
+------------------------
+TPR x TNR:	0.0
+Accuracy:	0.9
+Weighted FMeasure:	0.8526315789473684
+Confusion Matrix:
+0.0  100000.0  
+0.0  900000.0  
+------------------------------------------

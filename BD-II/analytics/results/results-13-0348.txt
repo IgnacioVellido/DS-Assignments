@@ -1,0 +1,17 @@
+Date:	13-03:48
+------------------------
+Preprocessing:	RUS
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	None
+Instance selection:	None
+------------------------
+Learning model:	decisionTree
+Number of final train instances: 200160.0
+------------------------
+TPR x TNR:	0.5893743924444445
+Accuracy:	0.753062
+Weighted FMeasure:	0.799641454652763
+Confusion Matrix:
+78652.0   21348.0   
+225590.0  674410.0  
+------------------------------------------
