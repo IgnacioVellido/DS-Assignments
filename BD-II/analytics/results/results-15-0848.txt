@@ -1,0 +1,18 @@
+Date:	15-08:48
+------------------------
+Feature selection:		None
+Preprocessing:	None
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	None
+Instance selection:	None
+------------------------
+Learning model:	knn
+Number of final train instances: 1000000.0
+------------------------
+TPR x TNR:	0.13353994224444446
+Accuracy:	0.887017
+Weighted FMeasure:	0.8649060459945315
+Confusion Matrix:
+13763.0  86237.0   
+26746.0  873254.0  
+------------------------------------------

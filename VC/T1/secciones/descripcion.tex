@@ -7,6 +7,43 @@
 %       Extracción de características
 %       Clasificación
 
+Vamos a describir el proceso de desarrollo del sistema de visión de un supuesto robot terapéutico, capaz de detectar y hablar a la cara de una persona. Adicionalmente buscamos poder identificar personas o clasificar expresiones faciales.
+% Existen diferentes formas de afrontar este problema, por un lado podríamos separar el problema en dos partes (localización y seguimiento de objetos, y detección de caras)
+\begin{enumerate}
+    \item \textbf{Adquisición}: El sistema de detección de caras debe incluir una cámara de vídeo de calidad suficiente para distinguir objetos en la escena. Puesto que vamos a aplicar técnicas de aprendizaje sobre las caras encontradas, necesitamos además una resolución buena y una buena capacidad de zoom (dependiente de la altura del robot).
+    
+    Adicionalmente, puesto que no se espera que los objetos en la imagen se muevan a alta velocidad, no es necesario contar con un framerate alto.
+
+    Otra posible opción sería acompañar la cámara de vídeo con otro de tipos de cámaras no independientes de la luminosidad. Esto nos forzaría a luego traspasar las regiones detectadas a la imagen normal, y por simplicidad vamos a suponer en este caso que contamos con una única cámara.
+
+    \item \textbf{Preprocesamiento}: Para facilitar la tarea de aprendizaje sería conveniente eliminar ruido de la imagen y ajustar el contraste de la imagen en base a las condiciones luminosas de la escena. Una forma simple con la que empezar podría ser un equalización de histograma, pero se podrían utilizar otras técnicas más complejas y adaptativas, por ejemplo haciendo uso de otros sensores que pudiera contar el robot.
+    
+    Según el tipo de aprendizaje que vayamos a utilizar podría sernos útil una representación solo de bordes de la imagen. En este caso vamos a suponer que tenemos datos suficientes y podemos utilizar técnicas de deep learning donde los detalles y colores de la imágen nos son útiles.
+
+    \item \textbf{Segmentación}:
+    Podría ser interesante poder segmentar los objetos del fondo, de cara a facilitar la tarea de aprendizaje.
+    
+    % Necesitamos por un lado ser capaces de distinguir las personas del resto de objetos en la escena, y una vez ahí separar la cara del resto del cuerpo 
+    
+    % La orientación de la cara debe ser relevante. Es importante poder reconocer una cabeza desde cualquier ángulo, y poder mantener un seguimiento de su ubicación cuando se rota alrededor de ella.
+    
+    % No necesitamos segmentar cada pixel de la imagen, solo la región espacial en la que se ubica la cara.
+
+    \item \textbf{Extracción de características}:
+    Podemos utilizar redes profundas como YOLO, donde no es necesario extraer características previas de la imagen. Por contrapartida esta red nos fuerza a que una vez tengamos las regiones de interés donde se encuentran las caras debamos comparar con frames anteriores para detectar cuál de estas regiones corresponde a la que estaba centrada el robot, de cara a no perder el ``interés'' de una cara por otra.
+
+    Otra forma sería extraer las regiones aparte y luego aplicar un entrenamiento sobre cada una de ellas. En este caso sería importante no perder la localización espacial de la región y que la técnica de aprendizaje sea flexible en el tamaño de estas.
+
+    También se podrían considerar usar descriptores de características como histogramas de gradientes orientados.
+    
+    \item \textbf{Entrenamiento}:
+    En cualquiera de los casos tratamos con técnicas de aprendizaje supervisado, por lo que necesitamos datos lo más representativos posibles.
+
+    Una vez obtenidas las regiones de interés podríamos llevar más allá el sistema realizando aprendizajes adicionales sobre ella, como identificación de personas o clasificación de sentimientos. En este caso probablemente la primera opción a considerar sería una red convolucional pre-entrenada del estado del arte, sobre la que podríamos aplicar transfer learning y fine tuning.
+
+    Por último, el sistema de tracking debe poder retroalimentar los actuadores del robot para volver a centrar la cara. Esto se podría realizar fácilmente segmentando la imagen en forma de brújula e indicando en qué sector se ubica la cara.
+\end{enumerate}
+
 % 3. Como ejemplo: Sistema de CV: Reconocimiento de matrículas de coche
 % Módulos (habría que desarrollarlos):
 % - Adquisición: Cámara (y características). No dependiente de la luminosidad: Infraroja. Múltiples para captar varios ángulos
@@ -17,8 +54,8 @@
 
 % Los módulos pueden estar conectados a una base de conocimiento (con el dominio del problema) que indique lo que debe hacer cada uno.
 
-% \begin{figure}[h]
-%   \centerfloat
-%   \includegraphics[width=0.75\textwidth]{img/conos.png}
-%   % \caption{Relación intermediación-vector propio en escala logarítmica.}
-% \end{figure}
+    % Una vez tengamos ubicada la cara, deberíamos extraer las características de las esquinas de forma que podamos comprender y reorientar la cámara si la persona se mueve, aplicando un sistema de tracking entre sucesivos frames.
+
+        % La clasificación de una cara puede ser aprendida usando técnicas de aprendizaje supervisado, siendo probablemente la primera opción a considerar una red convolucional, ya que para este caso es muy probable que una aplicación de transfer-learning con una red del estado del arte de buenos resultados.
+
+            % Para la localización de la ubicación de la cara en la imágen sería conveniente tener una representación solo de bordes de la imagen, que nos permita distinguir los objetos ?.
