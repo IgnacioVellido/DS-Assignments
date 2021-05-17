@@ -18,3 +18,22 @@ En contraposición vemos que la reducción aplicada por FCNN es significativa, p
     \end{tabular}
     \caption{Flujo de preprocesamiento para los mejores resultados de cada algoritmo.}
 \end{table}
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\begin{table}[]
+    \begin{tabular}{cc|l|l|}
+    \cline{3-4}
+    \multicolumn{1}{l}{\textbf{}}                                  & \textbf{} & \multicolumn{1}{c|}{\textbf{Average}} & \textbf{Max} \\ \hline
+    \multicolumn{1}{|c|}{\multirow{3}{*}{Filtrado de ruido}}       & No        & 0.309                                 & 0.597        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                                         & HME       & 0.369                                 & 0.595        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                                         & NCNEdit   & 0.286                                 & 0.593        \\ \hline
+    \multicolumn{1}{|c|}{\multirow{2}{*}{Selección de instancias}} & No        & 0.362                                 & 0.597        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                                         & FCNN      & 0.281                                 & 0.595        \\ \hline
+    \multicolumn{1}{|c|}{\multirow{3}{*}{Balanceo de datos}}       & No        & 0.072                                 & 0.186        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                                         & ROS       & 0.496                                 & 0.542        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                                         & RUS       & 0.397                                 & 0.597        \\ \hline
+    \end{tabular}
+    \caption{Efectos de las diferentes técnicas de preprocesamiento para PCARD.}
+\end{table}

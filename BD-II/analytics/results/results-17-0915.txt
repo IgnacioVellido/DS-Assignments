@@ -1,0 +1,18 @@
+Date:	17-09:15
+------------------------
+Feature selection:		PCA
+Preprocessing:	RUS
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	NCNEdit
+Instance selection:	None
+------------------------
+Learning model:	knn
+Number of final train instances: 199712.0
+------------------------
+TPR x TNR:	0.4895132296444445
+Accuracy:	0.655879
+Weighted FMeasure:	0.7246974804018972
+Confusion Matrix:
+75971.0   24029.0   
+320092.0  579908.0  
+------------------------------------------
