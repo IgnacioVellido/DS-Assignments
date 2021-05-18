@@ -4,6 +4,8 @@ En esta sección se pretende analizar las resultados obtenidos más relevantes. 
 
 % Hay que describir detalladamente todo el proceso algorítmico utilizado, mostrando los resultados de cada uno de los algoritmos utilizados para entrenamiento y test, analizando el comportamiento, y mostrando los flujos/combinaciones de algoritmos de preprocesamiento
 
+En términos de los algoritmos de clasificación, tal y como se muestra en la tabla (?), obtenemos prácticamente la misma calidad con cualquiera de ellos, siendo ligeramente superior PCARD (?) y (?). En cambio las técnicas de preprocesamiento utilizadas sí varían, ...
+
 Por un lado tenemos que la técnica SSMA sobrepasa el límite de 4GB de memoria impuesto en la práctica, pero en base a las dos ejecuciones con las que contamos (de los primeros días cuando el límite estaba en 46GB) vemos que la reducción en el número de instancias es extremadamente grande, llegando a obtener subconjuntos de 12.000 y 20.000 instancias.
 En contraposición vemos que la reducción aplicada por FCNN es significativa, pero de mayor escala en todos sus casos.
 
@@ -11,29 +13,27 @@ En contraposición vemos que la reducción aplicada por FCNN es significativa, p
     \begin{tabular}{|l|c|c|c|c|r|}
     \hline
     \textbf{Algoritmo} & \textbf{Selección de características} & \textbf{Under/Over-sampling} & \multicolumn{1}{l|}{\textbf{Filtrado de ruido}} & \multicolumn{1}{l|}{\textbf{Selección de instancias}} & \textbf{TPR x TNR} \\ \hline
-    Decision Tree      & N                                     & N                            & N                                               & N                                                     & 0.0                \\ \hline
-    Random Forest      & N                                     & N                            & N                                               & N                                                     & 0.0                \\ \hline
-    PCARD              & No                                    & RUS                          & No                                              & No                                                    & 0.597              \\ \hline
-    kNN-IS             & N                                     & No                           & N                                               & N                                                     & 0.0                \\ \hline
+    Decision Tree      & No            & N    & No                      & No    & 0.0                \\ \hline
+    Random Forest      & No            & N    & No                      & No    & 0.0                \\ \hline
+    PCARD              & No            & RUS  & No                      & No    & 0.597              \\ \hline
+    kNN-IS             & No            & No   & No                      & No    & 0.0                \\ \hline
     \end{tabular}
     \caption{Flujo de preprocesamiento para los mejores resultados de cada algoritmo.}
 \end{table}
 
 
-% Please add the following required packages to your document preamble:
-% \usepackage{multirow}
 \begin{table}[]
     \begin{tabular}{cc|l|l|}
     \cline{3-4}
-    \multicolumn{1}{l}{\textbf{}}                                  & \textbf{} & \multicolumn{1}{c|}{\textbf{Average}} & \textbf{Max} \\ \hline
-    \multicolumn{1}{|c|}{\multirow{3}{*}{Filtrado de ruido}}       & No        & 0.309                                 & 0.597        \\ \cline{2-4} 
-    \multicolumn{1}{|c|}{}                                         & HME       & 0.369                                 & 0.595        \\ \cline{2-4} 
-    \multicolumn{1}{|c|}{}                                         & NCNEdit   & 0.286                                 & 0.593        \\ \hline
-    \multicolumn{1}{|c|}{\multirow{2}{*}{Selección de instancias}} & No        & 0.362                                 & 0.597        \\ \cline{2-4} 
-    \multicolumn{1}{|c|}{}                                         & FCNN      & 0.281                                 & 0.595        \\ \hline
-    \multicolumn{1}{|c|}{\multirow{3}{*}{Balanceo de datos}}       & No        & 0.072                                 & 0.186        \\ \cline{2-4} 
-    \multicolumn{1}{|c|}{}                                         & ROS       & 0.496                                 & 0.542        \\ \cline{2-4} 
-    \multicolumn{1}{|c|}{}                                         & RUS       & 0.397                                 & 0.597        \\ \hline
+    \multicolumn{1}{l}{\textbf{}}          & \textbf{} & \multicolumn{1}{c|}{\textbf{Average}} & \textbf{Max} \\ \hline
+    \multicolumn{1}{|c|}{\multirow{3}{*}{Filtrado de ruido}}       & No        & 0.309         & 0.597        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                 & HME       & 0.369         & 0.595        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                 & NCNEdit   & 0.286         & 0.593        \\ \hline
+    \multicolumn{1}{|c|}{\multirow{2}{*}{Selección de instancias}} & No        & 0.362         & 0.597        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                 & FCNN      & 0.281         & 0.595        \\ \hline
+    \multicolumn{1}{|c|}{\multirow{3}{*}{Balanceo de datos}}       & No        & 0.072         & 0.186        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                 & ROS       & 0.496         & 0.542        \\ \cline{2-4} 
+    \multicolumn{1}{|c|}{}                 & RUS       & 0.397         & 0.597        \\ \hline
     \end{tabular}
     \caption{Efectos de las diferentes técnicas de preprocesamiento para PCARD.}
 \end{table}
