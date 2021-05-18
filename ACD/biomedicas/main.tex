@@ -102,160 +102,75 @@
     \pagenumbering{gobble}
     \input{portada/portada}
     
-    \pagenumbering{arabic}
-    \tableofcontents
-    \thispagestyle{empty}				% No usar estilo en la pagina de indice
+    % \pagenumbering{arabic}
+    % \tableofcontents
+    % \thispagestyle{empty}				% No usar estilo en la pagina de indice
 
     \newpage
 
     % ==============================================================================
 
 \section{Descripción del problema}
-Este artículo se centra en el ámbito de la reconstrucción facial. Según los autores una buena reconstrucción debe contar con tres características (estimación correcta; indicios que puedan ayudar en la identificación positiva; y notoriedad para captar la atención pública). Los métodos actuales (a fecha de la escritura del artículo) no son capaces de afrontar las tres problemáticas al mismo tiempo. También argumenta una cierta subjetividad en los métodos manuales y malas aproximaciones entre las estructuras óseas y el tejido blando facial.
+Este artículo se centra en el ámbito de la reconstrucción facial, es decir, la recreación de rostros a partir de restos óseos. Según los autores una buena reconstrucción debe contar con tres características (estimación correcta; indicios que puedan ayudar en la identificación positiva; notoriedad para captar la atención pública) que los métodos actuales (a fecha de la escritura del artículo) no son capaces de alcanzar al mismo tiempo. También argumentan una cierta subjetividad en los métodos manuales y malas aproximaciones entre las estructuras óseas y el tejido blando facial.
 
-El campo tiene especial interés como soporte para la identificación positiva forense, mediante la realización de representaciones postmortem de la persona.
-% Bajo la asumpción de que características de baja frecuencia (es decir, grandes rasgos de la cara), junto a la inclusión de detalles de alta frecuencia (i.e. piercings, tatuajes, lunares, vello, etc.), se cree que se facilitaría enormemente este proceso de identificación.
+El campo tiene especial interés como soporte para la identificación forense, mediante la realización de representaciones antemortem de la persona, y en la recreación de personajes históricos.
 
 \section{Propuesta}
-Se propone un software libre (AFA3D) capaz de realizar una reconstrucción facial (estimación de forma y profundidad del tejido facial) automática a partir de una Tomografía axial Computarizada (CT scan), acompañada de un conjunto de 78 landmarks marcados manualmente. Adicionalmente, se pueden incluir datos biológicos de la persona (edad, sexo y corpulencia, discretizados) para realizar una aproximación más exacta del rostro.
+Se propone un software (AFA3D) capaz de realizar una reconstrucción facial (estimación de forma y profundidad del tejido facial) automática a partir de una Tomografía axial Computarizada (CT scan), acompañada de un conjunto de landmarks marcados manualmente. Adicionalmente, se pueden incluir datos biológicos de la persona (edad, sexo y corpulencia, discretizados) para realizar una aproximación más exacta del rostro.
 
-% SE ESTIMAN POSICIONES DE LOS TEJIDOS BLANDOS Y LUEGO LA FORMA Y POSICIÓN DE OJOS, NARIZ, OREJAS Y BOCA SE CALCULAN MEDIANTE GEOMETRIC MORPHOMETRICS
+\vspace{\baselineskip}
 
-% TAMBIÉN SE EVALUA SI SE DEBE APLICAR EL PROCESO SIMÉTRICAMENTE O SE DEBEN SEPARAR LAS DOS PARTES DE LA CARA
+La metodología genera a partir de sample de 500 individuos adultos un conjunto de ecuaciones de regresión que sirven para estimar la profundidad de los tejidos blandos (FSTD). Esto, junto a una cara genérica, permiten aproximar el rostro objetivo mediante un proceso iterativo de minimización, en el que se reducen las distancias entre los landmarks de la cara estimada y los del cráneo aplicando una serie de deformaciones.
 
-% La reconstrucción estima la cara objetivo a partir de un modelo 3D base, mediante un algoritmo de minimización iterativo, que reduce la distancia entre los landmarks de la cara base y los del escáner CT.
+\subsection{Ventajas e inconvenientes}
 
-% HAY APRENDIZAJE ?
-Se usa un conjunto de 500 individuos franceses de ambos sexos y múltiples edades (todos adultos)
+La principal ventaja que se defiende es la objetividad frente a las aproximaciones clásicas manuales y la capacidad de generalización gracias al método de deformación. También noto que implícitamente se hace énfasis en el hecho de publicarse como software libre acompañado de manuales, buscando que AFA3D se pueda convertir en un sistema estándar de fácil acceso.
 
-A pesar de no ser el primer método automático, la falta de aceptación global de un método estándar incita a los autores a proponer este como módulo de una herramienta forense aún mayor.
+\vspace{\baselineskip}
 
-% Se indica además que es el primer sistema holístico
+El principal inconvenientes que indica el artículo son los errores de estimación que se llegan a cometer en algunas zonas del cráneo, sobre todo en las zonas donde los landmarks no son suficientes y la aproximación falla. También se hace constancia de la problemática en modelar caras con deformaciones (morfología extrema).
 
-% Entiendo que a la hora de publicitar el módulo se discreticen los valores de edad y BMI, pero veo que se debería dejar la puerta abierta a que si en un futuro se descubren nuevos intervalos relevantes se permitan incluir sin mucho cambio.
+\subsection{Resultados}
 
-% Dejan caer que aunque no es perfecto y no del todo genérico (aunque intentan justificarse diciendo que los franceses son muy diferentes), si les dieran datos suficientes casi que lo sería
+Para evaluar la calidad del software se escoge un 18.4\% de los datos a los que se les calcula un \textit{ground truth}, comparando los errores de estimación que devuelve el sistema.
+También se aplica una validación visual sobre un grupo de ellos, indicando finalmente que los resultados son positivos, aunque con margen de mejora en la precisión. 
 
-% ------
+Se indica que, aunque AFA3D solo devuelva los grandes rasgos de la cara, estos pueden ser útiles en el proceso de identificación forense. Más si son acompañados de detalles (vello, color\dots).
 
-% Sistema holistic (que tiene en cuenta el conjunto de rasgos) para la estimación premortem (o post a partir de alguna imágen?) de una cara, gracias a un cráneo (o imágen ?) y un conjunto de landmarks indicados por un técnico forense ?
-
-% Para evaluar? uso 500 datos de diferentes rangos de edades y de ambos sexos.
-
-% También se proporciona el software públicamente para fomentar la colaboración y el progreso, un detalle que veo importante remarcar sobre la propuesta.
-
-\section{Ventajas e inconvenientes}
-
-Se ofrecen ventajas de una aproximación automática frente a las manuales (objetividad y estandarización)
-
-Los únicos inconvenientes que indica el artículo es los errores de estimación que se llegan a cometer en algunas zonas del cráneo
-
-\section{Resultados}
-
-Para evaluar la calidad del software se escoge un subconjunto de los datos (CREO QUE NO HAY ENTRENAMIENTO, ASÍ QUE NO HAY PROBLEMA CON QUE SEA UN SUBCONJUNTO?) a los que se les calcula un \textit{ground truth}
-
-También se aplica una validación visual de un grupo de ellos
-
-% Lo de que realizan landmarks una vez por semana blablabla
+También se mencionan, aunque no se detallan, los efectos de la edad, el sexo, y la forma y simetría del cráneo.
 
 \section{Análisis}
 
 \subsection{Sobre la relevancia}
 
-Por lo que vimos en clase la identificación positiva aún es un tema abierto y con bastante complejidad.
-La idea utilizada me parece bastante buena, y creo que si poco a poco se va expandiendo el número de CTs y se investiga en los efectos de nuevas características de la persona (no solo edad, sexo\dots) podría tener bastante potencial.
+La idea propuesta me parece bastante buena, y creo que si poco a poco se va expandiendo el número de CTs y se investiga en los efectos de nuevas características de la persona (no solo edad, sexo\dots) podría ir perfeccionándose el algoritmo para sí ser realmente genérico.
 
-Aún así, la salida que proporciona AFA3D no me parece suficiente para lograr una identificación positiva (los autores, aunque no explícitiamente, parecen reflejar las mismas dudas), y cuestiono si la inclusión de detalles podría generar un sesgo para el familiar/conocido que pretendiera reconocerlo. Sí estoy de acuerdo en que características de baja frecuencia pueden ser muy relevantes (sobre todo la forma superior y nasal de la cabeza), pero para ello asumo que debería existir una precisión extremádamente alta.
+\vspace{\baselineskip}
 
-% Valoro positivamente que se distribuya como software libre bien integrado en una aplicación mayor y que se fomente la colaboración de la comunidad científica.
+Sobre su uso en identificación, parece un gran aporte visto que es un tema abierto y bastante complejo. Los autores indican que no es el primer sistema automático, pero dado el gran número de datos que utilizan y el hecho de encontrarse integrado con un software mayor hace creer que si la comunidad científica soporta la idea podría llegar a ser una técnica estándar.
 
-% ESTO PARA QUÉ
-% Entiendo que a la hora de publicar el módulo se discreticen los valores de edad y BMI, pero veo que se debería dejar la puerta abierta a que si en un futuro se descubren nuevos intervalos relevantes se permitan incluir sin mucho cambio.
+\vspace{\baselineskip}
 
-% Intento valorar aquí la aportación \textbf{científica} de la propuesta, en contraposición con la labor de ingeniería del sistema construído (tengo esto en cuenta porque fue un detalle que me indicaron el la revisión de un paper). Por tanto, tenemos como aportaciones:
-
-% Existe una gran labor de ingeniería por detrás, pero en los artículos se valora más la científica
+Aún así, la salida que proporciona AFA3D no me parece suficiente para lograr una identificación positiva (los autores parecen reflejar las mismas dudas), y me pregunto si la inclusión de detalles podría generar un sesgo para el familiar/conocido que pretendiera reconocerlo. Sí estoy de acuerdo en que los grandes rasgos pueden ser muy relevantes (sobre todo la forma superior y nasal de la cabeza), pero para ello asumo que debería existir una precisión extremádamente alta en todo el cráneo.
 
 \subsection{Sobre la escritura}
 
-Cabe decir que existe cierta terminología del campo, sobre todo en figuras y tablas, que en mi caso se escapa de mis conocimientos. Aún así, esto se justifica al verse publicado en una revista forense, por lo que es de espera que su lectura por gente externa al "campo" no estuviera considerada.
+Cabe decir que existe cierta terminología del campo, sobre todo en figuras y tablas, que se escapan de mis conocimientos. Aún así, queda justificado al verse publicado en una revista forense, por lo que es de esperar que su lectura por gente externa al campo no estuviera considerada. Pese a ello, no puedo negar que tras unas pocas lecturas las ideas y aportaciones principales quedan claras, y gran parte del texto acaba siendo perfectamente comprensible. La principal excepción en este caso es el número de landmarks usados en cada tarea, que lógicamente me resulta un tanto confusa.
 
-Pese a ello, no puedo negar que tras unas pocas lecturas las ideas y aportaciones principales quedan claras, y la mayoría del texto acaba siendo perfectamente comprensible.
+El artículo está bien estructurado, aunque me resulta extraño que los resultados se expongan antes que los detalles técnicos de la implementación. Como única pega, la ubicación de las figuras podría mejorarse, pues hay páginas con trozos de texto un tanto ``oculto''.
 
-El texto está bien estructurado, aunque me resulta extraño que los resultados se expongan antes que los detalles técnicos de la implementación. Como única pega, la ubicación de las figuras podría mejorarse, pues contiene páginas aparentemente sin texto que sí existe.
+\subsection{Sobre el rigor científico} % (validación y evaluación)}
 
-% Respecto al lenguaje, el uso del inglés es perfectamente correcto y las ideas están estructuradas. 
+El conjunto de individuos es variado tanto en edad como en sexo, pero todos son ``limpios'' (\textit{libres de traumas o patologías}). Entiendo que el uso de outliers puede ser bastante problemático, sobre todo en el cálculo de las ecuaciones de regresión, pero me pregunto qué cantidad de individuos se está limitando con ellos.
 
-\subsection{Sobre el rigor científico en la propuesta (validación y evaluación)}
+\vspace{\baselineskip}
 
-El artículo pretende justificar una aplicación genérica para aplicar la propuesta, pero al contar con datos únicamente de Francia no lo afirma sino que lo sugiere como idea a evaluar. 
+Valoro positivamente que se reconozcan y detallen los errores, además de intentar buscarle una posible justificación, pues un trabajo futuro podría intentar paliarlos.
+Sobre estos, resulta extraño que solo se comenten en una línea, sin al menos aportar alguna idea o detalles sobre ello.
 
-Se ve bien que admitan los errores de precisión y la posible existencia de datos relevantes.
-
-% La cantidad de datos de evaluación no es abundante, pero dado que la obtención de estos es difícil y que la calidad mostrada es buena 
-% Aunque me parece correcto la afirmación de ser genérico sin evaluarlo de ninguna manera (la justificación de que la población de Francia es diversa me parece pobre) no queda del todo bien.
-
-% Los datos utilizados me parecen adecuados para el ámbito al que se dirige, ya que la obtención de datos es dificultosa ?
+Finalmente, me gusta el método que han usado para evitar un sesgo en la creación de los landmarks, repitiendo la toma múltiples veces en diferentes semanas y por diferentes especialistas; y el hecho de considerar la posible asimetría en el rostro.
 
     % ==============================================================================
-
-  %   \begin{figure}[ht]
-  %     \centerfloat
-  %     \includegraphics[width=0.75\textwidth]{img/resultados/betw-eig2.png}
-  %     \caption{Relación intermediación-vector propio.}
-  % \end{figure}
-
-%   \begin{figure}[H]
-%     \centering
-%     \resizebox{0.9\columnwidth}{!}{%
-%     \begin{tabular}{| l | l | l | l |} 
-%         \hline
-%         \textbf{Centralidad de Grado} & \textbf{Intermediación} & \textbf{Cercanía} & \textbf{Vector propio} \\
-%         \Xhline{2\arrayrulewidth}
-%         \textbf{7237} - 216 & 	\textbf{7199} - 2,612,617 & \textbf{7199} - 0.2907 & 	\textbf{7237} - 1.0000  \\
-%         \hline
-%         \textbf{3530} - 175 & 	\textbf{7237} - 2,486,453 & 	\textbf{7237} - 0.2856 & \textbf{3240} - 0.7149  \\
-%         \hline
-%         \textbf{4785} - 174 & 	\textbf{2854} - 2,253,302 & 	\textbf{4356} - 0.2816 & 	\textbf{3597} - 0.7052  \\
-%         \hline
-%         \textbf{524}   - 172 & 	\textbf{4356} - 1,953,690 & 	\textbf{2854} - 0.2803 & 	\textbf{763}   - 0.6555  \\
-%         \hline
-%         \textbf{3450} - 159 & \textbf{6101} - 1,504,994 & 	\textbf{5454} - 0.2798 & 	\textbf{2083} - 0.5940  \\
-%         \hline
-%     \end{tabular}
-%     }
-%     \caption{Tabla de actores más relevantes (identificador-valor).}
-% \end{figure}
-
-% \begin{figure}
-%   \centering  
-%   \begin{subfigure}[t]{0.48\textwidth}
-%     \centering
-%     \includegraphics[width=\textwidth]{img/resultados/grado-leinen0.1.png}
-%     \caption{Coeficiente 0.1.}
-%   \end{subfigure}
-%   \vspace{7mm}
-%   \hfill
-%   \begin{subfigure}[t]{0.48\textwidth}
-%     \centering
-%     \includegraphics[width=\textwidth]{img/resultados/grado-leinen0.25.png}
-%     \caption{Coeficiente 0.25.}
-%   \end{subfigure}
-%   \hfill
-%   \begin{subfigure}[t]{0.48\textwidth}
-%     \centering
-%     \includegraphics[width=\textwidth]{img/resultados/grado-leinen0.33.png}
-%     \caption{Coeficiente 0.33.}
-%   \end{subfigure}
-%   \hfill
-%   \begin{subfigure}[t]{0.48\textwidth}
-%     \centering
-%     \includegraphics[width=\textwidth]{img/resultados/grado-leinen0.5.png}
-%     \caption{Coeficiente 0.5.}
-%   \end{subfigure}
-
-%   \caption{Comunidades detectadas por el algoritmo Leinen para diferentes coeficientes.}
-% \end{figure}
 
     \setlength{\parskip}{1em}
     \newpage
