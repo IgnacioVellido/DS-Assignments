@@ -1,0 +1,18 @@
+Date:	18-04:09
+------------------------
+Feature selection:		PCA
+Preprocessing:	ROS
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	NCNEdit
+Instance selection:	None
+------------------------
+Learning model:	randomForest
+Number of final train instances: 979265.0
+------------------------
+TPR x TNR:	0.199640044
+Accuracy:	0.884303
+Weighted FMeasure:	0.8699458631175755
+Confusion Matrix:
+20808.0  79192.0   
+36505.0  863495.0  
+------------------------------------------
