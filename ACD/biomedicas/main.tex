@@ -119,26 +119,36 @@ El campo tiene especial interés como soporte para la identificación forense, m
 
 % Considero que la propuesta de los autores debe ser explicada en más detalle. Por ejemplo, no se menciona el uso de geometric morphometrics o de PLS. 
 
+% geometría morfométrica 
+
 % Por otro lado, visto que todavía tienes espacio (dado que el límite eran 3 páginas), quizás podrías haber introducido algún esquema (extraído directamente del paper, por ejemplo), para mostrar visualmente cómo funciona todo el sistema; o algún ejemplo visual con resultados. Lo comento porque las figuras y esquemas suelen ser tremendamente eficaces a la hora de transferir información (como se suele decir: una imagen vale más que mil palabras) y generalmente resultan esclarecedoras. 
 
 Se propone un software (AFA3D) capaz de realizar una reconstrucción facial (estimación de forma y profundidad del tejido facial) automática a partir de una Tomografía axial Computarizada (CT), acompañada de un conjunto de landmarks marcados manualmente. Adicionalmente, se pueden incluir datos biológicos de la persona (edad, sexo y corpulencia, discretizados) para realizar una aproximación más exacta del rostro.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
-La metodología genera a partir de un sample de 500 individuos adultos un conjunto de ecuaciones de regresión que sirven para estimar la profundidad de los tejidos blandos (FSTD). Esto, junto a una cara genérica, permiten aproximar el rostro objetivo mediante un proceso iterativo de minimización, en el que se reducen las distancias entre los landmarks de la cara estimada y los del cráneo aplicando una serie de deformaciones.
+% La metodología genera a partir de un sample de 500 individuos adultos un conjunto de ecuaciones de regresión que sirven para estimar la profundidad de los tejidos blandos (FSTD). Esto, junto a una cara genérica, permiten aproximar el rostro objetivo mediante un proceso iterativo de minimización, en el que se reducen las distancias entre los landmarks de la cara estimada y los del cráneo aplicando una serie de deformaciones.
+
+\begin{figure}[ht]
+  \centerfloat
+  \includegraphics[width=0.99\textwidth]{img/methodology.png}
+  % \caption{Errores medios (en la profundidad del tejido facial?) sobre los datos de prueba.}
+\end{figure}
+
+La metodología genera por un lado un conjunto de ecuaciones de regresión capaces de estimar la profundidad de los tejidos blandos (FSTD), y un modelo de regresión que estima la localización de los órganos faciales. Ambos tipos de landmarks seguidamente se sitúan sobre una cara genérica la cuál, mediante un proceso iterativo de minimización de distancias, se deforma dando como resultado la cara objetivo.
+
+El modelo de regresión es calculo tras un análisis con \textit{Two Blocks Partial Least Squares}
+(PLS) y geometría morfométrica (GMM).
 
 \subsection{Ventajas e inconvenientes}
 
 La principal ventaja que se defiende es la objetividad frente a las aproximaciones clásicas manuales y la capacidad de generalización gracias al método de deformación. También noto que implícitamente se hace énfasis en el hecho de que, al publicarse como software libre acompañado de manuales, pueda convertir AFA3D en un sistema estándar de fácil acceso.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
-El principal inconveniente que indica el artículo son los errores de estimación que se llegan a cometer en algunas zonas del cráneo, sobre todo en las zonas donde los landmarks no son suficientes y la aproximación falla. También se hace constancia de la problemática en modelar caras con deformaciones (morfología extrema).
+El principal inconveniente que indica el artículo son los errores de estimación que se llegan a cometer en algunas zonas del cráneo, sobre todo en las zonas donde los landmarks no son suficientes y la aproximación falla. También se hace constancia de la problemática en modelar caras con deformaciones (morfología extrema), y la posible insuficiencia de su uso forense si no se incluyen detalles a la cara devuelta.
 
-% ?
-% Adicionalmente, se indica la posible insuficiencia del modelo en uso forense si no se incluyen detalles a la cara devuelta
-
-% También se podría mencionar como inconveniente esto que menciona explícitamente el paper: "The resulting approximation is an objective probable facial shape, but is also synthetic (i.e., without tex-ture), and therefore needs to be enhanced artistically prior to its use in forensic cases."
+% También se podría mencionar como inconveniente esto que menciona explícitamente el paper: "The resulting approximation is an objective probable facial shape, but is also synthetic (i.e., without tex-ture), and therefore needs to be enhanced artistically prior to its use in forensic cases." - DONE
 
 \subsection{Resultados}
 
@@ -151,7 +161,14 @@ También se mencionan, aunque no se detallan, los efectos de la edad, el sexo, y
 
 % Es importante mencionar numérica/cuantitativamente los resultados obtenidos. En base a lo comentado en esta sección no queda claro cómo de bueno o malo es el sistema propuesto.
 
-% Errores medios (en la profundidad del tejido facial?) sobre los datos de prueba
+A validation by re-sampling on a subsample demonstrated an average accuracy
+of c. 4 mm for the overall face
+
+\begin{figure}[ht]
+  \centerfloat
+  \includegraphics[width=0.5\textwidth]{img/errors.png}
+  \caption{Errores medios (en la profundidad del tejido facial?) sobre los datos de prueba.}
+\end{figure}
 
 \section{Análisis}
 
@@ -163,13 +180,13 @@ Por otro lado, la reconstrucción de posibles deformaciones del tejido óseo (po
 
 % ¿A qué nos referimos con algoritmo genérico? ¿"De aplicación general"? ¿"De naturaleza no tan ad-hoc"? - DONE
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
 % Ojo. La reconstrucción facial, según muchos autores, es más un arte que una ciencia, y su capacidad para identificar personas es más que discutida. Desde este punto de vista, la posibilidad de reconstruir la cara de una persona a partir de sus huesos es bastante debatida. 
 
 Sobre su uso en identificación, parece un gran aporte visto que es un tema abierto y bastante complejo. Los autores indican que no es el primer sistema automático, pero dado el gran número de datos que utilizan y el hecho de encontrarse integrado con un software mayor hace creer que si la comunidad científica soporta la idea podría llegar a ser una técnica estándar durante algunos años.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
 Aún así, la salida que proporciona AFA3D no me parece suficiente para lograr una identificación positiva (los autores parecen reflejar las mismas dudas), y me pregunto si la inclusión de detalles podría generar un sesgo para el familiar/conocido que pretendiera reconocerlo. Estoy de acuerdo en que los grandes rasgos pueden ser muy relevantes (sobre todo la forma superior y nasal de la cabeza), pero para ello siento que debería existir una precisión extremádamente alta en todo el cráneo.
 
@@ -177,7 +194,7 @@ Aún así, la salida que proporciona AFA3D no me parece suficiente para lograr u
 
 Cabe decir que existe cierta terminología, sobre todo en figuras y tablas, que se escapa de mis conocimientos. Aún así, queda justificado al verse publicado en una revista forense, por lo que es de esperar que su lectura por gente externa al campo no estuviera considerada. Pese a ello, no puedo negar que tras unas pocas lecturas las ideas y aportaciones principales quedan claras, y gran parte del texto acaba siendo perfectamente comprensible. La principal excepción en este caso es el número de landmarks usados en cada tarea, que resulta un tanto confusa.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
 El artículo está bien estructurado, aunque me parece extraño que los resultados se expongan antes que los detalles técnicos de la implementación. Como única pega, la ubicación de las figuras podría mejorarse, pues hay páginas con trozos de texto un tanto ``oculto''.
 
@@ -185,12 +202,12 @@ El artículo está bien estructurado, aunque me parece extraño que los resultad
 
 El conjunto de individuos es variado tanto en edad como en sexo, pero todos son ``limpios'' (\textit{libres de traumas o patologías}). Entiendo que el uso de outliers puede ser bastante problemático, sobre todo en el cálculo de las ecuaciones de regresión, pero me pregunto qué cantidad de individuos se está limitando con ellos.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
 Valoro positivamente que se reconozcan y detallen los errores, además de intentar buscarle una posible justificación, pues un trabajo futuro podría intentar paliarlos.
 Sobre estos, resulta extraño que solo se comenten en una línea, sin al menos aportar alguna idea o detalles sobre ello.
 
-\vspace{\baselineskip}
+% \vspace{\baselineskip}
 
 Finalmente, me gusta el método que han usado para evitar un sesgo en la creación de los landmarks, repitiendo la toma múltiples veces en diferentes semanas y por diferentes especialistas; además de haber considerado la posible asimetría en el rostro.
 
