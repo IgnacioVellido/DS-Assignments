@@ -116,26 +116,26 @@ Este artículo se centra en el ámbito de la reconstrucción facial, es decir, l
 El campo tiene especial interés como soporte para la identificación forense, mediante la realización de representaciones antemortem de la persona, y en la recreación de personajes históricos.
 
 \section{Propuesta}
-Se propone un software (AFA3D) capaz de realizar una reconstrucción facial (estimación de forma y profundidad del tejido facial) automática a partir de una Tomografía axial Computarizada (CT scan), acompañada de un conjunto de landmarks marcados manualmente. Adicionalmente, se pueden incluir datos biológicos de la persona (edad, sexo y corpulencia, discretizados) para realizar una aproximación más exacta del rostro.
+Se propone un software (AFA3D) capaz de realizar una reconstrucción facial (estimación de forma y profundidad del tejido facial) automática a partir de una Tomografía axial Computarizada (CT), acompañada de un conjunto de landmarks marcados manualmente. Adicionalmente, se pueden incluir datos biológicos de la persona (edad, sexo y corpulencia, discretizados) para realizar una aproximación más exacta del rostro.
 
 \vspace{\baselineskip}
 
-La metodología genera a partir de sample de 500 individuos adultos un conjunto de ecuaciones de regresión que sirven para estimar la profundidad de los tejidos blandos (FSTD). Esto, junto a una cara genérica, permiten aproximar el rostro objetivo mediante un proceso iterativo de minimización, en el que se reducen las distancias entre los landmarks de la cara estimada y los del cráneo aplicando una serie de deformaciones.
+La metodología genera a partir de un sample de 500 individuos adultos un conjunto de ecuaciones de regresión que sirven para estimar la profundidad de los tejidos blandos (FSTD). Esto, junto a una cara genérica, permiten aproximar el rostro objetivo mediante un proceso iterativo de minimización, en el que se reducen las distancias entre los landmarks de la cara estimada y los del cráneo aplicando una serie de deformaciones.
 
 \subsection{Ventajas e inconvenientes}
 
-La principal ventaja que se defiende es la objetividad frente a las aproximaciones clásicas manuales y la capacidad de generalización gracias al método de deformación. También noto que implícitamente se hace énfasis en el hecho de publicarse como software libre acompañado de manuales, buscando que AFA3D se pueda convertir en un sistema estándar de fácil acceso.
+La principal ventaja que se defiende es la objetividad frente a las aproximaciones clásicas manuales y la capacidad de generalización gracias al método de deformación. También noto que implícitamente se hace énfasis en el hecho de que, al publicarse como software libre acompañado de manuales, pueda convertir AFA3D en un sistema estándar de fácil acceso.
 
 \vspace{\baselineskip}
 
-El principal inconvenientes que indica el artículo son los errores de estimación que se llegan a cometer en algunas zonas del cráneo, sobre todo en las zonas donde los landmarks no son suficientes y la aproximación falla. También se hace constancia de la problemática en modelar caras con deformaciones (morfología extrema).
+El principal inconveniente que indica el artículo son los errores de estimación que se llegan a cometer en algunas zonas del cráneo, sobre todo en las zonas donde los landmarks no son suficientes y la aproximación falla. También se hace constancia de la problemática en modelar caras con deformaciones (morfología extrema).
 
 \subsection{Resultados}
 
 Para evaluar la calidad del software se escoge un 18.4\% de los datos a los que se les calcula un \textit{ground truth}, comparando los errores de estimación que devuelve el sistema.
-También se aplica una validación visual sobre un grupo de ellos, indicando finalmente que los resultados son positivos, aunque con margen de mejora en la precisión. 
+También se aplica una validación visual sobre un subconjunto de ellos, indicando finalmente que los resultados son positivos, aunque con margen de mejora en la precisión. 
 
-Se indica que, aunque AFA3D solo devuelva los grandes rasgos de la cara, estos pueden ser útiles en el proceso de identificación forense. Más si son acompañados de detalles (vello, color\dots).
+Se indica que, aunque AFA3D solo devuelve los grandes rasgos de la cara, estos pueden ser útiles en el proceso de identificación forense. Más si son acompañados de detalles como vello, color, cicatrices\dots.
 
 También se mencionan, aunque no se detallan, los efectos de la edad, el sexo, y la forma y simetría del cráneo.
 
@@ -143,21 +143,23 @@ También se mencionan, aunque no se detallan, los efectos de la edad, el sexo, y
 
 \subsection{Sobre la relevancia}
 
-La idea propuesta me parece bastante buena, y creo que si poco a poco se va expandiendo el número de CTs y se investiga en los efectos de nuevas características de la persona (no solo edad, sexo\dots) podría ir perfeccionándose el algoritmo para sí ser realmente genérico.
+La idea propuesta me parece buena, y creo que si poco a poco se va expandiendo el número de CTs y se investiga en los posibles efectos de otras características de la persona (no solo edad, sexo y corpulencia) podría ir perfeccionándose el algoritmo para sí ser realmente genérico.
 
 \vspace{\baselineskip}
 
-Sobre su uso en identificación, parece un gran aporte visto que es un tema abierto y bastante complejo. Los autores indican que no es el primer sistema automático, pero dado el gran número de datos que utilizan y el hecho de encontrarse integrado con un software mayor hace creer que si la comunidad científica soporta la idea podría llegar a ser una técnica estándar.
+Sobre su uso en identificación, parece un gran aporte visto que es un tema abierto y bastante complejo. Los autores indican que no es el primer sistema automático, pero dado el gran número de datos que utilizan y el hecho de encontrarse integrado con un software mayor hace creer que si la comunidad científica soporta la idea podría llegar a ser una técnica estándar durante algunos años.
 
 \vspace{\baselineskip}
 
-Aún así, la salida que proporciona AFA3D no me parece suficiente para lograr una identificación positiva (los autores parecen reflejar las mismas dudas), y me pregunto si la inclusión de detalles podría generar un sesgo para el familiar/conocido que pretendiera reconocerlo. Sí estoy de acuerdo en que los grandes rasgos pueden ser muy relevantes (sobre todo la forma superior y nasal de la cabeza), pero para ello asumo que debería existir una precisión extremádamente alta en todo el cráneo.
+Aún así, la salida que proporciona AFA3D no me parece suficiente para lograr una identificación positiva (los autores parecen reflejar las mismas dudas), y me pregunto si la inclusión de detalles podría generar un sesgo para el familiar/conocido que pretendiera reconocerlo. Estoy de acuerdo en que los grandes rasgos pueden ser muy relevantes (sobre todo la forma superior y nasal de la cabeza), pero para ello siento que debería existir una precisión extremádamente alta en todo el cráneo.
 
 \subsection{Sobre la escritura}
 
-Cabe decir que existe cierta terminología del campo, sobre todo en figuras y tablas, que se escapan de mis conocimientos. Aún así, queda justificado al verse publicado en una revista forense, por lo que es de esperar que su lectura por gente externa al campo no estuviera considerada. Pese a ello, no puedo negar que tras unas pocas lecturas las ideas y aportaciones principales quedan claras, y gran parte del texto acaba siendo perfectamente comprensible. La principal excepción en este caso es el número de landmarks usados en cada tarea, que lógicamente me resulta un tanto confusa.
+Cabe decir que existe cierta terminología, sobre todo en figuras y tablas, que se escapa de mis conocimientos. Aún así, queda justificado al verse publicado en una revista forense, por lo que es de esperar que su lectura por gente externa al campo no estuviera considerada. Pese a ello, no puedo negar que tras unas pocas lecturas las ideas y aportaciones principales quedan claras, y gran parte del texto acaba siendo perfectamente comprensible. La principal excepción en este caso es el número de landmarks usados en cada tarea, que resulta un tanto confusa.
 
-El artículo está bien estructurado, aunque me resulta extraño que los resultados se expongan antes que los detalles técnicos de la implementación. Como única pega, la ubicación de las figuras podría mejorarse, pues hay páginas con trozos de texto un tanto ``oculto''.
+\vspace{\baselineskip}
+
+El artículo está bien estructurado, aunque me parece extraño que los resultados se expongan antes que los detalles técnicos de la implementación. Como única pega, la ubicación de las figuras podría mejorarse, pues hay páginas con trozos de texto un tanto ``oculto''.
 
 \subsection{Sobre el rigor científico} % (validación y evaluación)}
 
@@ -168,7 +170,9 @@ El conjunto de individuos es variado tanto en edad como en sexo, pero todos son 
 Valoro positivamente que se reconozcan y detallen los errores, además de intentar buscarle una posible justificación, pues un trabajo futuro podría intentar paliarlos.
 Sobre estos, resulta extraño que solo se comenten en una línea, sin al menos aportar alguna idea o detalles sobre ello.
 
-Finalmente, me gusta el método que han usado para evitar un sesgo en la creación de los landmarks, repitiendo la toma múltiples veces en diferentes semanas y por diferentes especialistas; y el hecho de considerar la posible asimetría en el rostro.
+\vspace{\baselineskip}
+
+Finalmente, me gusta el método que han usado para evitar un sesgo en la creación de los landmarks, repitiendo la toma múltiples veces en diferentes semanas y por diferentes especialistas; además de haber considerado la posible asimetría en el rostro.
 
     % ==============================================================================
 
