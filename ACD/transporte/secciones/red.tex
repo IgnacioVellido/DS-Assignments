@@ -1,0 +1,25 @@
+\section{Análisis de la Red}
+
+Para esta práctica se ha usado la red social \textbf{LastFMAsia}, que codifica conexiones mutuas de amistad entre usuarios asiáticos de la plataforma LastFM. El dataset incluye además una variable \textit{target} que codifica el país de origen de cada uno de los usuarios, con un total de 17 regiones posibles. \footnote{Referencia: \url{http://snap.stanford.edu/data/feather-lastfm-social.html}}
+
+LastFM es una red social centrada en el ámbito músical, donde los usuarios pueden escuchar, comentar y debatir sobre sus gustos e intereses. De forma similar a Facebook, se permiten crear comunidades y foros de debate donde compartir información.
+
+\vspace{\baselineskip}
+
+Tenemos por tanto una red no dirigida y sin pesos, con una única componente conexa. La red se caracteriza por tener una gran dimensión pero muy baja densidad (probablemente típica en redes de este tamaño), aunque la distancia media no es alta debido a un buen grado medio global en la red.
+
+\vspace{\baselineskip}
+
+Apreciamos también un buen coeficiente de clustering, pero un tanto bajo para los habituales en redes sociales. Esto se puede notar fácilmente en la Figura 1, donde aunque la mayor parte de los nodos pertenecen a algún hub (ya sea de mayor o menor tamaño) existe un buen número de ellos que se ubican en ``zonas de paso'' entre países.
+
+En la Figura 4 vemos que la tendencia a este valor un tanto bajo se ve afectada por tener un 40\% de los nodos un coeficiente muy cercano a cero.
+
+\vspace{\baselineskip}
+
+Sobre la distribución de grados, contamos con una media de 7.294 y una desviación típica de 11.499. Esta media es un tanto baja en comparación con redes de amistad como Facebook, aunque en este caso al ser un red centrada en música no resulta extraño pues es probable que los nodos no estén conectados con personas que conozcan personalmente.
+
+\vspace{\baselineskip}
+
+En la Figura 3 vemos cláramente una ley de la potencia en la distribución, indicándonos que tenemos una red libre de escala. Aquí se refleja mejor la alta desviación en el grado de los nodos, pues existe una buena cantidad de ellos con más de 100 enlaces.
+
+Estos actores probablemente correspondan a creadores habituales de contenido (posts, reviews...) y sean muy influyentes en el manejo de información de la red.

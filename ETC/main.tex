@@ -1,0 +1,155 @@
+\documentclass[13pt,a4paper]{article}
+\usepackage[spanish,es-nodecimaldot]{babel}	% Utilizar español
+\usepackage[utf8]{inputenc}					% Caracteres UTF-8
+\usepackage{graphicx}						% Imagenes
+\usepackage[hidelinks]{hyperref}			% Poner enlaces sin marcarlos en rojo
+\usepackage{fancyhdr}						% Modificar encabezados y pies de pagina
+\usepackage{float}							% Insertar figuras
+\usepackage[textwidth=390pt]{geometry}		% Anchura de la pagina
+\usepackage[nottoc]{tocbibind}				% Referencias (no incluir num pagina indice en Indice)
+\usepackage{enumitem}						% Permitir enumerate con distintos simbolos
+\usepackage[T1]{fontenc}					% Usar textsc en sections
+\usepackage{amsmath}						% Símbolos matemáticos
+\usepackage[ruled,vlined]{algorithm2e}      % Pseudocódigo
+\usepackage{xcolor}
+\usepackage{listings}
+% Para que acepten tíldes los listing
+\lstset{     
+     literate=%
+         {á}{{\'a}}1
+         {é}{{\'e}}1
+         {í}{{\'i}}1
+         {ó}{{\'o}}1
+         {ú}{{\'u}}1
+         {Á}{{\'A}}1
+         {É}{{\'E}}1
+         {Í}{{\'I}}1
+         {Ó}{{\'O}}1 
+         {Ú}{{\'U}}1
+         {ñ}{{\~n}}1 
+         {Ñ}{{\~N}}1 
+         {¿}{{?``}}1 
+         {¡}{{!``}}1
+}
+\usepackage{dsfont}
+
+% ==============================================================================
+
+\usepackage{caption, subcaption}
+\usepackage[section]{placeins}
+\makeatletter
+\def\fps@figure{H}
+\makeatother
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage[bottom]{footmisc}
+
+\makeatletter
+\newcommand*{\centerfloat}{%
+  \parindent \z@
+  \leftskip \z@ \@plus 1fil \@minus \textwidth
+  \rightskip\leftskip
+  \parfillskip \z@skip}
+\makeatother
+
+% ==============================================================================
+% ==============================================================================
+
+% Comando para poner el nombre de la asignatura
+\newcommand{\asignatura}{Emprendimiento y transferencia del conocimiento}
+\newcommand{\autor}{Ignacio Vellido Expósito}
+\newcommand{\email}{ignaciove@correo.ugr.es}
+\newcommand{\titulo}{Trabajos}
+\newcommand{\subtitulo}{Manejo de rutas y localización de aseos}
+
+% Configuracion de encabezados y pies de pagina
+\pagestyle{fancy}
+\lhead{\autor{}}
+\rhead{\asignatura{}}
+\lfoot{Máster Ciencia de Datos e Ingeniería de Computadores}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}		% Linea cabeza de pagina
+\renewcommand{\footrulewidth}{0.4pt}		% Linea pie de pagina
+
+% ==============================================================================
+% ==============================================================================
+
+\begin{document}
+    \pagenumbering{gobble}
+    \input{portada/portada}
+    
+    \pagenumbering{arabic}
+    \tableofcontents
+    \thispagestyle{empty}				% No usar estilo en la pagina de indice
+
+    \newpage
+
+    % ==============================================================================
+
+    % •    Desarrollo de una propuesta sencilla de plan inicial (modelo de negocio) utilizando el método CANVAS + DAFO.
+    % •    Realización de una ficha de búsqueda de financiación empresarial.
+    % •    Ejercicio práctico de búsqueda de patentes.
+    % •    Realización en casa de un video individual (“Elevator Pitch” de menos de 5 minutos) grabado por cada estudiante, presentando su idea de negocio.
+    % •    Realización de una tabla con previsiones financieras
+    % •    Ejercicio de desarrollo de creatividad y de liderazgo.
+
+    % \input{secciones/canvas} \newpage
+
+% ¿A quíen no le ha dado alguna vez un apretón en la calle? Bueno, no hay forma de evitar que eso ocurra, pero podemos ayudar a hacer el problema más ameno
+
+% ---
+
+Es necesaria la colaboración extrema y constante de los usuarios para crear la comunidad. Los principios de la app serán difíciles
+
+Elementos difusos:
+- Urgencia: El usuario podrá elegir entre diferentes niveles de urgencia (inmediato, pronto, cuando sea) que se tendrán en cuenta a la hora de calcular la distancia y los niveles de calidad aceptados.
+- Ubicación: Mediante el geo-localizados del móvil, o incluso la posibilidad de introducirlo a mano si se pretende estimar de antemano
+
+
+Información de salida
+- Distancia
+- Tiempo de llegada aproximado
+- Probabilidad de estar ocupado: En base a la cantidad de gente en la zona. Una base de datos adicional (propia o con información introducida por los usuario) podría aportar conocimiento adicional sobre el número de baños, la ubicación (ej: si se encuentra en el bajo de un apartamento es de esperar que aparente haber más gente de la que hay). etc.
+- Nivel de higiene: A partir de las reviews de los usuarios. También se podría hacer un estudio de ciencia de datos recogiendo datos de la ubicación, número de personas, fecha y hora\dots, con el objetivo de predecir el nivel de higiene en ese momento.
+
+Información de si están rotos
+Ubicación del usuario
+
+Entre posibles tipos de locales: Restaurantes y cafeterías, universidades, estaciones de tren y bus, edificios públicos, centros comerciales, baños públicos, monumentos, incluso su propia vivienda (para darle mayor prioridad)
+El usuario podría limitar el tipo de sitios en los que acepta a ir, pues por ejemplo sería de mal gusto entrar una cafetería sin consumir nada.
+
+% ---
+
+Forma de venderlo: Boca a boca
+• Distribución: Dispositivos móviles Android e iOS, en un posible futuro llevado a interfaces web, pero con funcionalidad limitada (no tenemos la ubicación, o se introduce a mano o solo para mirar)
+• Servicio
+• Compra
+• Transporte
+• Formación
+• Garantías
+
+¿Por qué mi producto o servicio es mejor?
+• ¿Cómo conseguir que me compren a mí?
+• ¿Cómo puedo sobrevivir a la competencia futura? Los principales competidores serían las aplicaciones de mapas ya existentes (Google maps y el que tenga apple). La única forma de competir con ellas sería contar con un sistema robusto, rápido, preciso, semi-global y con una buena cantidad de soporte por la comunidad de forma que se mantuviera el incentivo en seguir utilizando la aplicación. Si la ellos promovieran la idea a largo plazo no se podría competir, pues sus aplicaciones engloban mayor funcionalidad, son libres de anuncios y tienen mayor prestigio.
+
+    % ==============================================================================
+
+    \setlength{\parskip}{1em}
+    \newpage
+    % \nocite{*}
+    % \bibliography{bibliografia}
+  	% \bibliographystyle{plain}
+\end{document}

@@ -116,6 +116,11 @@ Este artículo se centra en el ámbito de la reconstrucción facial, es decir, l
 El campo tiene especial interés como soporte para la identificación forense, mediante la realización de representaciones antemortem de la persona, y en la recreación de personajes históricos.
 
 \section{Propuesta}
+
+% Considero que la propuesta de los autores debe ser explicada en más detalle. Por ejemplo, no se menciona el uso de geometric morphometrics o de PLS. 
+
+% Por otro lado, visto que todavía tienes espacio (dado que el límite eran 3 páginas), quizás podrías haber introducido algún esquema (extraído directamente del paper, por ejemplo), para mostrar visualmente cómo funciona todo el sistema; o algún ejemplo visual con resultados. Lo comento porque las figuras y esquemas suelen ser tremendamente eficaces a la hora de transferir información (como se suele decir: una imagen vale más que mil palabras) y generalmente resultan esclarecedoras. 
+
 Se propone un software (AFA3D) capaz de realizar una reconstrucción facial (estimación de forma y profundidad del tejido facial) automática a partir de una Tomografía axial Computarizada (CT), acompañada de un conjunto de landmarks marcados manualmente. Adicionalmente, se pueden incluir datos biológicos de la persona (edad, sexo y corpulencia, discretizados) para realizar una aproximación más exacta del rostro.
 
 \vspace{\baselineskip}
@@ -130,6 +135,11 @@ La principal ventaja que se defiende es la objetividad frente a las aproximacion
 
 El principal inconveniente que indica el artículo son los errores de estimación que se llegan a cometer en algunas zonas del cráneo, sobre todo en las zonas donde los landmarks no son suficientes y la aproximación falla. También se hace constancia de la problemática en modelar caras con deformaciones (morfología extrema).
 
+% ?
+% Adicionalmente, se indica la posible insuficiencia del modelo en uso forense si no se incluyen detalles a la cara devuelta
+
+% También se podría mencionar como inconveniente esto que menciona explícitamente el paper: "The resulting approximation is an objective probable facial shape, but is also synthetic (i.e., without tex-ture), and therefore needs to be enhanced artistically prior to its use in forensic cases."
+
 \subsection{Resultados}
 
 Para evaluar la calidad del software se escoge un 18.4\% de los datos a los que se les calcula un \textit{ground truth}, comparando los errores de estimación que devuelve el sistema.
@@ -139,13 +149,23 @@ Se indica que, aunque AFA3D solo devuelve los grandes rasgos de la cara, estos p
 
 También se mencionan, aunque no se detallan, los efectos de la edad, el sexo, y la forma y simetría del cráneo.
 
+% Es importante mencionar numérica/cuantitativamente los resultados obtenidos. En base a lo comentado en esta sección no queda claro cómo de bueno o malo es el sistema propuesto.
+
+% Errores medios (en la profundidad del tejido facial?) sobre los datos de prueba
+
 \section{Análisis}
 
 \subsection{Sobre la relevancia}
 
-La idea propuesta me parece buena, y creo que si poco a poco se va expandiendo el número de CTs y se investiga en los posibles efectos de otras características de la persona (no solo edad, sexo y corpulencia) podría ir perfeccionándose el algoritmo para sí ser realmente genérico.
+La idea propuesta me parece buena, y creo que si poco a poco se va expandiendo el número de CTs y se investiga en los posibles efectos de otras características de la persona (no solo edad, sexo y corpulencia) podría ir perfeccionándose el algoritmo para sí ser válido para cualquier raza, e incluso edad (quizás, para niños, repitiendo la construcción del modelo a partir de nuevos datos).
+
+Por otro lado, la reconstrucción de posibles deformaciones del tejido óseo (por ej: ladeamiento de un lado de la cara) no creo se pueda alcanzar con este método, salvo aplicando información sobre lo que se quiere buscar y, a mi creer, introduciría enorme subjetividad e invalidaría la propuesta
+
+% ¿A qué nos referimos con algoritmo genérico? ¿"De aplicación general"? ¿"De naturaleza no tan ad-hoc"? - DONE
 
 \vspace{\baselineskip}
+
+% Ojo. La reconstrucción facial, según muchos autores, es más un arte que una ciencia, y su capacidad para identificar personas es más que discutida. Desde este punto de vista, la posibilidad de reconstruir la cara de una persona a partir de sus huesos es bastante debatida. 
 
 Sobre su uso en identificación, parece un gran aporte visto que es un tema abierto y bastante complejo. Los autores indican que no es el primer sistema automático, pero dado el gran número de datos que utilizan y el hecho de encontrarse integrado con un software mayor hace creer que si la comunidad científica soporta la idea podría llegar a ser una técnica estándar durante algunos años.
 
