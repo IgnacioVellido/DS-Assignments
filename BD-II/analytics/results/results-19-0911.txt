@@ -1,0 +1,18 @@
+Date:	19-09:11
+------------------------
+Feature selection:		PCA
+Preprocessing:	ROS
+Oversampling Rate (only when preprocessing=1): 0.5
+Noise filtering:	None
+Instance selection:	FCNN
+------------------------
+Learning model:	decisionTree
+Number of final train instances: 758771.0
+------------------------
+TPR x TNR:	0.43785461493333333
+Accuracy:	0.807445
+Weighted FMeasure:	0.8333906122107093
+Confusion Matrix:
+52176.0   47824.0   
+144731.0  755269.0  
+------------------------------------------
