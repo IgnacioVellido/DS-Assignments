@@ -8,13 +8,37 @@ Contamos con un subconjunto de SUSY Data Set (\url{https://archive.ics.uci.edu/m
 
 En dataset cuenta con dos millones de datos (1.000.000 para entrenamiento, 1.000.000 para evaluación) con 18 características numéricas reales, y las siguientes medidas estadísticas:
 
-\begin{figure}[ht]
-    \centerfloat
-    \includegraphics[width=0.9\textwidth]{img/statistics.png}
+\begin{table}[]
+    \begin{tabular}{c|c|c|c|c||c|c|c|c|}
+    \cline{2-9}
+    \textbf{}                        & \multicolumn{4}{c|}{\textbf{Train}}                       & \multicolumn{4}{c|}{\textbf{Test}}                              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{Columna}} & \textbf{Max} & \textbf{Min} & \textbf{Mean} & \textbf{Variance} & \textbf{Max} & \textbf{Min} & \textbf{Mean} & \textbf{Variance} \\ \hline
+    \multicolumn{1}{|c|}{\textbf{1}}          & 16.89  & 0.25   & 1.23    & 0.62        & 15.65  & 0.25   & 1.23    & 0.62              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{2}}          & 2.10   & -2.10  & -9.92E-4      & 0.79        & 2.10   & -2.10  & -4.19E-4      & 0.79              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{3}}          & 1.73   & -1.73  & -5.97E-4      & 1.00        & 1.73   & -1.73  & 0.00    & 1.00              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{4}}          & 17.73  & 0.42   & 1.11    & 0.53        & 18.18  & 0.42   & 1.11    & 0.53              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{5}}          & 2.05   & -2.05  & -3.46E-4      & 0.83        & 2.05   & -2.05  & 7.25E-5       & 0.83              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{6}}          & 1.73   & -1.73  & 6.71    & 1.00        & 1.73   & -1.73  & 0.00    & 1.00              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{7}}          & 21.00  & 9.42   & 1.34    & 1.14        & 21.00  & 7.19   & 1.33    & 1.14              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{8}}          & 1.74   & -1.72  & 0.00    & 1.00        & 1.74   & -1.72  & 0.00    & 1.00              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{9}}          & 23.38  & 7.69   & 1.22    & 1.16        & 22.56  & 9.23   & 1.22    & 1.16              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{10}}         & 16.93  & -15.33       & 0.06    & 1.73        & 17.69  & -13.10       & 0.06    & 1.74              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{11}}         & 14.93  & 0.26   & 1.14    & 0.43        & 15.73  & 0.26   & 1.14    & 0.43              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{12}}         & 14.36  & 0.00   & 1.21    & 0.45        & 14.99  & 0.00   & 1.21    & 0.45              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{13}}         & 5.81   & 0.00   & 1.04    & 0.23        & 6.03   & 0.00   & 1.04    & 0.23              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{14}}         & 20.68  & 0.00   & 1.05    & 0.92        & 14.57  & 0.00   & 1.06    & 0.92              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{15}}         & 14.89  & 0.05   & 1.14    & 0.42        & 15.78  & 0.05   & 1.14    & 0.42              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{16}}         & 15.61  & 0.00   & 1.15    & 0.47        & 11.33  & 0.00   & 1.15    & 0.47              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{17}}         & 1.59   & 8.22   & 1.01    & 0.18        & 1.59   & 2.57   & 1.01    & 0.18              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{18}}         & 1.0    & 3.52   & 0.27    & 0.04        & 1.0    & 5.89   & 0.27    & 0.04              \\ \hline
+    \end{tabular}
     \caption{Medidas estadísticas del conjunto de datos.}
-\end{figure}
+    \label{statistics}
+\end{table}
 
 En base a la descripción en la página de la UCI, las primeras 8 características reflejan propiedades de las partículas medidas en un acelerador, y las 10 siguientes indican el resultado de diferentes funciones a partir de estas variables. Estas variables derivadas no aportan información nueva pero indica que puede resultar de ayuda en la clasificación de la fila.
+
+Tal y como vemos en la \ref{statistics}, las columnas del conjunto de datos se distribuyen en rangos diferentes, aunque de manera similar entre entrenamiento y test. Por ello, normalizaremos los datos antes de pasarlos por los algoritmos, haciendo uso del conjunto de funciones de KeelParser.
 
 \subsection{Técnicas aplicadas}
 
@@ -23,13 +47,12 @@ Las diferentes técnicas aplicadas en esta práctica son:
     \item \textbf{De aprendizaje}: \begin{itemize}
         \item Árboles de decisión (MLlib.tree.DecisionTree).
         \item Random Forest (MLlib.tree.RandomForest).
-        \item kNN-IS (MLlib.clasification.kNN_IS).
         \item PCARD (MLlib.tree.PCARD).
+        \item kNN-IS (MLlib.classification.kNN\_IS).
     \end{itemize}
     \item \textbf{De preprocesamiento}: Reducción al 50\% (9 características)\begin{itemize}
         \item \textbf{Selección de características}: \begin{itemize}
             \item Principal Component Analysis.
-            \item Chi Square.
         \end{itemize}
         \item \textbf{Ajuste de desbalanceo}: \begin{itemize}
             \item Random Oversampling.
@@ -49,24 +72,37 @@ Las diferentes técnicas aplicadas en esta práctica son:
 
 Se ha intentado probar todas las combinaciones de técnicas posibles, dentro de los límites de coherencia en el uso conjunto de algunas de ellas. En este caso, puesto que en el algoritmo PCARD aplica a los datos de entrada PCA, no se ha aplicado ninguna técnica de reducción de características en sus experimentos.
 
+\vspace{\baselineskip}
+
 El flujo de técnicas de preprocesamiento de acorde a su uso es el siguiente:
-\begin{equation}
-    Selección de características -> Under/Over-sampling -> Filtrado de ruido -> Selección de instancias
-\end{equation}
+\begin{quotation}
+    Selección de características ->
+\end{quotation}
+\begin{quotation}
+        Under|Over-sampling -> 
+\end{quotation}
+\begin{quotation}
+      Filtrado de ruido -> 
+\end{quotation}
+\begin{quotation}
+      Selección de instancias
+\end{quotation}
+
+\vspace{\baselineskip}
 
 La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. El uso de estas técnicas puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos, por lo que aplicamos técnicas de filtrado para eliminarlo. Finalmente, para agilizar el proceso de clasificación, seleccionamos el conjunto de instancias con mayor varianza más representativo del conjunto.
 
+\newpage
 
-% \subsubsection{Árboles de decisión}
+Los algoritmos fueron entrenados con unos parámetros por defecto, con los que se evaluaron los efectos de las diferentes técnicas de preprocesamiento y sus alternativas combinaciones. Finalmente, a partir de los mejores resultados obtenidos para cada método, se optimizan los hiperparámetros para alcanzar el mayor valor de TPR x TNR.
 
-% \subsubsection{Random Forest}
+A continuación se indican los parámetros utilizados en cada uno de los algoritmos de aprendizaje:
 
-% \subsubsection{kNN-IS}
-
-% An Iterative Spark-based design of the k-Nearest Neighbors
-% classifier for big data
-
-% \subsubsection{PCARD}
-
-% This method implements the PCARD ensemble algorithm. PCARD ensemble method is a distributed upgrade of the method presented by A. Ahmad. The algorithm performs Random Discretization and Principal Components Analysis to the input data, then joins the results and trains a decision tree on it.
+\begin{itemize}
+    \item \textbf{Árboles de decisión}: Se entrenan árboles con medida GINI, máxima profundidad de 5 y tamaño máximo por hoja de 32 instancias.
+    \item \textbf{Random Forest}: De igual manera, los árboles se entrenan medida GINI, máxima profundidad de 5 y tamaño máximo por hoja de 32 instancias. Se limita el número máximo de árboles entre 100 y 150.
+    \item \textbf{PCARD}: El número de cortes se fija a 5, y el número de árboles entre 10 y 15. 
+    % También se ha probado a aumentar el número de árboles a 15 sin diferencias significativos.
+    \item \textbf{kNN-IS}: Utilizando distancia euclídea, fijamos el valor de k a 5 y el de particiones a 10.
+\end{itemize}
 
