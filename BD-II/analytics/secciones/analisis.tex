@@ -22,9 +22,6 @@ En esta sección se pretenden analizar aquellos resultados más relevantes. Algu
 
 Todos los valores de TPR x TNR mostrados son calculados sobre el conjunto de test.
 
-% \subsection{Conclusiones generales}
-% Objetivamente la calidad de los resultados es bastante superior a la baseline (cuánto ?), pero no por ello un tanto bajas. La práctica se ha enfocado en evaluar las diferentes combinaciones de técnicas (independientemente del resultado obtenido ?REALLY?). Una posible forma de mejorar sería un ajuste mayor de los hiperparámetros ???
-
 \subsection{Sobre las técnicas de aprendizaje}
 
 En términos de los algoritmos de clasificación, tal y como se muestra en la tabla \ref{final}, obtenemos prácticamente la misma calidad con cualquiera de ellos (con variación de milésimas), siendo ligeramente superior Random Forest (RF) y Árboles de Decisión (DT). Para ambas técnicas el flujo de preprocesamiento coincide, reduciendo enormemente el tamaño del conjunto de datos a un 10\% del tamaño original.
@@ -212,3 +209,20 @@ A pesar de ello en este caso los resultados sí son bastante inferiores respecto
     \caption{Efectos de las diferentes técnicas de preprocesamiento para kNN.}
     \label{knn}
 \end{table}
+
+\subsection{Algunas conclusiones generales}
+
+% Objetivamente la calidad de los resultados es bastante superior a la baseline (cuánto ?), pero no por ello un tanto bajas. La práctica se ha enfocado en evaluar las diferentes combinaciones de técnicas (independientemente del resultado obtenido ?REALLY?). Una posible forma de mejorar sería un ajuste mayor de los hiperparámetros ???
+
+\begin{itemize}
+    \item La reducción de datos en problemas de big data es esencial. Debemos transformar el dataset en un conjunto manejable y representativo de forma que aprovechemos el tiempo y recursos disponibles al máximo.
+    \item Lo mismo es aplicable a la selección de características, y debemos tener en cuenta que una mejora no es solo útil por el valor en la métrica que alcance, sino además por la reducción de complejidad que puede obtener. 
+
+    También debemos tener en cuenta la simplificación de los modelos y resultados obtenidos, que suele ser indicio de una mayor generalización.
+
+    \item No existe un único flujo de preprocesamiento para todos los algoritmos, dependerá del funcionamiento de cada técnica de aprendizaje para sacar el máximo potencial. Por ejemplo, el ruido es más influyente en kNN, donde en base al valor de k puede cambiar radicalmente la clase predicha, que en una técnica basada en árboles, donde la poda ayudará a generalizar.
+    \item En algunos casos es más interesante en reevaluar y mejorar el flujo de preprocesamiento que optimizar una y otra vez los hipérparametros del algoritmo. Hemos visto mejoras de 2 o 3 milésimas cambiando los parámetros frente a mejoras en las decenas con flujos diferentes.
+    
+    No por ello hay que ignorar la etapa de optimización, pero resulta más eficiente aplicarla en último lugar.
+    % El desbalanceo de datos ...
+\end{itemize}
