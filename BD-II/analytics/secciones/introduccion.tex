@@ -89,7 +89,8 @@ El flujo de técnicas de preprocesamiento de acorde a su uso es el siguiente:
 
 \vspace{\baselineskip}
 
-La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. El uso de estas técnicas puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos, por lo que aplicamos técnicas de filtrado para eliminarlo. Finalmente, para agilizar el proceso de clasificación, seleccionamos el conjunto de instancias con mayor varianza del conjunto.
+La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. Si quitamos características podemos acabar con datos redundantes en el dataset, y el uso de ROS puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos. Por estos motivos aplicamos técnicas de filtrado de ruido y selección de instancias para reducir el conjunto de datos y, adicionalmente, agilizar el proceso de clasificación. 
+% seleccionamos el conjunto de instancias con mayor varianza del conjunto.
 
 \vspace{\baselineskip}
 

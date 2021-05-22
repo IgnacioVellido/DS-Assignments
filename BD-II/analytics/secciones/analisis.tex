@@ -1,6 +1,6 @@
 \section{Análisis de resultados}
 
-En esta sección se pretende analizar aquellos resultados obtenidos más relevantes. Algunos argumentos también se sustentan sobre las tablas completas de experimentos (con información adicional sobre ellos) que se encuentran en la sección \textit{Tablas de resultados}.
+En esta sección se pretenden analizar aquellos resultados más relevantes. Algunos argumentos también se sustentan sobre las tablas completas de experimentos (con información adicional sobre ellos) que se encuentran en la sección \textit{Tablas de resultados}.
 
 % Hay que describir detalladamente todo el proceso algorítmico utilizado, mostrando los resultados de cada uno de los algoritmos utilizados para entrenamiento y test, analizando el comportamiento, y mostrando los flujos/combinaciones de algoritmos de preprocesamiento
 
@@ -10,56 +10,73 @@ En esta sección se pretende analizar aquellos resultados obtenidos más relevan
     \centering
     \begin{tabular}{|l|c|c|c|c|r|}
     \hline
-    \textbf{Algoritmo} & \textbf{\shortstack{Selección de \\ características}} & \textbf{\shortstack{Under/Over \\ sampling}} & \multicolumn{1}{l|}{\textbf{\shortstack{Filtrado \\ de ruido}}} & \multicolumn{1}{l|}{\textbf{\shortstack{Selección de \\ instancias}}} & \textbf{\shortstack{TPR x \\ TNR}} \\ \hline
+    \textbf{Algoritmo} & \textbf{\shortstack{Selección de \\ características}} & \textbf{\shortstack{Under/Over \\ sampling}} & \multicolumn{1}{l|}{\textbf{\shortstack{Filtrado \\ de ruido}}} & \multicolumn{1}{l|}{\textbf{\shortstack{Selección de \\ instancias}}} & \textbf{\shortstack{TPR \\ x \\ TNR}} \\ \hline
     Decision Tree      & No & RUS  & HME & FCNN  & 0.606 \\ \hline
     Random Forest      & No & RUS  & HME & FCNN  & 0.607 \\ \hline
     PCARD              & -  & RUS  & No  & No    & 0.598 \\ \hline
     kNN-IS             & No & RUS  & HME & No    & 0.526 \\ \hline
     \end{tabular}
-    \caption{Flujo de preprocesamiento para los mejores resultados de cada algoritmo tras la optimización de parámetros.}
+    \caption{Flujos de preprocesamiento para los mejores resultados de cada algoritmo tras la optimización de parámetros.}
     \label{final}
 \end{table}
 
+Todos los valores de TPR x TNR mostrados son calculados sobre el conjunto de test.
 
 % \subsection{Conclusiones generales}
 % Objetivamente la calidad de los resultados es bastante superior a la baseline (cuánto ?), pero no por ello un tanto bajas. La práctica se ha enfocado en evaluar las diferentes combinaciones de técnicas (independientemente del resultado obtenido ?REALLY?). Una posible forma de mejorar sería un ajuste mayor de los hiperparámetros ???
 
 \subsection{Sobre las técnicas de aprendizaje}
 
-En términos de los algoritmos de clasificación, tal y como se muestra en la tabla \ref{final}, obtenemos prácticamente la misma calidad con cualquiera de ellos (variando en las milésimas), siendo ligeramente superior Random Forest y Árboles de Decisión. Para ambas técnicas el flujo de preprocesamiento coincide, reduciendo el tamaño del conjunto de datos a un 10\% del tamaño original.
+En términos de los algoritmos de clasificación, tal y como se muestra en la tabla \ref{final}, obtenemos prácticamente la misma calidad con cualquiera de ellos (con variación de milésimas), siendo ligeramente superior Random Forest (RF) y Árboles de Decisión (DT). Para ambas técnicas el flujo de preprocesamiento coincide, reduciendo enormemente el tamaño del conjunto de datos a un 10\% del tamaño original.
 
-Mediante las tablas \ref{dt} y \ref{rf} vemos que independientemente del preprocesamiento los resultados son muy similares en los dos casos, probablemente debido al estar un algoritmo formado como ensamblado del otro. A pesar de eso, en media vemos RF ser más robusto con RUS mientras que DT funciona bien con ROS.
+Mediante las tablas \ref{dt} y \ref{rf} vemos que independientemente del preprocesamiento los resultados son muy similares para las dos técnicas, probablemente debido al estar un algoritmo formado como ensamblado del otro. A pesar de esto, vemos que en media RF es más robusto con RUS mientras que DT funciona mejor con ROS.
 
-Sobre PCARD, aunque se alcanza el máximo con las mínimas técnicas de preprocesamiento (ajustar el desbalanceo es imprescindible en este problema, y los resultados lo demuestran) no llega a ser malo
-% PONER LA VARIANZA
+\vspace{\baselineskip}
 
-Respecto a kNN, notamos peor calidad independientemente de la técnica y parámetros con los que se ha probado. 
+Sobre PCARD, aunque la calidad máxima se alcanza con las mínimas técnicas de preprocesamiento (ajustar el desbalanceo es imprescindible en este problema, y los resultados lo demuestran) no llega a ser significativamente inferior que el resto. 
+
+Además, a partir de la tabla \ref{pcard} notamos que las técnicas NCNEdit y FCNN empeoran los resultados frente a no usar ninguna. Creemos que el motivo reside en que al aplicar PCARD PCA antes de entrenar los árboles, se pierde demasiada información al haber reducido el conjunto de datos con los algoritmos de filtrado de ruido y reducción de instancias.
+% Qué pasa con HME ??
+
+\vspace{\baselineskip}
+
+Respecto a kNN, notamos peor calidad independientemente de la técnica y parámetros con los que se ha probado. Sin hacer un análisis de la distribución de los datos el razonamiento no está claro, pues al ser un algoritmo basado en distancias si existen alto entremezclado entre los elementos de la clase es de esperar con los pocos valores de k que se ha probado sea insuficiente.
+
+% Es incluso posible que el filtrado de ruido 
 % Fijándonos en que obtiene una precisión de 0.887 cuando no se aplica ningún preprocesamiento, deducimos que existen una buena cantidad de puntos entremezclados en el espacio - MEJOR NO PONER
+
+\newpage
 
 \subsection{Sobre las técnicas de selección de características}
 
-Como se dijo anteriormente, hemos aplicado PCA únicamente a los algoritmos donde tiene sentido, pero a partir de las tablas vemos que los resultados empeoran tras su uso.
+Como se dijo anteriormente, hemos aplicado PCA únicamente a los algoritmos donde tiene sentido, pero podemos ver a partir de la tabla \ref{avg} y la de cada algoritmo que los resultados empeoran tras su uso.
 
-Hacemos notar que PCARD se comporta mejor que los árboles de decisión con PCA, a pesar de acabar teniendo un flujo similar. El razonamiento lo achacamos a la discretización aleatoria (RD) de PCARD, que elija el tamaño de los intervalos de manera más inteligente que el de 32 con el que se han entrenado los árboles.
+\vspace{\baselineskip}
 
-A pesar de todo, podríamos considerar si la reducción de dimensionalidad conseguida es aceptable a costa de la cantidad de empeoramiento obtenida. En este problema, pasando de una media de 0.593 a 0.584, que corresponde a una clasificación errónea de $593000 - 584000 = 9000$ instancias más, dada la semántica del problema no parece una pérdida substancial (si en otro caso tratáramos con un problema médico habría que considerar independientemente el TPR y el TNR antes de tomar esta decisión).
+Hacemos notar que PCARD se comporta mejor que los árboles de decisión con PCA, a pesar de acabar teniendo un flujo similar. El razonamiento lo achacamos a la discretización aleatoria (RD) de PCARD, que elige un tamaño de intervalos mejor que el de 32 con el que se han entrenado los árboles.
+
+\vspace{\baselineskip}
+
+A pesar de todo, podríamos considerar si la reducción de dimensionalidad conseguida es aceptable a costa de esa cantidad de empeoramiento. En este problema, pasando de una media de 0,593 a 0,584, que corresponde a una clasificación errónea de $593.000 - 584.000 = 9.000$ instancias más, dada la semántica del problema no parece una pérdida substancial. Si por otro caso tratáramos con un problema médico habría que considerar independientemente el TPR y el TNR antes de aceptar esta conclusión.
 
 \subsection{Sobre las técnicas de balanceo de datos}
 
-No solo RUS ayuda a acelerar la tarea de aprendizaje, también nos da los mejores resultados. En media vemos que se comporta peor que ROS, debido probablemente a que su combinación con técnicas de selección de instancias reduce en algunos casos de manera excesiva el conjunto de datos.
+No solo RUS ayuda a acelerar la tarea de aprendizaje, también nos da los mejores resultados. Aún así, en media vemos que se comporta peor que ROS, debido probablemente a que su combinación con técnicas de selección de instancias reduce en algunos casos de manera excesiva el conjunto de datos.
 
 \subsection{Sobre las técnicas de reducción de ruido}
 
-Respecto al filtrado de ruido, los resultados dan a entender de que el dataset no es de por sí bastante ruidoso, y el posible ruido introducido por las otras técnicas no influyente. No por ello vemos que HME ayuda en la obtención de los mejores valores de TPR x TNR y funciona mejor en este conjunto de datos que NCNEdit
+Los resultados dan a entender de que el dataset no es de por sí bastante ruidoso, y el posible ruido introducido por las otras técnicas no resulta influyente. No por ello dejamos de apreciar que HME ayuda en la obtención de los mejores valores de TPR x TNR y funciona mejor en este conjunto de datos que NCNEdit.
 
 \subsection{Sobre las técnicas de reducción de instancias}
 
-Vemos que el uso de FCNN apenas altera los resultados, pero no por ello deja de ser útil, pues en reduce en torno al 50\% el conjunto de datos, y una situación de big data como la que nos encontramos esto es totalmente deseable, ya que reducimos tiempo de cómputo y carga en el sistema.
+Vemos que el uso de FCNN apenas altera los resultados, pero no por ello deja de ser útil, pues aplica una reducción en torno al 50\% del conjunto de datos. En una situación de big data como la que nos encontramos esto es totalmente deseable, ya que reducimos tiempo de cómputo y carga en el sistema.
+
+\vspace{\baselineskip}
 
 Finalmente, indicamos que aunque la técnica SSMA sobrepasa el límite de 4GB de memoria impuesto en la práctica, en base a las dos ejecuciones con las que contamos (de los primeros días cuando el límite estaba en 46GB) vemos que la reducción en el número de instancias es extremadamente grande, llegando a obtener subconjuntos de 12.000 y 20.000 instancias.
-A pesar de ello no se obtienen resultados de relevancia, siendo peores que los conseguidos mediante otras técnicas.
+A pesar de ello en este caso los resultados sí son bastante inferiores respecto a FCNN o no aplicar nada, por lo que concluímos que su uso no es positivo en este conjunto de datos.
 
-\begin{table}[t]
+\begin{table}
     \centering
     \begin{tabular}{cc|c|c|c|}
     \cline{3-5}
@@ -80,7 +97,7 @@ A pesar de ello no se obtienen resultados de relevancia, siendo peores que los c
     \label{avg}
 \end{table}
 
-\begin{table}[t]
+\begin{table}
     \centering
     \begin{tabular}{cc|c|c|c|}
     \cline{3-5}
@@ -110,7 +127,7 @@ A pesar de ello no se obtienen resultados de relevancia, siendo peores que los c
     \label{dt}
 \end{table}
 
-\begin{table}[t]
+\begin{table}
     \centering
     \begin{tabular}{cc|c|c|c|}
     \cline{3-5}
@@ -140,7 +157,7 @@ A pesar de ello no se obtienen resultados de relevancia, siendo peores que los c
     \label{rf}
 \end{table}
 
-\begin{table}[t]
+\begin{table}
     \centering
     \begin{tabular}{cc|c|c|c|}
     \cline{3-5}
@@ -166,7 +183,7 @@ A pesar de ello no se obtienen resultados de relevancia, siendo peores que los c
     \label{pcard}
 \end{table}
 
-\begin{table}[t]
+\begin{table}
     \centering
     \begin{tabular}{cc|c|c|c|}
     \cline{3-5}
