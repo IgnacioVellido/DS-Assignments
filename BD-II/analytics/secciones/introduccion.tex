@@ -4,20 +4,20 @@
 
 % The data has been produced using Monte Carlo simulations. The first 8 features are kinematic properties measured by the particle detectors in the accelerator. The last ten features are functions of the first 8 features; these are high-level features derived by physicists to help discriminate between the two classes. There is an interest in using deep learning methods to obviate the need for physicists to manually develop such features. Benchmark results using Bayesian Decision Trees from a standard physics package and 5-layer neural networks and the dropout algorithm are presented in the original paper. The last 500,000 examples are used as a test set.n about your data set
 
-Contamos con un subconjunto de SUSY Data Set (\url{https://archive.ics.uci.edu/ml/datasets/SUSY}), un problema de clasificación binaria donde existe un ratio de desbalanceo de 10-90. La tarea consiste en distinguir la señal que produce una partícula supersimétrica frente a la señal de fondo que se puede captar.
+Para esta práctica tenemos un subconjunto de SUSY Data Set (\url{https://archive.ics.uci.edu/ml/datasets/SUSY}), un problema de clasificación binaria donde existe un ratio de desbalanceo de 10-90. La tarea consiste en distinguir la señal que produce una partícula supersimétrica frente a una posible señal cde fondo que se puede captar.
 
-En dataset cuenta con dos millones de datos (1.000.000 para entrenamiento, 1.000.000 para evaluación) con 18 características numéricas reales, y las siguientes medidas estadísticas:
+El dataset cuenta con dos millones de datos (1.000.000 de entrenamiento, 1.000.000 de test) con 18 características numéricas reales, y las siguientes medidas estadísticas:
 
-\begin{table}[]
+\begin{table}[H]
     \begin{tabular}{c|c|c|c|c||c|c|c|c|}
     \cline{2-9}
-    \textbf{}                        & \multicolumn{4}{c|}{\textbf{Train}}                       & \multicolumn{4}{c|}{\textbf{Test}}                              \\ \hline
+    \textbf{}                        & \multicolumn{4}{c||}{\textbf{Train}}                       & \multicolumn{4}{c|}{\textbf{Test}}                              \\ \hline
     \multicolumn{1}{|c|}{\textbf{Columna}} & \textbf{Max} & \textbf{Min} & \textbf{Mean} & \textbf{Variance} & \textbf{Max} & \textbf{Min} & \textbf{Mean} & \textbf{Variance} \\ \hline
     \multicolumn{1}{|c|}{\textbf{1}}          & 16.89  & 0.25   & 1.23    & 0.62        & 15.65  & 0.25   & 1.23    & 0.62              \\ \hline
-    \multicolumn{1}{|c|}{\textbf{2}}          & 2.10   & -2.10  & -9.92E-4      & 0.79        & 2.10   & -2.10  & -4.19E-4      & 0.79              \\ \hline
-    \multicolumn{1}{|c|}{\textbf{3}}          & 1.73   & -1.73  & -5.97E-4      & 1.00        & 1.73   & -1.73  & 0.00    & 1.00              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{2}}          & 2.10   & -2.10  & -9.92e-4      & 0.79        & 2.10   & -2.10  & -4.19e-4      & 0.79              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{3}}          & 1.73   & -1.73  & -5.97e-4      & 1.00        & 1.73   & -1.73  & 0.00    & 1.00              \\ \hline
     \multicolumn{1}{|c|}{\textbf{4}}          & 17.73  & 0.42   & 1.11    & 0.53        & 18.18  & 0.42   & 1.11    & 0.53              \\ \hline
-    \multicolumn{1}{|c|}{\textbf{5}}          & 2.05   & -2.05  & -3.46E-4      & 0.83        & 2.05   & -2.05  & 7.25E-5       & 0.83              \\ \hline
+    \multicolumn{1}{|c|}{\textbf{5}}          & 2.05   & -2.05  & -3.46e-4      & 0.83        & 2.05   & -2.05  & 7.25e-5       & 0.83              \\ \hline
     \multicolumn{1}{|c|}{\textbf{6}}          & 1.73   & -1.73  & 6.71    & 1.00        & 1.73   & -1.73  & 0.00    & 1.00              \\ \hline
     \multicolumn{1}{|c|}{\textbf{7}}          & 21.00  & 9.42   & 1.34    & 1.14        & 21.00  & 7.19   & 1.33    & 1.14              \\ \hline
     \multicolumn{1}{|c|}{\textbf{8}}          & 1.74   & -1.72  & 0.00    & 1.00        & 1.74   & -1.72  & 0.00    & 1.00              \\ \hline
@@ -36,9 +36,13 @@ En dataset cuenta con dos millones de datos (1.000.000 para entrenamiento, 1.000
     \label{statistics}
 \end{table}
 
-En base a la descripción en la página de la UCI, las primeras 8 características reflejan propiedades de las partículas medidas en un acelerador, y las 10 siguientes indican el resultado de diferentes funciones a partir de estas variables. Estas variables derivadas no aportan información nueva pero indica que puede resultar de ayuda en la clasificación de la fila.
+En base a la descripción del dataset en la página de la UCI, las primeras 8 características reflejan propiedades de las partículas medidas en un acelerador, y las 10 siguientes indican el resultado de diferentes funciones a partir de estas variables. Estas variables derivadas no aportan información nueva pero indica que puede resultar de ayuda en la clasificación de la fila.
 
-Tal y como vemos en la \ref{statistics}, las columnas del conjunto de datos se distribuyen en rangos diferentes, aunque de manera similar entre entrenamiento y test. Por ello, normalizaremos los datos antes de pasarlos por los algoritmos, haciendo uso del conjunto de funciones de KeelParser.
+\vspace{\baselineskip}
+
+Tal y como vemos en la Tabla \ref{statistics}, las columnas del conjunto de datos se distribuyen en rangos diferentes, aunque de manera similar entre entrenamiento y test. Por ello, normalizaremos los datos antes de pasarlos por los algoritmos, haciendo uso del conjunto de funciones de KeelParser.
+
+\newpage
 
 \subsection{Técnicas aplicadas}
 
@@ -50,7 +54,7 @@ Las diferentes técnicas aplicadas en esta práctica son:
         \item PCARD (MLlib.tree.PCARD).
         \item kNN-IS (MLlib.classification.kNN\_IS).
     \end{itemize}
-    \item \textbf{De preprocesamiento}: Reducción al 50\% (9 características)\begin{itemize}
+    \item \textbf{De preprocesamiento}: \begin{itemize}
         \item \textbf{Selección de características}: \begin{itemize}
             \item Principal Component Analysis.
         \end{itemize}
@@ -69,40 +73,50 @@ Las diferentes técnicas aplicadas en esta práctica son:
     \end{itemize}
 \end{itemize}
 
+La metodología seguida durante la práctica consistió comparar el mayor número de combinaciones posibles, no por ello reflexionando sobre la coherencia en el uso conjunto de algunas de ellas. En este caso, puesto que en el algoritmo PCARD aplica a los datos de entrada PCA, no se ha aplicado ninguna técnica de reducción de características en sus experimentos.
 
-Se ha intentado probar todas las combinaciones de técnicas posibles, dentro de los límites de coherencia en el uso conjunto de algunas de ellas. En este caso, puesto que en el algoritmo PCARD aplica a los datos de entrada PCA, no se ha aplicado ninguna técnica de reducción de características en sus experimentos.
+Para hacer esta exploración de flujos los algoritmos fueron entrenados con unos parámetros por defecto. Finalmente, a partir de los mejores resultados obtenidos para cada método, se realizó una optimización de los hiperparámetros para alcanzar el mayor valor de TPR x TNR posible.
 
 \vspace{\baselineskip}
 
 El flujo de técnicas de preprocesamiento de acorde a su uso es el siguiente:
-\begin{quotation}
-    Selección de características ->
-\end{quotation}
-\begin{quotation}
-        Under|Over-sampling -> 
-\end{quotation}
-\begin{quotation}
-      Filtrado de ruido -> 
-\end{quotation}
-\begin{quotation}
-      Selección de instancias
-\end{quotation}
+\begin{enumerate}
+    \item Selección de características
+    \item Under|Over-sampling
+    \item Filtrado de ruido
+    \item Selección de instancias
+\end{enumerate}
 
 \vspace{\baselineskip}
 
-La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. El uso de estas técnicas puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos, por lo que aplicamos técnicas de filtrado para eliminarlo. Finalmente, para agilizar el proceso de clasificación, seleccionamos el conjunto de instancias con mayor varianza más representativo del conjunto.
+La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. El uso de estas técnicas puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos, por lo que aplicamos técnicas de filtrado para eliminarlo. Finalmente, para agilizar el proceso de clasificación, seleccionamos el conjunto de instancias con mayor varianza del conjunto.
 
-\newpage
+\vspace{\baselineskip}
 
-Los algoritmos fueron entrenados con unos parámetros por defecto, con los que se evaluaron los efectos de las diferentes técnicas de preprocesamiento y sus alternativas combinaciones. Finalmente, a partir de los mejores resultados obtenidos para cada método, se optimizan los hiperparámetros para alcanzar el mayor valor de TPR x TNR.
-
-A continuación se indican los parámetros utilizados en cada uno de los algoritmos de aprendizaje:
+A continuación se indican los parámetros utilizados en cada una de las técnicas:
 
 \begin{itemize}
-    \item \textbf{Árboles de decisión}: Se entrenan árboles con medida GINI, máxima profundidad de 5 y tamaño máximo por hoja de 32 instancias.
-    \item \textbf{Random Forest}: De igual manera, los árboles se entrenan medida GINI, máxima profundidad de 5 y tamaño máximo por hoja de 32 instancias. Se limita el número máximo de árboles entre 100 y 150.
-    \item \textbf{PCARD}: El número de cortes se fija a 5, y el número de árboles entre 10 y 15. 
-    % También se ha probado a aumentar el número de árboles a 15 sin diferencias significativos.
-    \item \textbf{kNN-IS}: Utilizando distancia euclídea, fijamos el valor de k a 5 y el de particiones a 10.
+    \item \textbf{De aprendizaje}: \begin{itemize}
+        \item \textbf{Árboles de decisión}: Se entrenan árboles con medida GINI, máxima profundidad de 5 y número de particiones a 32.
+        \item \textbf{Random Forest}: De igual manera, los árboles se entrenan con medida GINI, máxima profundidad de 5 y número de particiones a 32. Se limita el número máximo de árboles entre 100 y 150.
+        \item \textbf{PCARD}: El número de cortes se fija a 5, y el número de árboles entre 10 y 15.
+        \item \textbf{kNN-IS}: Utilizando distancia euclídea, movemos el valor de k entre 5 y 7 y el de particiones a 10.
+    \end{itemize}
+    \item \textbf{De preprocesamiento}: \begin{itemize}
+        \item \textbf{Selección de características}: \begin{itemize}
+            \item \textbf{Principal Component Analysis}: Reducción al 50\% (9 características).
+        \end{itemize}
+        \item \textbf{Ajuste de desbalanceo}: \begin{itemize}
+            \item \textbf{Random Oversampling}: Incremento del 50\%.
+            \item \textbf{Random Undersampling}: Decremento hasta alcanzar igualdad en el número de instancias por clase.
+        \end{itemize}
+        \item \textbf{Filtrado de ruido}: \begin{itemize}
+            \item \textbf{Homogeneous Ensemble (HME)}: Número de árboles fijado a 100, con máxima profundidad de 10 y 4 particiones.
+            \item \textbf{NCNEdit}: Se consideran los 3 vecinos más cercanos.
+        \end{itemize}
+        \item \textbf{Selección de instancias}: \begin{itemize}
+            \item \textbf{FCNN}: Se consideran los 3 vecinos más cercanos.
+            \item \textbf{SSMA-SFLSDE}.
+        \end{itemize}
+    \end{itemize}
 \end{itemize}
-

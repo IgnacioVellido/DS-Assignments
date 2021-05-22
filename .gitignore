@@ -1,6 +1,8 @@
 ProgDat/**/*.txt
 IntDat/Proyecto/Clasificacion_files/**
 IntDat/Proyecto/Clasificacion_cache/**
+VC/T3/data/**
+VC/T3/data_segmentation/**
 
 # History files
 .Rhistory
