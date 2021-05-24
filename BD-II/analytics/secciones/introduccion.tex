@@ -4,7 +4,9 @@
 
 % The data has been produced using Monte Carlo simulations. The first 8 features are kinematic properties measured by the particle detectors in the accelerator. The last ten features are functions of the first 8 features; these are high-level features derived by physicists to help discriminate between the two classes. There is an interest in using deep learning methods to obviate the need for physicists to manually develop such features. Benchmark results using Bayesian Decision Trees from a standard physics package and 5-layer neural networks and the dropout algorithm are presented in the original paper. The last 500,000 examples are used as a test set.n about your data set
 
-Para esta práctica tenemos un subconjunto de SUSY Data Set (\url{https://archive.ics.uci.edu/ml/datasets/SUSY}), un problema de clasificación binaria donde existe un ratio de desbalanceo de 10-90. La tarea consiste en distinguir la señal que produce una partícula supersimétrica frente a una posible señal cde fondo que se puede captar.
+Para esta práctica tenemos un subconjunto de SUSY Data Set (\url{https://archive.ics.uci.edu/ml/datasets/SUSY}), un problema de clasificación binaria donde existe un ratio de desbalanceo de 10-90. La tarea consiste en distinguir la señal que produce una partícula supersimétrica frente a una posible señal de fondo que se puede captar.
+
+\vspace{\baselineskip}
 
 El dataset cuenta con dos millones de datos (1.000.000 de entrenamiento, 1.000.000 de test) con 18 características numéricas reales, y las siguientes medidas estadísticas:
 
@@ -36,7 +38,7 @@ El dataset cuenta con dos millones de datos (1.000.000 de entrenamiento, 1.000.0
     \label{statistics}
 \end{table}
 
-En base a la descripción del dataset en la página de la UCI, las primeras 8 características reflejan propiedades de las partículas medidas en un acelerador, y las 10 siguientes indican el resultado de diferentes funciones a partir de estas variables. Estas variables derivadas no aportan información nueva pero indica que puede resultar de ayuda en la clasificación de la fila.
+En base a la descripción del dataset en la página de la UCI, las primeras 8 características reflejan propiedades de las partículas medidas en un acelerador, y las 10 siguientes indican el resultado de diferentes funciones a partir de estas variables. Estas variables derivadas no aportan información nueva pero se indica que pueden resultar de ayuda en la clasificación de la instancia.
 
 \vspace{\baselineskip}
 
@@ -57,6 +59,7 @@ Las diferentes técnicas aplicadas en esta práctica son:
     \item \textbf{De preprocesamiento}: \begin{itemize}
         \item \textbf{Selección de características}: \begin{itemize}
             \item Principal Component Analysis.
+            \item Chi-Square Selector (solo sobre los mejores resultados).
         \end{itemize}
         \item \textbf{Ajuste de desbalanceo}: \begin{itemize}
             \item Random Oversampling.
@@ -73,13 +76,13 @@ Las diferentes técnicas aplicadas en esta práctica son:
     \end{itemize}
 \end{itemize}
 
-La metodología seguida durante la práctica consistió comparar el mayor número de combinaciones posibles, no por ello reflexionando sobre la coherencia en el uso conjunto de algunas de ellas. En este caso, puesto que en el algoritmo PCARD aplica a los datos de entrada PCA, no se ha aplicado ninguna técnica de reducción de características en sus experimentos.
+La metodología seguida durante la práctica comienza comparando el mayor número de combinaciones posibles, no por ello reflexionando sobre la coherencia en el uso conjunto de algunas de ellas. En este caso, puesto que en el algoritmo PCARD aplica a los datos de entrada PCA, no se ha aplicado ninguna técnica de reducción de características en sus experimentos.
 
 Para hacer esta exploración de flujos los algoritmos fueron entrenados con unos parámetros por defecto. Finalmente, a partir de los mejores resultados obtenidos para cada método, se realizó una optimización de los hiperparámetros para alcanzar el mayor valor de TPR x TNR posible.
 
 \vspace{\baselineskip}
 
-El flujo de técnicas de preprocesamiento de acorde a su uso es el siguiente:
+El flujo de técnicas de preprocesamiento ordenado de acorde a su uso es el siguiente:
 \begin{enumerate}
     \item Selección de características
     \item Under|Over-sampling
@@ -89,8 +92,7 @@ El flujo de técnicas de preprocesamiento de acorde a su uso es el siguiente:
 
 \vspace{\baselineskip}
 
-La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. Si quitamos características podemos acabar con datos redundantes en el dataset, y el uso de ROS puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos. Por estos motivos aplicamos técnicas de filtrado de ruido y selección de instancias para reducir el conjunto de datos y, adicionalmente, agilizar el proceso de clasificación. 
-% seleccionamos el conjunto de instancias con mayor varianza del conjunto.
+La justificación es la siguiente: En base al conjunto de datos de entrenamiento con el que contamos, pretendemos reducir la dimensionalidad sin perder excesiva información. Puesto que el dataset cuenta con un ratio de desbalanceo del 90\%, RO y RU ajustan los datos para evitar un sesgo en las técnicas de clasificación. Si quitamos características podemos acabar con datos redundantes en el dataset, y el uso de ROS puede generar ruido adicional además del propio ruido inherente que debemos suponer que existe en nuestros datos. Por estos motivos aplicamos técnicas de filtrado de ruido y selección de instancias para reducir el conjunto de datos y, adicionalmente, agilizar el proceso de aprendizaje. 
 
 \vspace{\baselineskip}
 
@@ -106,10 +108,11 @@ A continuación se indican los parámetros utilizados en cada una de las técnic
     \item \textbf{De preprocesamiento}: \begin{itemize}
         \item \textbf{Selección de características}: \begin{itemize}
             \item \textbf{Principal Component Analysis}: Reducción al 50\% (9 características).
+            \item \textbf{Chi-Square Selector}: Reducción al 50\% (9 características) tras una discretización en 25 intervalos.
         \end{itemize}
         \item \textbf{Ajuste de desbalanceo}: \begin{itemize}
             \item \textbf{Random Oversampling}: Incremento del 50\%.
-            \item \textbf{Random Undersampling}: Decremento hasta alcanzar igualdad en el número de instancias por clase.
+            \item \textbf{Random Undersampling}: Decremento hasta alcanzar igualdad en el número de instancias de cada clase.
         \end{itemize}
         \item \textbf{Filtrado de ruido}: \begin{itemize}
             \item \textbf{Homogeneous Ensemble (HME)}: Número de árboles fijado a 100, con máxima profundidad de 10 y 4 particiones.
