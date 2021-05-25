@@ -26,18 +26,19 @@ Todos los valores de TPR x TNR mostrados son calculados sobre el conjunto de tes
 
 En términos de los algoritmos de clasificación, tal y como se muestra en la tabla \ref{final}, obtenemos prácticamente la misma calidad con cualquiera de ellos (con variación de milésimas), siendo ligeramente superiores Random Forest (RF) y Árboles de Decisión (DT). Para ambas técnicas el flujo de preprocesamiento coincide, con el que se reduce el tamaño del conjunto de datos a un 10\% del tamaño original.
 
-Mediante las tablas \ref{dt} y \ref{rf} vemos que independientemente del preprocesamiento los resultados son muy similares para las dos técnicas, probablemente debido al estar un algoritmo formado como ensamblado del otro. A pesar de esto, vemos que en media RF es más robusto con RUS mientras que DT funciona mejor con ROS.
+Mediante las tablas \ref{dt} y \ref{rf} vemos que independientemente del preprocesamiento los resultados siguen siendo muy similares para las dos técnicas, probablemente debido al estar un algoritmo formado como ensamblado del otro. A pesar de esto, vemos que en media RF es más robusto con RUS mientras que DT funciona mejor con ROS.
 
 \vspace{\baselineskip}
 
 Sobre PCARD, aunque la calidad máxima se alcanza con las mínimas técnicas de preprocesamiento (ajustar el desbalanceo es imprescindible en este problema, y los resultados lo demuestran) no llega a ser significativamente inferior que el resto. 
 
-Además, a partir de la tabla \ref{pcard} notamos que las técnicas NCNEdit y FCNN empeoran los resultados frente a no usar ninguna reducción de instancias. Creemos que el motivo reside en que al aplicarse PCA antes de entrenar los árboles, se pierde demasiada información al haberse reducido el conjunto de datos con los algoritmos de filtrado de ruido y reducción de instancias.
+Además, a partir de la tabla \ref{pcard} notamos que las técnicas NCNEdit y FCNN empeoran los resultados frente a no usar ninguna reducción de instancias. Creemos que el motivo reside en que al aplicarse PCA antes de entrenar los árboles se acaba perdiendo demasiada información. 
+% ya que al haberse reducido el conjunto de datos con los algoritmos de filtrado de ruido y reducción de instancias.
 % Qué pasa con HME ??
 
 \vspace{\baselineskip}
 
-Respecto a kNN, notamos peor calidad en comparación con el resto independientemente de la técnica y parámetros con los que se ha probado. Sin hacer un análisis de la distribución de los datos el razonamiento no está claro, pues al ser un algoritmo basado en distancias si existiera alto entremezclado entre las instancias de ambos clases es de esperar que con los pocos valores de k que se ha probado sea insuficiente.
+Respecto a kNN, notamos peor calidad en comparación con el resto independientemente de la técnica y parámetros con los que se ha probado. Sin hacer un análisis de la distribución de los datos el razonamiento no está claro, pues al ser un algoritmo basado en distancias si existiera alto entremezclado entre las instancias de ambas clases podría ser de esperar que con los pocos valores de k que se han utilizado sea insuficiente.
 
 \newpage
 
@@ -94,7 +95,7 @@ Respecto a kNN, notamos peor calidad en comparación con el resto independientem
 
 \subsection{Sobre las técnicas de selección de características}
 
-Como se dijo anteriormente, hemos aplicado PCA únicamente a los algoritmos donde tiene sentido, pero podemos ver a partir de la tabla \ref{avg} y la de cada algoritmo que los resultados empeoran tras su uso.
+Como se dijo anteriormente, hemos aplicado PCA únicamente a los algoritmos donde tiene sentido, pero podemos ver a partir de las tablas \ref{avg}, \ref{dt}, \ref{rf} y \ref{knn} que los resultados empeoran tras su uso.
 
 \vspace{\baselineskip}
 
@@ -102,13 +103,15 @@ Hacemos notar que PCARD se comporta mejor que los árboles de decisión con PCA,
 
 \vspace{\baselineskip}
 
-A pesar de todo, podríamos considerar si la reducción de dimensionalidad conseguida es aceptable a costa de esa cantidad de empeoramiento. En este problema, pasando de una media de 0,593 a 0,584, que corresponde a una clasificación errónea de $593.000 - 584.000 = 9.000$ instancias más, dada la semántica del problema no parece una pérdida substancial. Si por otro caso tratáramos con un problema médico habría que considerar independientemente el TPR y el TNR antes de aceptar esta conclusión.
+A pesar de todo, podríamos considerar si la reducción de dimensionalidad y simplicidad obtenida es aceptable a costa de esa cantidad de empeoramiento. En este problema, pasando de una media de 0,593 a 0,584, que corresponde a una clasificación errónea de $593.000 - 584.000 = 9.000$ instancias más, dada la semántica del problema no parece una pérdida substancial. Si por otro caso tratáramos con un problema médico habría que considerar independientemente el TPR y el TNR antes de aceptar esta conclusión.
 
 \vspace{\baselineskip}
 
 Por otro lado, hemos aplicado ChiSquareSelector sobre los mejores resultados de DT y RF (sobre kNN no ya que es un método basado en distancias y para aplicar ChiSq era necesario realizar una discretización de las variables continuas). 
 
-Los resultados, mostrados en la tabla \ref{chisq}, nos indican una variación tanto por arriba como por abajo únicamente de milésimas, pero en media superiores a su equivalente con PCA (probablemente por la discretización). Aun así, puesto que la alteración en TPR x TNR es mínima, reincidimos en las conclusiones anteriores, añadiendo que además al haber reducido dimensionalidad hemos formado árboles más simples y, por tanto, más interpretables.
+Los resultados, mostrados en la tabla \ref{chisq}, nos indican una variación tanto por arriba como por abajo únicamente de milésimas, pero en media superiores a su equivalente con PCA (creemos que por la discretización). Aun así, puesto que la alteración en TPR x TNR es mínima reincidimos en las conclusiones anteriores, añadiendo que además al haber reducido dimensionalidad hemos formado árboles más simples y, por tanto, más interpretables.
+
+\vspace{\baselineskip}
 
 \begin{table}
     \centering
@@ -121,8 +124,8 @@ Los resultados, mostrados en la tabla \ref{chisq}, nos indican una variación ta
     \multicolumn{1}{|c|}{}  & RUS  & No       & No    & 0.590 \\ \hline
     \multicolumn{1}{|c|}{\multirow{4}{*}{RF}} & RUS  & HME      & FCNN  & 0.593 \\ \cline{2-5} 
     \multicolumn{1}{|c|}{}   & RUS  & HME      & No    & 0.596 \\ \cline{2-5} 
-    \multicolumn{1}{|c|}{}   & RUS  & No       & No    & 0.594 \\ \cline{2-5} 
-    \multicolumn{1}{|c|}{}   & RUS  & NCNEdit  & No    & 0.594 \\ \hline
+    \multicolumn{1}{|c|}{}   & RUS  & NCNEdit  & No    & 0.594 \\ \cline{2-5} 
+    \multicolumn{1}{|c|}{}   & RUS  & No       & No    & 0.594 \\ \hline
     \end{tabular}
     \caption{Resultandos combinando ChiSquareSelector con diferentes métodos de preprocesamiento en árboles de decisión y random forest.}
     \label{chisq}
@@ -154,13 +157,17 @@ Los resultados, mostrados en la tabla \ref{chisq}, nos indican una variación ta
     \multicolumn{1}{|c|}{}  & RUS       & 0.362  & 0.179
     & 0.587        \\ \hline
     \end{tabular}
-    \caption{Efectos de las diferentes técnicas de preprocesamiento para Random Forest.}
+    \caption{Efectos de las diferentes técnicas de preprocesamiento para random forest.}
     \label{rf}
 \end{table}
 
 \subsection{Sobre las técnicas de balanceo de datos}
 
-No solo RUS ayuda a acelerar la tarea de aprendizaje, también nos da los mejores resultados. Aún así, en media vemos que se comporta peor que ROS, debido probablemente a que su combinación con técnicas de selección de instancias reduce en algunos casos de manera excesiva el conjunto de datos.
+Tal y como se mencionó anteriormente, a falta de tener unos algoritmos donde se les puedan indicar unos pesos para cada clase de forma que evitemos un sesgo hacia la mayoritaria, el ajuste del desbalanceo es vital en nuestro problema.
+
+\vspace{\baselineskip}
+
+En concreto apreciamos que no solo RUS ayuda a acelerar la tarea de aprendizaje, también nos da los mejores resultados. Aún así, en media vemos que se comporta peor que ROS, debido probablemente a que su combinación con técnicas de selección de instancias reduce en algunos casos de manera excesiva el conjunto de datos.
 
 \subsection{Sobre las técnicas de reducción de ruido}
 
@@ -173,7 +180,7 @@ Vemos que el uso de FCNN apenas altera los resultados, pero no por ello deja de 
 \vspace{\baselineskip}
 
 Finalmente, indicamos que aunque la técnica SSMA sobrepasa el límite de 4GB de memoria impuesto en la práctica, en base a las dos ejecuciones con las que contamos (de los primeros días cuando el límite estaba en 46GB) vemos que la reducción en el número de instancias es extremadamente grande, llegando a obtener subconjuntos de 12.000 y 20.000 instancias.
-A pesar de ello en este caso los resultados sí son bastante inferiores respecto a FCNN o no aplicar nada, por lo que concluímos que su uso no es positivo en este conjunto de datos.
+A pesar de ello en este caso los resultados sí son bastante inferiores respecto a FCNN o a no aplicar nada, por lo que concluímos que su uso no es positivo en este conjunto de datos.
 
 \begin{table}
     \centering
@@ -233,15 +240,13 @@ A pesar de ello en este caso los resultados sí son bastante inferiores respecto
 
 \subsection{Algunas conclusiones generales}
 
-% Objetivamente la calidad de los resultados es bastante superior a la baseline (cuánto ?), pero no por ello un tanto bajas. La práctica se ha enfocado en evaluar las diferentes combinaciones de técnicas (independientemente del resultado obtenido ?REALLY?). Una posible forma de mejorar sería un ajuste mayor de los hiperparámetros ???
-
 \begin{itemize}
-    \item La reducción de datos en problemas de big data es esencial. Debemos transformar el dataset en un conjunto manejable y representativo de forma que aprovechemos el tiempo y recursos disponibles al máximo.
+    \item La reducción de datos en problemas de big data es esencial. Debemos transformar el dataset en un conjunto manejable y representativo de forma que aprovechemos al máximo el tiempo y los recursos disponibles.
     \item Lo mismo es aplicable a la selección de características, y debemos tener en cuenta que una mejora no es solo útil por el valor en la métrica que alcance, sino además por la reducción de complejidad que puede obtener. 
 
     También debemos tener en cuenta la simplificación de los modelos y resultados obtenidos, que suele ser indicio de una mayor generalización.
 
-    \item No existe un único flujo de preprocesamiento para todos los algoritmos, dependerá del funcionamiento de cada técnica de aprendizaje para sacar el máximo potencial. Por ejemplo, el ruido es más influyente en kNN, donde en base al valor de k puede cambiar radicalmente la clase predicha, que en una técnica basada en árboles, donde la poda ayudará a generalizar.
+    \item No existe un único flujo de preprocesamiento para todos los algoritmos, dependerá del funcionamiento de cada técnica de aprendizaje para sacar el máximo potencial. Por ejemplo, el ruido es más influyente en kNN (donde en base al valor de k puede cambiar radicalmente la clase predicha) que en una técnica basada en árboles (donde la poda ayudará a generalizar).
     \item En algunos casos es más interesante reconsiderar y mejorar el flujo de preprocesamiento que optimizar una y otra vez los hipérparametros del algoritmo. Hemos visto mejoras de 2 o 3 milésimas cambiando los parámetros frente a mejoras en las decenas con flujos diferentes.
     
     No por ello hay que ignorar la etapa de optimización, pero resulta más eficiente aplicarla en último lugar.

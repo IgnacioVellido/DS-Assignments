@@ -36,7 +36,7 @@ object Models extends Serializable {
     val numClasses = 2
     var categoricalFeaturesInfo = Map[Int, Int]()
     val impurity = "gini"
-    val maxDepth = 8 // 5
+    val maxDepth = 8
     val maxBins = 32
 
     val modelDT = DecisionTree.trainClassifier(train, numClasses, categoricalFeaturesInfo, impurity, maxDepth, maxBins)
@@ -60,10 +60,10 @@ object Models extends Serializable {
     // Empty categoricalFeaturesInfo indicates all features are continuous.
     val numClasses = 2
     var categoricalFeaturesInfo = Map[Int, Int]()
-    val numTrees = 150 // 100
+    val numTrees = 150
     val featureSubsetStrategy = "auto" // Let the algorithm choose.
     val impurity = "gini"
-    val maxDepth = 8 // 4
+    val maxDepth = 8
     val maxBins = 32
 
     val modelRF = RandomForest.trainClassifier(train, numClasses, categoricalFeaturesInfo, numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins)
@@ -85,7 +85,7 @@ object Models extends Serializable {
    */
   def pcard(train: RDD[LabeledPoint], test: RDD[LabeledPoint], sc: SparkContext): RDD[(Double, Double)] = {
     val cuts = 5
-    val trees = 15 // 10
+    val trees = 15
 
     val pcardTrain = PCARD.train(train, trees, cuts)
     
@@ -113,10 +113,10 @@ object Models extends Serializable {
    */
   def knn(train: RDD[LabeledPoint], test: RDD[LabeledPoint], sc: SparkContext): RDD[(Double, Double)] = {
     // Parameters
-    val k = 7 // 5
+    val k = 7
     val dist = 2 //euclidean
     val numClass = 2
-    val numFeatures = train.first.features.size // 18 // 9
+    val numFeatures = train.first.features.size
     val numPartitionMap = 10
     val numReduces = 2
     val numIterations = 1
