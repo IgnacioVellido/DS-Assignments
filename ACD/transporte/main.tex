@@ -70,11 +70,11 @@
 % Comando para poner el nombre de la asignatura
 \newcommand{\asignatura}{Aplicaciones de Ciencia de Datos y Tecnologías Inteligentes}
 \newcommand{\autor}{Ignacio Vellido Expósito}
-\newcommand{\email}{ignaciove@correo.ugr.es \\ 79056166Z}
+\newcommand{\email}{ignaciove@correo.ugr.es}
 \newcommand{\titulo}{Técnicas de Soft Computing}
-\newcommand{\subtitulo}{Manejo de rutas y localización de aseos}
+\newcommand{\subtitulo}{Sistema inteligente de localización de aseos}
 
-% Configuracion de encabezados y pies de pagina
+% Configuración de encabezados y pies de pagina
 \pagestyle{fancy}
 \lhead{\autor{}}
 \rhead{\asignatura{}}
@@ -91,11 +91,11 @@
     \pagenumbering{gobble}
     \input{portada/portada}
     
-    \pagenumbering{arabic}
-    \tableofcontents
-    \thispagestyle{empty}				% No usar estilo en la pagina de indice
+    % \pagenumbering{arabic}
+    % \tableofcontents
+    % \thispagestyle{empty}				% No usar estilo en la pagina de indice
 
-    \newpage
+    % \newpage
 
     % ==============================================================================
 
@@ -107,68 +107,139 @@
 
 \section{Introducción}
 
-Público objetivo: Personas con problemas intestinales, turistas, gente que trabaja en la calle (taxistas)
-Probablemente mejor aceptado por gente del rango 25-40, al resto les puede dar vergüenza.
+% Nadie es extraño a dolores de tripa espontáneos, ya sea cuando estamos de turismo/paseo...
+% A nadie le resulta extraño...
+% Público objetivo: Personas con problemas intestinales, turistas, gente que trabaja en la calle (taxistas)
 
-Es necesaria la colaboración extrema y constante de los usuarios para crear la comunidad. Los principios de la app serán difíciles
+% Es necesaria la colaboración extrema y constante de los usuarios para crear la comunidad. Los principios de la app serán difíciles
 
 % Vaguedad en los datos
 % Propuesta, solo documentación
 
+% Entre posibles tipos de locales: Restaurantes y cafeterías, universidades, estaciones de tren y bus, edificios públicos, centros comerciales, baños públicos, incluso su propia vivienda (para darle mayor prioridad)
+
+En las siguientes páginas se propone una aplicación móvil con técnicas de soft computing para este problema.
+
 \section{Descripción del sistema}
 
-% Gráfico global
+\begin{figure}[H]
+  \centerfloat
+  \includegraphics[width=0.99\textwidth]{img/0.png}
+  \caption{Representación global del sistema inteligente.}
+\end{figure}
+
+Dividimos el sistema de procesamiento en tres partes:
+\begin{enumerate}
+  \item \textbf{Subsistema de entrada}: Solicitará información al usuario y transformará aquellos datos cualitativos en cuantitativos.
+  \item \textbf{Subsistema central}: A partir de los datos de entrada recuperará el conjunto de baños a considerar, y seguidamente calculará y optimizará las rutas más viables.
+  \item \textbf{Subsistema de salida}: Devolverá las rutas e información de los aseos de manera amigable al usuario, volviendo a representaciones cualitativas cuando sea apropiado.
+\end{enumerate}
 
 \subsection{Subsistema de entrada}
 
-- Urgencia: El usuario podrá elegir entre diferentes niveles de urgencia ("inmediato", "pronto", "más adelante") que se tendrán en cuenta a la hora de calcular la distancia y los niveles de calidad aceptados.
-- Ubicación: Mediante el geo-localizador del móvil, o incluso la posibilidad de introducirlo a mano si se pretende estimar de antemano.
-- (Opcional) Criterios de higiene: Se usaran 3 etiquetas lingüísticas ("impecable", "limpio", "sucio") que devolverá el sistema
-- (Opcional) Género: Para filtrar los resultados de las reviews.
-
-También, adicionalmente
-El usuario podría limitar el tipo de sitios en los que acepta a ir, pues por ejemplo sería de mal gusto entrar una cafetería sin consumir nada.
-
-Entre posibles tipos de locales: Restaurantes y cafeterías, universidades, estaciones de tren y bus, edificios públicos, centros comerciales, baños públicos, incluso su propia vivienda (para darle mayor prioridad)
-
-\subsection{Subsistema central}
+\begin{itemize}
+  \item \textbf{Ubicación}: Mediante el geo-localizador del móvil se obtendrá una representación en coordenadas de la posición del usuario.
+  \item \textbf{Urgencia}: El usuario podrá elegir entre diferentes niveles de urgencia ("inmediato", "pronto", "más adelante"). Para la transformación en valores numéricos se obtendría por un lado el rango de distancia aceptado y un indicador de urgencia, siguiendo la función de pertenencia de la figura \ref{urgencia}.
+  \item \textbf{Criterios de higiene} (Opcional): Se usaran 3 etiquetas lingüísticas ("impecable", "limpio", "sucio") que devolverá el sistema
+  \item \textbf{Género} (Opcional): Para filtrar los resultados de las reviews.
+  \item \textbf{Criterios adicionales} (Opcional): Otros criterios para discriminar aseos, como discapacidad, con cambiador de bebes\dots.
+\end{itemize}
 
 Primeramente será necesario cuantificar los niveles cualitativos introducidos por el usuario.
 
+\begin{figure}[H]
+  \centerfloat
+  \includegraphics[width=0.75\textwidth]{img/1.png}
+  \caption{Función de pertenencia para el nivel de urgencia.}
+  \label{urgencia}
+\end{figure}
+
+\begin{figure}[H]
+  \centerfloat
+  \includegraphics[width=0.75\textwidth]{img/1.png}
+  \caption{Función de pertenencia para la distancia máxima.}
+  \label{distancia}
+\end{figure}
+
+\begin{figure}[H]
+  \centerfloat
+  \includegraphics[width=0.75\textwidth]{img/3.png}
+  \caption{Función de pertenencia para el nivel de higiene.}
+  \label{higiene}
+\end{figure}
+
+\subsection{Subsistema central}
+
+% Modelo probabilístico en ocupación
+
 A partir de la ubicación, la urgencia y los criterios de higiene se estima un radio máximo de posibles baños (fórmula)
 
-Seguidamente, se extrae la información de los baños desde la base de datos (valores de higiene, distancia, ocupación) y se aplica un algoritmo de optimización siguiendo el esquema:
+Seguidamente, se extrae la información de los baños desde la base de datos (valores de higiene, distancia, ocupación) 
+% y se aplica un algoritmo de optimización siguiendo el esquema:
 
-Maximizar la higiene, disminuir la distancia, disminuir la probabilidad de ocupación
-tal que:
-higiene <= criterio mínimo de higiene (restricción flexible)
-distancia <= (tiempo estimado en llegar)
+% Maximizar la higiene, disminuir la distancia, disminuir la probabilidad de ocupación
+% tal que:
+% higiene <= criterio mínimo de higiene (restricción flexible)
+% distancia <= (tiempo estimado en llegar)
 
-Se podría asociar una puntuación a cada baño en base a la siguiente forma:
 
-Estos baños se ordenan en base a su puntuación y pasa al sistema 
+% Estos baños se ordenan en base a su puntuación y pasa al sistema 
+% Algoritmo genético de optimización ? No debería ser exponencial. O si hubiera muchos locales sí ?
+
+Se podría asociar una puntuación a cada baño en base a la siguiente fórmula:
+
+\begin{equation}
+  S = h*H \times \frac{e_{1}}{u*T} \times \frac{e_{2}}{O}
+\end{equation}
+
+Siendo:
+\begin{itemize}
+  \item $S$ la puntuación asignada.
+  \item $H$ el valor de higiene.
+  \item $h$ la importancia de la higiene para el usuario.
+  \item $T$ el tiempo estimado en llegar.
+  \item $u$ la urgencia indicada.
+  \item $O$ el nivel probable de ocupación.
+  \item $e_{1}$ y $e_{2}$ valores constantes.
+\end{itemize} 
+
+% La técnica utilizada podría variar
+
+% Estimación de ocupación
+% Estimación de nivel de higiene
 
 \subsection{Subsistema de salida}
 
-Subsistema de Salida, que brindará la información geográfica de la ruta adaptada. Usará etiquetas lingüísticas para brindar las informaciones y recomendaciones de las rutas de forma cualitativa.
-La parte inteligente del sistema respecto a la gestión de adaptación de la ruta es la Base de Reglas Difusas, que será descrita a continuación, y en la que se presentará el diseño del controlador difuso que “deforma” la información de la ruta, describiendo las variables de estado, sus respectivas funciones de pertenencia, y la base de reglas correspondiente
+% Subsistema de Salida, que brindará la información geográfica de la ruta adaptada. Usará etiquetas lingüísticas para brindar las informaciones y recomendaciones de las rutas de forma cualitativa.
+% La parte inteligente del sistema respecto a la gestión de adaptación de la ruta es la Base de Reglas Difusas, que será descrita a continuación, y en la que se presentará el diseño del controlador difuso que “deforma” la información de la ruta, describiendo las variables de estado, sus respectivas funciones de pertenencia, y la base de reglas correspondiente
 
 Transformará las etiquetas lingüísticas en representaciones gráficas para un mejor aspecto visual de la aplicación.
 
-Si el resultado es exitoso la aplicación devuelve, de forma ordenada al score puntuado, 3 posibles localizaciones con la siguiente información:
+Si el resultado es exitoso la aplicación devuelve, de forma ordenada por puntuación, las posibles localizaciones con la siguiente información:
 
 \begin{itemize}
   \item Nombre.
   \item Información geográfica de la ruta más corta desde la ubicación del usuario hasta el lugar, mostrando la distancia y el tiempo de llegada aproximado.
   \item Probabilidad de estar ocupado.
-  \item Nivel de higiene estimado.
+  \item Nivel de higiene esperado.
 \end{itemize}
+
+Si por el contrario no hubiera éxito en el cálculo de los locales con las restricciones indicadas, la aplicación ofrecería al usuario recalcular las rutas relajando los posibles criterios.
+
+\begin{figure}[H]
+  \centerfloat
+  \includegraphics[width=0.45\textwidth]{img/4.png}
+  \caption{Mockup de una posible salida de la aplicación.}
+  \label{output}
+\end{figure}
+
+% (o también, si el sistema base es capaz de responde rápidamente, calcularlos en la primera llamada y ofrecerlos indicando las restricciones).
+
 % Probabilidad de estar ocupado: En base a la cantidad de gente en la zona. Una base de datos adicional (propia o con información introducida por los usuario) podría aportar conocimiento adicional sobre el número de baños, la ubicación (ej: si se encuentra en el bajo de un apartamento es de esperar que aparente haber más gente de la que hay). etc.
-- Nivel de higiene: A partir de las reviews de los usuarios. También se podría hacer un estudio de ciencia de datos recogiendo datos de la ubicación, número de personas, fecha y hora\dots, con el objetivo de predecir el nivel de higiene en ese momento.
+% - Nivel de higiene: A partir de las reviews de los usuarios. También se podría hacer un estudio de ciencia de datos recogiendo datos de la ubicación, número de personas, fecha y hora\dots, con el objetivo de predecir el nivel de higiene en ese momento.
 
-Información de si están rotos
+% Información de si están rotos
 
-Si por el contrario no hubiera éxito en el cálculo de los locales, la aplicación ofrecería al usuario recalcular las rutas relajando los posibles criterios (o también, si el sistema base es capaz de responde rápidamente, calcularlos en la primera llamada y ofrecerlos indicando las restricciones).
 
 % Inicialmente, el sistema solicita al usuario que indique cuánto está dispuesto a desplazarse
 % dada su ubicación actual. La base lógica difusa se encarga de convertir esta información
