@@ -103,29 +103,78 @@
 
 % ¿A quíen no le ha dado alguna vez un apretón en la calle? Bueno, no hay forma de evitar que eso ocurra, pero podemos ayudar a hacer el problema más ameno
 
-% ---
+% ---------------------------
+
+\section{Introducción}
 
 Público objetivo: Personas con problemas intestinales, turistas, gente que trabaja en la calle (taxistas)
 Probablemente mejor aceptado por gente del rango 25-40, al resto les puede dar vergüenza.
 
 Es necesaria la colaboración extrema y constante de los usuarios para crear la comunidad. Los principios de la app serán difíciles
 
-Elementos difusos:
-- Urgencia: El usuario podrá elegir entre diferentes niveles de urgencia (inmediato, pronto, cuando sea) que se tendrán en cuenta a la hora de calcular la distancia y los niveles de calidad aceptados.
-- Ubicación: Mediante el geo-localizados del móvil, o incluso la posibilidad de introducirlo a mano si se pretende estimar de antemano
+% Vaguedad en los datos
+% Propuesta, solo documentación
 
+\section{Descripción del sistema}
 
-Información de salida
-- Distancia
-- Tiempo de llegada aproximado
-- Probabilidad de estar ocupado: En base a la cantidad de gente en la zona. Una base de datos adicional (propia o con información introducida por los usuario) podría aportar conocimiento adicional sobre el número de baños, la ubicación (ej: si se encuentra en el bajo de un apartamento es de esperar que aparente haber más gente de la que hay). etc.
+% Gráfico global
+
+\subsection{Subsistema de entrada}
+
+- Urgencia: El usuario podrá elegir entre diferentes niveles de urgencia ("inmediato", "pronto", "más adelante") que se tendrán en cuenta a la hora de calcular la distancia y los niveles de calidad aceptados.
+- Ubicación: Mediante el geo-localizador del móvil, o incluso la posibilidad de introducirlo a mano si se pretende estimar de antemano.
+- (Opcional) Criterios de higiene: Se usaran 3 etiquetas lingüísticas ("impecable", "limpio", "sucio") que devolverá el sistema
+- (Opcional) Género: Para filtrar los resultados de las reviews.
+
+También, adicionalmente
+El usuario podría limitar el tipo de sitios en los que acepta a ir, pues por ejemplo sería de mal gusto entrar una cafetería sin consumir nada.
+
+Entre posibles tipos de locales: Restaurantes y cafeterías, universidades, estaciones de tren y bus, edificios públicos, centros comerciales, baños públicos, incluso su propia vivienda (para darle mayor prioridad)
+
+\subsection{Subsistema central}
+
+Primeramente será necesario cuantificar los niveles cualitativos introducidos por el usuario.
+
+A partir de la ubicación, la urgencia y los criterios de higiene se estima un radio máximo de posibles baños (fórmula)
+
+Seguidamente, se extrae la información de los baños desde la base de datos (valores de higiene, distancia, ocupación) y se aplica un algoritmo de optimización siguiendo el esquema:
+
+Maximizar la higiene, disminuir la distancia, disminuir la probabilidad de ocupación
+tal que:
+higiene <= criterio mínimo de higiene (restricción flexible)
+distancia <= (tiempo estimado en llegar)
+
+Se podría asociar una puntuación a cada baño en base a la siguiente forma:
+
+Estos baños se ordenan en base a su puntuación y pasa al sistema 
+
+\subsection{Subsistema de salida}
+
+Subsistema de Salida, que brindará la información geográfica de la ruta adaptada. Usará etiquetas lingüísticas para brindar las informaciones y recomendaciones de las rutas de forma cualitativa.
+La parte inteligente del sistema respecto a la gestión de adaptación de la ruta es la Base de Reglas Difusas, que será descrita a continuación, y en la que se presentará el diseño del controlador difuso que “deforma” la información de la ruta, describiendo las variables de estado, sus respectivas funciones de pertenencia, y la base de reglas correspondiente
+
+Transformará las etiquetas lingüísticas en representaciones gráficas para un mejor aspecto visual de la aplicación.
+
+Si el resultado es exitoso la aplicación devuelve, de forma ordenada al score puntuado, 3 posibles localizaciones con la siguiente información:
+
+\begin{itemize}
+  \item Nombre.
+  \item Información geográfica de la ruta más corta desde la ubicación del usuario hasta el lugar, mostrando la distancia y el tiempo de llegada aproximado.
+  \item Probabilidad de estar ocupado.
+  \item Nivel de higiene estimado.
+\end{itemize}
+% Probabilidad de estar ocupado: En base a la cantidad de gente en la zona. Una base de datos adicional (propia o con información introducida por los usuario) podría aportar conocimiento adicional sobre el número de baños, la ubicación (ej: si se encuentra en el bajo de un apartamento es de esperar que aparente haber más gente de la que hay). etc.
 - Nivel de higiene: A partir de las reviews de los usuarios. También se podría hacer un estudio de ciencia de datos recogiendo datos de la ubicación, número de personas, fecha y hora\dots, con el objetivo de predecir el nivel de higiene en ese momento.
 
 Información de si están rotos
-Ubicación del usuario
 
-Entre posibles tipos de locales: Restaurantes y cafeterías, universidades, estaciones de tren y bus, edificios públicos, centros comerciales, baños públicos, incluso su propia vivienda (para darle mayor prioridad)
-El usuario podría limitar el tipo de sitios en los que acepta a ir, pues por ejemplo sería de mal gusto entrar una cafetería sin consumir nada.
+Si por el contrario no hubiera éxito en el cálculo de los locales, la aplicación ofrecería al usuario recalcular las rutas relajando los posibles criterios (o también, si el sistema base es capaz de responde rápidamente, calcularlos en la primera llamada y ofrecerlos indicando las restricciones).
+
+% Inicialmente, el sistema solicita al usuario que indique cuánto está dispuesto a desplazarse
+% dada su ubicación actual. La base lógica difusa se encarga de convertir esta información
+% cualitativa a cuantitativa mediante un proceso de “defuzzicación”.Así, ya esta información se
+% utiliza a modo de filtro la API de TripAdvisor [5] para obtener los mejores locales de tapas en
+% ese radio.
 
     % ==============================================================================
 
