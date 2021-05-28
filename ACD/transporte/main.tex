@@ -116,7 +116,8 @@
 % Vaguedad en los datos
 % Propuesta, solo documentación
 
-% Entre posibles tipos de locales: Restaurantes y cafeterías, universidades, estaciones de tren y bus, edificios públicos, centros comerciales, baños públicos, incluso su propia vivienda (para darle mayor prioridad)
+% En los momentos de necesidad uno no se quiere preocuparse de detalles y solo quiere encontrar el lugar que mejor cumpla su función.
+% La aplicación, haciendo uso de una base de datos de aseos (públicos, restaurantes, centros comerciales, museos, etc.), encontrará 
 
 En las siguientes páginas se propone una aplicación móvil con técnicas de soft computing para este problema.
 
@@ -128,65 +129,75 @@ En las siguientes páginas se propone una aplicación móvil con técnicas de so
   \caption{Representación global del sistema inteligente.}
 \end{figure}
 
-Dividimos el sistema de procesamiento en tres partes:
+Dividimos el núcleo de procesamiento en tres partes:
 \begin{enumerate}
-  \item \textbf{Subsistema de entrada}: Solicitará información al usuario y transformará aquellos datos cualitativos en cuantitativos.
-  \item \textbf{Subsistema central}: A partir de los datos de entrada recuperará el conjunto de baños a considerar, y seguidamente calculará y optimizará las rutas más viables.
+  \item \textbf{Subsistema de entrada}: Solicitará y procesará la información tanto cualitativa como cuantitativa.
+  \item \textbf{Subsistema central}: Calculará y optimizará las rutas más viables maximizando las preferencias del usuario.
   \item \textbf{Subsistema de salida}: Devolverá las rutas e información de los aseos de manera amigable al usuario, volviendo a representaciones cualitativas cuando sea apropiado.
 \end{enumerate}
 
 \subsection{Subsistema de entrada}
 
+Los valores de entrada al sistema son los siguientes:
 \begin{itemize}
   \item \textbf{Ubicación}: Mediante el geo-localizador del móvil se obtendrá una representación en coordenadas de la posición del usuario.
-  \item \textbf{Urgencia}: El usuario podrá elegir entre diferentes niveles de urgencia ("inmediato", "pronto", "más adelante"). Para la transformación en valores numéricos se obtendría por un lado el rango de distancia aceptado y un indicador de urgencia, siguiendo la función de pertenencia de la figura \ref{urgencia}.
-  \item \textbf{Criterios de higiene} (Opcional): Se usaran 3 etiquetas lingüísticas ("impecable", "limpio", "sucio") que devolverá el sistema
-  \item \textbf{Género} (Opcional): Para filtrar los resultados de las reviews.
-  \item \textbf{Criterios adicionales} (Opcional): Otros criterios para discriminar aseos, como discapacidad, con cambiador de bebes\dots.
+  \item \textbf{Urgencia}: El usuario podrá elegir entre diferentes niveles de urgencia (inmediato, pronto, más adelante). 
+  % Para la transformación en valores numéricos se obtendría por un lado el rango de distancia aceptado y un indicador de urgencia, siguiendo la función de pertenencia de la figura \ref{urgencia}.
 \end{itemize}
 
-Primeramente será necesario cuantificar los niveles cualitativos introducidos por el usuario.
+Junto a un conjunto de parámetros opcionales para limitar y ajustar las preferencias del usuario:
+\begin{itemize}
+  \item \textbf{Criterios de higiene}: Se usaran 3 etiquetas lingüísticas (impecable, limpio, sucio) que devolverá el sistema.
+  \item \textbf{Género}: Para filtrar los resultados de las reviews.
+  \item \textbf{Criterios adicionales}: Otros criterios para discriminar aseos, como discapacidad, con cambiador de bebes\dots.
+\end{itemize}
+
+% Primeramente será necesario cuantificar los niveles cualitativos introducidos por el usuario.
+Los argumentos cualitativos se podrán transformar en numéricos con las siguientes funciones de transferencia:
 
 \begin{figure}[H]
   \centerfloat
   \includegraphics[width=0.75\textwidth]{img/1.png}
-  \caption{Función de pertenencia para el nivel de urgencia.}
+  \caption{Los valores del eje x, en el rango [0-100], modelizan el nivel de urgencia del usuario, donde 0 indica máxima prisa y 100 prisa ninguna.}
   \label{urgencia}
 \end{figure}
 
 \begin{figure}[H]
   \centerfloat
-  \includegraphics[width=0.75\textwidth]{img/1.png}
-  \caption{Función de pertenencia para la distancia máxima.}
+  \includegraphics[width=0.75\textwidth]{img/2.png}
+  \caption{Los valores del eje x, en el rango [0-500], modelizan la distancia máxima (en metros) aceptada por el usuario.}
   \label{distancia}
 \end{figure}
 
 \begin{figure}[H]
   \centerfloat
   \includegraphics[width=0.75\textwidth]{img/3.png}
-  \caption{Función de pertenencia para el nivel de higiene.}
+  \caption{Los valores del eje x, en el rango [0-100], modelizan el porcentaje de higiene de un aseo.}
   \label{higiene}
 \end{figure}
 
 \subsection{Subsistema central}
 
-% Modelo probabilístico en ocupación
+A partir del criterio de urgencia podemos elegir un radio primario y secundario para la búsqueda de baños, cogiendo donde la función de transferencia vale 1 y 0. De esta forma tendríamos que:
 
-A partir de la ubicación, la urgencia y los criterios de higiene se estima un radio máximo de posibles baños (fórmula)
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|c|c|}
+  \hline
+  \textbf{Nivel} & \multicolumn{1}{l|}{\textbf{Radio Primario}} & \multicolumn{1}{l|}{\textbf{Radio Secundario}} \\ \hline
+  Inmediato      & 50          & 100           \\ \hline
+  Pronto         & 150         & 250           \\ \hline
+  Más adelante   & 300         & 400           \\ \hline
+  \end{tabular}
+\end{table}
 
-Seguidamente, se extrae la información de los baños desde la base de datos (valores de higiene, distancia, ocupación) 
-% y se aplica un algoritmo de optimización siguiendo el esquema:
+% El primer valor se utilizaría para una primera búsqueda y el segundo en caso de que los baños encontrados no cumplieran las restricciones fuertes. 
+% Mejor un peso exponencial entonces
+% Estos valores se usarían para restringir el espacio de búsqueda
 
-% Maximizar la higiene, disminuir la distancia, disminuir la probabilidad de ocupación
-% tal que:
-% higiene <= criterio mínimo de higiene (restricción flexible)
-% distancia <= (tiempo estimado en llegar)
+\vspace{\baselineskip}
 
-
-% Estos baños se ordenan en base a su puntuación y pasa al sistema 
-% Algoritmo genético de optimización ? No debería ser exponencial. O si hubiera muchos locales sí ?
-
-Se podría asociar una puntuación a cada baño en base a la siguiente fórmula:
+Seguidamente, se extrae la información de los baños desde la base de datos (valores de higiene, distancia, ocupación) y se aplica un algoritmo de optimización, asignando a cada elemento una posible puntuación de la siguiente forma:
 
 \begin{equation}
   S = h*H \times \frac{e_{1}}{u*T} \times \frac{e_{2}}{O}
@@ -197,34 +208,28 @@ Siendo:
   \item $S$ la puntuación asignada.
   \item $H$ el valor de higiene.
   \item $h$ la importancia de la higiene para el usuario.
-  \item $T$ el tiempo estimado en llegar.
+  \item $T$ el tiempo estimado en llegar, calculado a partir de la distancia.
   \item $u$ la urgencia indicada.
   \item $O$ el nivel probable de ocupación.
   \item $e_{1}$ y $e_{2}$ valores constantes.
 \end{itemize} 
 
-% La técnica utilizada podría variar
+El nivel de ocupación se estimará con un modelo probabilístico teniendo en cuenta la hora del día, el flujo de personas habitual, y la naturaleza del establecimiento. 
 
-% Estimación de ocupación
-% Estimación de nivel de higiene
+El cálculo del nivel de higiene también se calculará de la misma manera, considerando el posible conocimiento ad-hoc que otros usuarios de la aplicación hayan dejado.
 
 \subsection{Subsistema de salida}
 
-% Subsistema de Salida, que brindará la información geográfica de la ruta adaptada. Usará etiquetas lingüísticas para brindar las informaciones y recomendaciones de las rutas de forma cualitativa.
-% La parte inteligente del sistema respecto a la gestión de adaptación de la ruta es la Base de Reglas Difusas, que será descrita a continuación, y en la que se presentará el diseño del controlador difuso que “deforma” la información de la ruta, describiendo las variables de estado, sus respectivas funciones de pertenencia, y la base de reglas correspondiente
-
-Transformará las etiquetas lingüísticas en representaciones gráficas para un mejor aspecto visual de la aplicación.
-
-Si el resultado es exitoso la aplicación devuelve, de forma ordenada por puntuación, las posibles localizaciones con la siguiente información:
+Si el resultado es exitoso la aplicación devuelve, de forma ordenada, las posibles localizaciones con la siguiente información:
 
 \begin{itemize}
   \item Nombre.
   \item Información geográfica de la ruta más corta desde la ubicación del usuario hasta el lugar, mostrando la distancia y el tiempo de llegada aproximado.
   \item Probabilidad de estar ocupado.
-  \item Nivel de higiene esperado.
+  \item Nivel de higiene esperado, volviendo a transformar los valores numéricos en etiquetas lingüísticas.
 \end{itemize}
 
-Si por el contrario no hubiera éxito en el cálculo de los locales con las restricciones indicadas, la aplicación ofrecería al usuario recalcular las rutas relajando los posibles criterios.
+% Si por el contrario no hubiera éxito en el cálculo de los locales con las restricciones indicadas, la aplicación ofrecería al usuario recalcular las rutas relajando los posibles criterios.
 
 \begin{figure}[H]
   \centerfloat
