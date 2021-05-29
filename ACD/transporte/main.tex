@@ -103,9 +103,17 @@
 
 % ¿A quíen no le ha dado alguna vez un apretón en la calle? Bueno, no hay forma de evitar que eso ocurra, pero podemos ayudar a hacer el problema más ameno
 
+% Vaguedad en los datos
+% Propuesta, solo documentación
+
 % ---------------------------
 
 \section{Introducción}
+
+A todos alguna vez nos han dado la necesidad de ir al baño estando en la calle, y a nadie le gusta ir a un aseo poco higiénico.
+Esto además se vuelve un problema serio cuando viajamos de turismo o simplemente cuando nos encontramos en una zona poco conocida. Dada la urgencia de la situación, deámbular sin rumbo es algo que nadie desearía, y más si la persona cuenta con problemas intestinales o de próstata.
+
+\vspace{\baselineskip}
 
 % Nadie es extraño a dolores de tripa espontáneos, ya sea cuando estamos de turismo/paseo...
 % A nadie le resulta extraño...
@@ -113,13 +121,10 @@
 
 % Es necesaria la colaboración extrema y constante de los usuarios para crear la comunidad. Los principios de la app serán difíciles
 
-% Vaguedad en los datos
-% Propuesta, solo documentación
-
 % En los momentos de necesidad uno no se quiere preocuparse de detalles y solo quiere encontrar el lugar que mejor cumpla su función.
 % La aplicación, haciendo uso de una base de datos de aseos (públicos, restaurantes, centros comerciales, museos, etc.), encontrará 
 
-En las siguientes páginas se propone una aplicación móvil con técnicas de soft computing para este problema.
+De cara a ayudar en la búsqueda de estos lugares de alivio, en las siguientes páginas se propone una aplicación móvil basada en técnicas de soft computing que, a partir de la ubicación, encuentra el baño cercano óptimo siguiendo los criterios de preferencia del usuario.
 
 \section{Descripción del sistema}
 
@@ -141,18 +146,19 @@ Dividimos el núcleo de procesamiento en tres partes:
 Los valores de entrada al sistema son los siguientes:
 \begin{itemize}
   \item \textbf{Ubicación}: Mediante el geo-localizador del móvil se obtendrá una representación en coordenadas de la posición del usuario.
-  \item \textbf{Urgencia}: El usuario podrá elegir entre diferentes niveles de urgencia (inmediato, pronto, más adelante). 
+  \item \textbf{Urgencia}: Se podrá elegir entre diferentes etiquetas lingüísticas (inmediato, pronto, más adelante). 
   % Para la transformación en valores numéricos se obtendría por un lado el rango de distancia aceptado y un indicador de urgencia, siguiendo la función de pertenencia de la figura \ref{urgencia}.
 \end{itemize}
 
+\newpage
+
 Junto a un conjunto de parámetros opcionales para limitar y ajustar las preferencias del usuario:
 \begin{itemize}
-  \item \textbf{Criterios de higiene}: Se usaran 3 etiquetas lingüísticas (impecable, limpio, sucio) que devolverá el sistema.
+  \item \textbf{Criterios de higiene}: Se usaran 3 etiquetas lingüísticas (impecable, limpio, sucio).
   \item \textbf{Género}: Para filtrar los resultados de las reviews.
-  \item \textbf{Criterios adicionales}: Otros criterios para discriminar aseos, como discapacidad, con cambiador de bebes\dots.
+  \item \textbf{Criterios adicionales}: Otros criterios para discriminar aseos, como discapacidad, con cambiador de bebes, etc.
 \end{itemize}
 
-% Primeramente será necesario cuantificar los niveles cualitativos introducidos por el usuario.
 Los argumentos cualitativos se podrán transformar en numéricos con las siguientes funciones de transferencia:
 
 \begin{figure}[H]
@@ -178,7 +184,7 @@ Los argumentos cualitativos se podrán transformar en numéricos con las siguien
 
 \subsection{Subsistema central}
 
-A partir del criterio de urgencia podemos elegir un radio primario y secundario para la búsqueda de baños, cogiendo donde la función de transferencia vale 1 y 0. De esta forma tendríamos que:
+A partir del criterio de urgencia podemos elegir un radio de distancia primario y secundario, seleccionando donde la función de transferencia alcanza los valores 1 y 0. De esta forma tendríamos que:
 
 \begin{table}[H]
   \centering
@@ -194,6 +200,10 @@ A partir del criterio de urgencia podemos elegir un radio primario y secundario 
 % El primer valor se utilizaría para una primera búsqueda y el segundo en caso de que los baños encontrados no cumplieran las restricciones fuertes. 
 % Mejor un peso exponencial entonces
 % Estos valores se usarían para restringir el espacio de búsqueda
+
+% \vspace{\baselineskip}
+
+Esto permite extraer un rango máximo de distancia variable en función de la cantidad y calidad de los baños obtenidos.
 
 \vspace{\baselineskip}
 
@@ -216,7 +226,7 @@ Siendo:
 
 El nivel de ocupación se estimará con un modelo probabilístico teniendo en cuenta la hora del día, el flujo de personas habitual, y la naturaleza del establecimiento. 
 
-El cálculo del nivel de higiene también se calculará de la misma manera, considerando el posible conocimiento ad-hoc que otros usuarios de la aplicación hayan dejado.
+El nivel de higiene también se calculará de manera similar, considerando el posible conocimiento ad-hoc que otros usuarios de la aplicación hayan dejado.
 
 \subsection{Subsistema de salida}
 
@@ -233,17 +243,13 @@ Si el resultado es exitoso la aplicación devuelve, de forma ordenada, las posib
 
 \begin{figure}[H]
   \centerfloat
-  \includegraphics[width=0.45\textwidth]{img/4.png}
+  \includegraphics[width=0.4\textwidth]{img/4.png}
   \caption{Mockup de una posible salida de la aplicación.}
   \label{output}
 \end{figure}
 
-% (o también, si el sistema base es capaz de responde rápidamente, calcularlos en la primera llamada y ofrecerlos indicando las restricciones).
-
 % Probabilidad de estar ocupado: En base a la cantidad de gente en la zona. Una base de datos adicional (propia o con información introducida por los usuario) podría aportar conocimiento adicional sobre el número de baños, la ubicación (ej: si se encuentra en el bajo de un apartamento es de esperar que aparente haber más gente de la que hay). etc.
 % - Nivel de higiene: A partir de las reviews de los usuarios. También se podría hacer un estudio de ciencia de datos recogiendo datos de la ubicación, número de personas, fecha y hora\dots, con el objetivo de predecir el nivel de higiene en ese momento.
-
-% Información de si están rotos
 
 
 % Inicialmente, el sistema solicita al usuario que indique cuánto está dispuesto a desplazarse
