@@ -87,6 +87,12 @@
 % ==============================================================================
 % ==============================================================================
 
+\usepackage[final]{pdfpages}
+\newcommand\invisiblesection[1]{%
+  \refstepcounter{section}%
+  \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
+  \sectionmark{#1}}
+
 \begin{document}
     \pagenumbering{gobble}
     \input{portada/portada}
@@ -106,9 +112,12 @@
     % •    Realización de una tabla con previsiones financieras
     % •    Ejercicio de desarrollo de creatividad y de liderazgo.
 
-    % \input{secciones/canvas} \newpage
-    % \input{secciones/dafo} \newpage
-    % \input{secciones/patentes} \newpage
+    \input{secciones/canvas} \newpage
+    \input{secciones/dafo} \newpage
+    \invisiblesection{Financiación}
+    \includepdf[pages=-]{Ficha_Busqueda_Financiacion.pdf}
+    \input{secciones/patentes} \newpage
+    \input{secciones/creatividad}
 
 
 % • Distribución
