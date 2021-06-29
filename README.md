@@ -1,4 +1,4 @@
-# DATCOM
+# DS-Assignments
 Assignments solved during my Data Science Master course.
 
 ## Index
