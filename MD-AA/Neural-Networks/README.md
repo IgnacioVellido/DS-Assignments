@@ -1,5 +1,7 @@
 # Kaggle Competition: Usos del suelo con Sentinel 2
 
+Using multi-input NN (images + coordinates)
+
 ## Overview
 ### Description
 El objetivo de esta competición es diseñar un sistema automático que determine la clase de usos del suelo a partir de una imagen aérea o de satélite. Es decir, dada una imagen, queremos desarrollar un modelo de clasificación basado en redes neuronales que determine la clase correcta de dicha imagen.
